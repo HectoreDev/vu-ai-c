@@ -1,8 +1,8 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { algoliasearch } from "algoliasearch";
-import { boolean, z, ZodArray } from "zod";
-import { ConverToZOD, GetOnlyQuestions } from "./utils/convertJsonToZOD.js";
+import { ConverToZOD, GetOnlyQuestions, IFJSONData } from "./utils/convertJsonToZOD.js";
+import { request } from 'undici';
 
 // Create server instance
 const server = new McpServer({
@@ -47,10 +47,6 @@ interface IFQuestions {
 
 const client = algoliasearch('5WEGK1QY4E', '8df8e55bc82b699d19038a0fa007f3d7');
 
-// Objeto para almacenar las conversaciones de los usuarios
-// En un entorno real, esto debería ser una base de datos persistente
-const userSessions = {};
-
 async function makeLLMAlgoliaRequest(data: {
 	location: string,
 	bed: number,
@@ -77,44 +73,10 @@ async function makeLLMAlgoliaRequest(data: {
 
 }
 
+const response = await request('http://localhost:3000/config');
+const data = await response.body.json() as IFJSONData;
 
-const testingExternalData = GetOnlyQuestions();
-
-// const complex = {
-// 	questionNameJSON: z.object({
-// 		uid: z.string().describe('q01'),
-// 		value: z.string().describe("Nombre con el que se identifica el usuario, puede colocar el suyo o preguntar si lo llamamos invitado o amigo"),
-// 		active: z.boolean().describe('Si el valor de name está vacio, deja este valor en true, sino cambialo a false'),
-// 		options: z.array(z.string()).describe('Añade al array los string, "guess" e "friend').optional(),
-// 	}).describe("Regresa un json con el uid y el name que ha elegido el usuario"),
-// 	questionLocationJSON: z.object({
-// 		uid: z.string().describe('q02'),
-// 		value: z.string().describe("Nombre del lugar donde el usuario busca hogar"),
-// 		active: z.boolean().describe('Si el valor de location está vacio, deja este valor en true, sino cambialo a false'),
-// 		options: z.array(z.string()).describe('Añade al array los string, "Austion", "Phoenix", "Washington "Las Vegas"').optional(),
-// 	}).describe("Regresa un json con el uid y el location que ha elegido el usuario"),
-// 	questionBedsJSON: z.object({
-// 		uid: z.string().describe('q03'),
-// 		value: z.number().describe("Cantidad de habitaciones que el usuario busca en su nuevo hogar"),
-// 		active: z.boolean().describe('Si el valor de bed está vacio o es 0, deja este valor en true, sino cambialo a false'),
-// 		options: z.array(z.string()).describe('Añade al array los string, "Min-0" e "Max-10').optional(),
-// 	}).describe("Regresa un json con el uid y el bed que ha elegido el usuario"),
-// 	questionGarageJSON: z.object({
-// 		uid: z.string().describe('q04'),
-// 		value: z.number().describe("Cantidad de garages que el usuario busca en su nuevo hogar"),
-// 		active: z.boolean().describe('Si el valor de garage está vacio, deja este valor en true, sino cambialo a false'),
-// 		options: z.array(z.string()).describe('Añade al array los string, "Min-0" e "Max-10').optional(),
-// 	}).describe("Regresa un json con el uid y el garage que ha elegido el usuario")
-// };
-
-// const siemple = {
-// 	questionName: z.string().describe("Name of user"),
-// 	questionLocation: z.string().describe("City for get info"),
-// 	questionBeds: z.number().describe("Quantity of beds"),
-// 	questionGarage: z.number().describe("Quantity of garages"),
-// }
-
-console.log('si salgo en la tv');
+const testingExternalData = GetOnlyQuestions(data);
 
 // Tool para iniciar el flujo de conversación
 server.tool(
