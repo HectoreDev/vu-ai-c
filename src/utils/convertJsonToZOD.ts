@@ -1,16 +1,15 @@
 import { json } from '../db/json.js';
-import { boolean, z, ZodArray } from "zod"; 
+import { boolean, z, ZodArray } from "zod";
 
-const convertJSON = () => {
-
-}
-
-const convertArray = () => {
-
+export interface IFJSONData {
+  title: string;
+  nameTool: string;
+  systemInstruction: string;
+  description: string;
+  questions: {[key:string]: any}
 }
 
 const switchTypeInput = (options:{ [key: string]: any }) => {
-
 
   const arrayKey = Object.keys(options);
 
@@ -97,11 +96,11 @@ export const ConverToZOD = () => {
 
 }
 
-export const GetOnlyQuestions = () => {
+export const GetOnlyQuestions = (response:IFJSONData) => {
 
   const ZOD:any = {};
 
-  const { title, nameTool, systemInstruction, questions } = json;
+  const { title, nameTool, systemInstruction, questions } = response;
 
   ZOD.title = z.string().describe(title);
   ZOD.nameTool = z.string().describe(nameTool);
