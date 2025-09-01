@@ -184,41 +184,50 @@ curl -X POST http://localhost:3000/gemini/chat \
 
 ## 🔧 Schema for managment data between MCP and LLM
 
+#### Communities Algolia
+
 Get communities from Algolia with data from LLM. This data is getter when tool `get-community-info` is called. We can get filter info in this call for range of price or beds, for status or amenities.
 
+| Name           | Type         | Description | Filter or Searchable | Required |
+| :-------       | :------     | :------- |  :------- | :------- |
+| community_id   | string       | uid of community  | Only filter  | Required  |
+| community_name | string       | name of community  | Only filter  | Required  |
+| community_status | string       | it´s a string but has multiples options for status of community  | Searchable | Required  |
+| price_min | number       | Min price for any plan in community | Filter | Not required  |
+| price_max | number       | Max price for any plan in community | Filter | Not required  |
+| state_abbreviation | string       | name with abbreviation for states | Filter | Required  |
+| bedrooms_min | number       | Min beds for any plan in community | Filter | Not required  |
+| bedrooms_max | number       | Max beds for any plan in community | Filter | Not rRequired  |
+| amenities | array[strings]       | Array with amenities nearby to community | Filter | Required  |
+| objectID | string       | Uid for algolia records | Filter | Required  |
+
+Example Call:
 ```javascript
-// Name of index to access in Algolia is communities-gemini
+const responseAlgolia = await client.search({
+    requests: [
+      {
+        indexName: 'communities-gemini',
+        query: '',
+        filters: '_origin.community.name:"communityName"',
+        numericFilters: 'price_min >= 1',
+        hitsPerPage: 100
+      }
+    ],
+  });
+```
 
-export interface CommunitiesAlgolia {
-  "CommunityId": string,
-  "CompanyCode": string,
-  "ProjectCode": string,
-  "CommunityName": string,
-  "CommunityStatus": string,
-  "PriceMin": number,
-  "PriceMax": number,
-  "StateAbbreviation": string,
-  "BedroomsMin": number,
-  "BedroomsMax": number,
-  "hasExtraData": boolean,
-  "amenities": string[],
-  "objectID": string // Algolia id
-}
+Example Response:
 
-Example:
-
+```javascript
 {
-  "CommunityId": "03005107",
-  "CompanyCode": "3005",
-  "ProjectCode": "107",
-  "CommunityName": "Turnberry",
-  "CommunityStatus": "Move-In Ready Homes Available ",
-  "PriceMin": 484990,
-  "PriceMax": 557990,
-  "StateAbbreviation": "CO",
-  "BedroomsMin": "2",
-  "BedroomsMax": "7",
-  "hasExtraData": true,
+  "community_id": "03005107",
+  "community_name": "Turnberry",
+  "community_status": "Move-In Ready Homes Available ",
+  "price_min": 484990,
+  "price_max": 557990,
+  "state_abbreviation": "CO",
+  "bedrooms_min": "2",
+  "bedrooms_max": "7",
   "amenities": [
     "Community playground",
     "Turnberry Elementary School",
@@ -226,8 +235,25 @@ Example:
     "Denver International Airport",
     "Walking paths"
   ],
-  "objectID": "3556344002"
+  "objectID": "3556344002" // Algolia id
 }
+```
+
+Interface
+```javascript
+export interface CommunitiesAlgolia {
+  "community_id": string,
+  "community_name": string,
+  "community_status": string,
+  "price_min": number,
+  "price_max": number,
+  "state_abbreviation": string,
+  "bedrooms_min": number,
+  "bedrooms_max": number,
+  "amenities": string[],
+  "objectID": string // Algolia id
+}
+
 ```
 
 ```javascript
@@ -249,22 +275,37 @@ Example:
 
 When a community was selected, we can filter Lots for get relevant information for user like size of terrain, cost, orientation or plans to build in this lot. This api run if `get-siteplans` tool was trigged. Siteplans has all lots, but we can filter Lots by status for get only available lots. Lots has id for get Plans to select elevation.
 
+| Name           | Type         | Description | Filter or Searchable | Required |
+| :-------       | :------     | :------- |  :------- | :------- |
+| lotUID   | string | uid of lot  | Only filter  | Required  |
+| address | string | directions  | Not serchable  | Required  |
+| segmentUID | string | uid for segment in siteplan  | Only filter | Required  |
+| uid | string  | Unique id | Filter | Required  |
+| collectionUID | string | Uid for collection of lots | Filter | Required  |
+| status | string | Lot status with flag for type of visibility in app | Filter or Searchable | Required  |
+| reservationCost | number | Cost for reservation lots | Filter | Not Required  |
+| needPlan | boolean | Status boolan for know about plan is required | Filter | Required  |
+| plansArray | array[strings] | String of uid plan availables in lots | Filter | Required  |
+| objectID | string | Uid for algolia records | Filter | Required  |
+
+Example Call:
 ```javascript
-// Name of index to access in Algolia is lots-gemini
-export interface LotsAlgolia {
-  "lotUID": string,
-  "address": string | null,
-  "segmentUID": string,
-  "uid": string,
-  "collectionUID": string,
-  "status": string,
-  "reservationCost": number,
-  "needPlan": boolean,
-  "plansArray": string[],
-  "objectID": string // Algolia ID
-}
+const responseAlgolia = await client.search({
+    requests: [
+      {
+        indexName: 'lots-gemini',
+        query: '',
+        filters: 'status:"sold"',
+        numericFilters: 'reservationCost >= 100',
+        hitsPerPage: 100
+      }
+    ],
+  });
+```
 
 Example:
+
+```javascript
 
 {
   "lotUID": "88ebd83d-aee8-48e9-853d-705256815649",
@@ -284,24 +325,48 @@ Example:
 
 ```
 
-Now user can choice differents plans according his selection or AI recommendation. In this moment `get-floorplans` tool filtered plan by `uid`.
-
 ```javascript
-// Name of index to access in Algolia is floorplans-gemini
-export interface PlanAlgolia {
+// Name of index to access in Algolia is lots-gemini
+export interface LotsAlgolia {
+  "lotUID": string,
+  "address": string | null,
+  "segmentUID": string,
   "uid": string,
-  "name": string,
-  "status": string
-}
-
-
-export interface FloorplansAlgolia {
-  "divisionUID": string,
-  "uid": string,
-  "name": string,
-  "floorplan": PlanAlgolia[],
+  "collectionUID": string,
+  "status": string,
+  "reservationCost": number,
+  "needPlan": boolean,
+  "plansArray": string[],
   "objectID": string // Algolia ID
 }
+
+```
+
+Now user can choice differents plans according his selection or AI recommendation. In this moment `get-floorplans` tool filtered plan by `uid`.
+
+| Name           | Type         | Description | Filter or Searchable | Required |
+| :-------       | :------     | :------- |  :------- | :------- |
+| divisionUID   | string | uid of division  | Only filter  | Required  |
+| uid | string  | Unique id | Filter | Required  |
+| name | string | Name of Plan  | Filter or Searchable  | Required  |
+| floorplan | array[floorplan] | floorplan: { uid: string, name: string, status: string } | Uid Filter, Name Filter or Searchable, Status Filter or Searchable | Required  |
+| objectID | string | Uid for algolia records | Filter | Required  |
+
+Example Call:
+```javascript
+const responseAlgolia = await client.search({
+    requests: [
+      {
+        indexName: 'floorplans-gemini',
+        query: 'Residence 1',
+        filters: 'status:"sold"',
+        hitsPerPage: 100
+      }
+    ],
+  });
+```
+
+```javascript
 
 Example:
 {
@@ -325,11 +390,78 @@ Example:
 
 ```
 
+```javascript
+// Name of index to access in Algolia is floorplans-gemini
+export interface PlanAlgolia {
+  "uid": string,
+  "name": string,
+  "status": string
+}
+
+
+export interface FloorplansAlgolia {
+  "divisionUID": string,
+  "uid": string,
+  "name": string,
+  "floorplan": PlanAlgolia[],
+  "objectID": string // Algolia ID
+}
+```
+
 ### Work in progress
 
 If user selected a plan but this want to see silimar options. We have a trained model including photos of plans. This option has a percentage of precision and is linked by community. Getting better results if it's the same community but this can recommend similar plans in another community, in this case we can add more options in the search.
 
 Note: Call to recommendation it's diffent to filter and search. For more details visit https://www.algolia.com/doc/rest-api/recommend/#tag/recommendations 
+
+| Name           | Type         | Description | Filter or Searchable | Required |
+| :-------       | :------     | :------- |  :------- | :------- |
+| objectID | string | Uid for algolia records | Filter | Required  |
+| uid | string  | Uid generated by model trained | Filter | Required |
+| name | string | Name of Floorplan  | Filter or Searchable  | Required |
+| imageSrc | string | Url of image trained for search similars | NA | Required  |
+| uidPlan | string | Uid of Plan | Filter | Required  |
+| communityUid | string | Uid of community father | Filter | Required  |
+| hasBasement | boolean | Status for know about if plan has basement | Filter | Not required  |
+| hasPool | boolean | Status for know about if plan has pool | Filter | Not required  |
+| material | string | Name of material selected for plan | Searchable or Filter | Not required  |
+
+```javascript
+lookingSimilar({
+  container: '#lookingSimilar',
+  objectIDs: ['5723537'],
+  templates: {
+    item(recommendation, { html }) {
+      return html`
+        <h2>${recommendation.name}</h2>
+        <p>${recommendation.description}</p>
+      `;
+    },
+  },
+  queryParameters: {
+    filters: 'communityUid:"Pss3pmwQY6a7X9JMbqdT"',
+  }
+});
+
+```
+
+Example:
+
+```javascript
+
+{
+  "uid": "2088b4d7-e3f3-4338-a7ce-57b355138583",
+  "name": "Exterior T",
+  "imageSrc": "https://firebasestorage.googleapis.com/v0/b/taylor-morrison-vu.appspot.com/o/basegroup%2F6QP5GahAXuejC6Q4n307%2FqMl7or5NaezSEibDF5J6%2Fassets%2Fa0785f64-e126-4151-b35d-7ca397901a5e.jpg?alt=media&token=75b22720-5eb6-4215-9cf6-8b38fb84058a",
+  "uidPlan": "6QP5GahAXuejC6Q4n307",
+  "communityUid": "Pss3pmwQY6a7X9JMbqdT",
+  "hasBasement": true,
+  "hasPool": false,
+  "material": "brick",
+  "objectID": "257409002"
+}
+
+```
 
 ```javascript
 // Name of index to access in Algolia is images-house
@@ -343,20 +475,6 @@ export interface ImagesRecommended {
   "hasPool": boolean,
   "material": string,
   "objectID": string // Algolia ID
-}
-
-Example:
-
-{
-  "uid": "2088b4d7-e3f3-4338-a7ce-57b355138583",
-  "name": "Exterior T",
-  "imageSrc": "https://firebasestorage.googleapis.com/v0/b/taylor-morrison-vu.appspot.com/o/basegroup%2F6QP5GahAXuejC6Q4n307%2FqMl7or5NaezSEibDF5J6%2Fassets%2Fa0785f64-e126-4151-b35d-7ca397901a5e.jpg?alt=media&token=75b22720-5eb6-4215-9cf6-8b38fb84058a",
-  "uidPlan": "6QP5GahAXuejC6Q4n307",
-  "communityUid": "Pss3pmwQY6a7X9JMbqdT",
-  "hasBasement": true,
-  "hasPool": false,
-  "material": "brick",
-  "objectID": "257409002"
 }
 
 ```
