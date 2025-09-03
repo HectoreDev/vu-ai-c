@@ -475,9 +475,11 @@ export const executeGetMinMaxPricesTool = async (args: any) => {
         };
     }
 
+    const divisionObj = getDivisionByName(location);
+
     const dataSearch: IFAlgoliaSearchProps = {
         uid: sessionId,
-        name: validation.session?.name,
+        name: divisionObj.id,
         location: location
     }
 
@@ -491,8 +493,8 @@ export const executeGetMinMaxPricesTool = async (args: any) => {
     console.log("division", JSON.stringify(resultRequest))
     const division: AlgoliaCommunityResult = resultRequest[0]
     
-    const minPrice = division.price?.priceMin || 0;
-    const maxPrice = division.price?.priceMax || 0;
+    const minPrice = division.PriceMin || 0;
+    const maxPrice = division.PriceMax || 0;
     
     return {
         success: true,
@@ -563,45 +565,38 @@ export const executeGetAmenitiesFromPricesTool = async (args: any) => {
             error: "No se proporcionó ubicación y no hay ubicación guardada en la sesión"
         };
     }
+ 
+     const dataSearch: IFAlgoliaSearchProps = {
+        uid: sessionId,
+        name: validation.session?.name,
+        location: location,
+        priceMin: args.data?.priceMin,
+        priceMax: args.data?.priceMax
+    }
 
-    
-
-
-  /* 
-   const arrAmenities: any[] = [];
-
-        successfulResults.forEach(result => {
-            if (result.data && result.data.amenitiesImages) {
-                arrAmenities.push(result.data.amenitiesImages);
-            }
-        });
-
-        const amenitiesText = arrAmenities
-            .flat()
-            .map((amenity: any) => amenity.caption)
-            .filter((caption: string) => caption && caption.trim())
-            .join('\n');
-
-        console.log(`📊 Amenities extraídas: ${arrAmenities.length} grupos de amenities`);
-
+    const resultRequest: AlgoliaSearchResult | null = await makeLLMAlgoliaRequest(dataSearch);
+    if (!resultRequest) {
         return {
-            success: true,
-            data: {
-                name: args.data.name,
-                location: location,
-                amenities: amenitiesText,
-                stats: {
-                    totalCommunities: communitiesDataFiltered.length,
-                    processedCommunities: communitiesToProcess.length,
-                    successfulDownloads: successfulResults.length,
-                    failedDownloads: failedResults.length,
-                    priceRange: {
-                        min: args.data.priceMin,
-                        max: args.data.priceMax
-                    }
-                }
-            }
-        }; */
+            success: false,
+            error: "División no encontrada"
+        };
+    }
+    console.log("amenities", JSON.stringify(resultRequest))
+    const amenitiesResult: AlgoliaCommunityResult = resultRequest[0]
+    const arrAmenities: string[] = [];
+     
+    if (amenitiesResult.amenities) {
+        arrAmenities.push(...amenitiesResult.amenities);
+    }
+    return {
+        success: true,
+        data: {
+            name: args.data.name,
+            location: location,
+            amenities: arrAmenities
+        }
+    };
+ 
 }
 
 

@@ -332,7 +332,7 @@ export class GeminiService {
                 break;
         }
 
-        return `Eres un asistente que recolecta información en 3 pasos SECUENCIALES.
+        return `Eres un asistente que recolecta información en pasos SECUENCIALES.
 
             ${contextInfo}
             ${availableData ? `\nDATOS YA RECOLECTADOS:${availableData}` : ''}
@@ -556,6 +556,7 @@ export class GeminiService {
                                     toolsUsed: [toolName, 'get-min-max-prices'],
                                     priceMin: minMax.data.priceMin,
                                     priceMax: minMax.data.priceMax,
+                                    location: toolResult.data.location,
                                     sessionState: {
                                         step: 4,
                                         completed: false,
@@ -594,6 +595,7 @@ export class GeminiService {
                 case 'get-min-max-prices':
                     if (toolResult.success && toolResult.data && toolResult.data.priceMin && toolResult.data.priceMax) {
                         this.updateSessionState(sessionId, {
+                            location: toolResult.data.location,
                             priceMin: toolResult.data.priceMin,
                             priceMax: toolResult.data.priceMax,
                             step: 4,
@@ -607,6 +609,7 @@ export class GeminiService {
                             .then(enhancedResponse => ({
                                 text: enhancedResponse,
                                 toolsUsed: [toolName],
+                                location: toolResult.data.location,
                                 priceMin: toolResult.data.priceMin,
                                 priceMax: toolResult.data.priceMax,
                                 sessionState: {
@@ -635,6 +638,9 @@ export class GeminiService {
                 case 'get-amenities-from-prices':
                     if (toolResult.success && toolResult.data && toolResult.data.amenities) {
                         this.updateSessionState(sessionId, {
+                            location: toolResult.data.location,
+                            priceMin: toolResult.data.priceMin,
+                            priceMax: toolResult.data.priceMax,
                             amenities: toolResult.data.amenities,
                             step: 4,
                             lastToolUsed: toolName
@@ -665,6 +671,9 @@ export class GeminiService {
                                 text: enhancedResponse,
                                 toolsUsed: [toolName],
                                 amenities: toolResult.data.amenities,
+                                location: toolResult.data.location,
+                                priceMin: toolResult.data.priceMin,
+                                priceMax: toolResult.data.priceMax,
                                 sessionState: {
                                     step: 4,
                                     completed: false,

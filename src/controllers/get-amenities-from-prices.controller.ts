@@ -39,7 +39,7 @@ export const getAmenitiesFromPrices = async (req: Request, res: Response) => {
     res.setTimeout(1500000); // 25 minutos
     
     try {
-        console.log('🚀 Iniciando procesamiento de amenities...');
+      
         const sessionData = amenitiesFromPrices.parse(req.body);
         
         // Enviar respuesta inmediata para mantener la conexión viva
@@ -48,14 +48,7 @@ export const getAmenitiesFromPrices = async (req: Request, res: Response) => {
             'Transfer-Encoding': 'chunked',
             'Connection': 'keep-alive',
             'Cache-Control': 'no-cache'
-        });
-        
-        // Enviar progreso inicial
-        res.write(JSON.stringify({ 
-            status: 'processing', 
-            message: 'Iniciando procesamiento...',
-            timestamp: new Date().toISOString()
-        }) + '\n');
+        }); 
         
         const result = await mcpServer.callTool("get-amenities-from-prices", { data: sessionData });
         
