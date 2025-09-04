@@ -1,6 +1,25 @@
 import { Request, Response } from "express";
 import { geminiService } from "../llm/gemini.service";
 
+interface IFData {
+    location: string;
+    priceMin: number;
+    priceMax: number;
+    amenities: string[];
+    communities: {
+        uid: string;
+        name: string;
+    }[];
+    floorplans: {
+        uid: string;
+        name: string;
+    }[];
+    siteplans: {
+        uid: string;
+        name: string;
+    }[];
+}
+
 export const chatWithGemini = async (req: Request, res: Response): Promise<void> => {
     try {
         const { message, sessionId } = req.body;
@@ -15,15 +34,23 @@ export const chatWithGemini = async (req: Request, res: Response): Promise<void>
 
         const result = await geminiService.chatWithTools(message, sessionId);
         console.log("result-gemini-chat-with-tools", result);
+        let data: IFData = {
+            location: result.location,
+            priceMin: result.priceMin,
+            priceMax: result.priceMax,
+            amenities: result.amenities,
+            communities: result.communities,
+            floorplans: result.floorplans,
+            siteplans: result.siteplans,
+        };
+     
         res.json({
             success: true,
-            data: {
-                response: result.text,
+            response: {
+                prompt: result.text,
                 toolsUsed: result.toolsUsed,
                 sessionId: result.sessionId,
-                communities: result.communities,
-                community: result.community,
-                amenities: result.amenities
+                data
             }
         });
     } catch (error) {
