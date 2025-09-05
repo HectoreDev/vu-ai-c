@@ -602,7 +602,7 @@ export const executeGetAmenitiesFromPricesTool = async (args: any) => {
 
 export const getCommunitiesTool: Tool = {
     name: "get-communities",
-    description: "Encuentra comunidades cercanas a la ubicación proporcionada, requiere sesión válida",
+    description: "Encuentra comunidades cercanas a la ubicación proporcionada, precios y amenidades, requiere sesión válida",
     inputSchema: {
         type: "object",
         properties: {
@@ -621,6 +621,18 @@ export const getCommunitiesTool: Tool = {
                     location: {
                         type: "string",
                         description: "Ubicación para buscar comunidades (opcional, se usa de la sesión si no se proporciona)"
+                    },
+                    priceMin: {
+                        type: "number",
+                        description: "precio minimo"
+                    },
+                    priceMax: {
+                        type: "number",
+                        description: "precio maximo"
+                    },
+                    amenities: {
+                        type: "array",
+                        description: "amenidades"
                     }
                 },
                 anyOf: [

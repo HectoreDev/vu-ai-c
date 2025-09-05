@@ -384,6 +384,10 @@ export class GeminiService {
                 INSTRUCCIONES:
                 - Genera una respuesta natural, amigable y profesional
                 - Mantén el mensaje base pero hazlo más conversacional
+                - el nombre si se muestra normal, no lo agregues en el json
+                - Los datos recolectados agregalos en formato JSON con las siguientes claves: min, max, amenities, communities, solo muestra los que tengan informacion
+                - en la tool de get-min-max-prices muestra el dato de min max como un objeto json: {min: precio_minimo, max: precio_maximo}
+                - en la tool de get-amenities-from-prices muestra el dato de amenities como un objeto json array de string y no lo agregues dentro del texto
                 - Si hay información adicional en el resultado de la herramienta, incorpórala naturalmente
                 - Para el caso de get-communities, solo muestra 4 comunidades del listado de comunidades
                 - Usa emojis apropiados (máximo 2)
@@ -547,7 +551,7 @@ export class GeminiService {
                             });
 
                             const updatedState = this.getSessionState(sessionId)!;
-                            const baseMessage = `¡Excelente! Encontré el rango de precios en ${toolResult.data.location}:\n\nMínimo: $${minMax.data.priceMin?.toLocaleString()}\nMáximo: $${minMax.data.priceMax?.toLocaleString()}\n\n Ingresa o selecciona el rango de precios que se ajuste a tu búsqueda`;
+                            const baseMessage = `¡Excelente! Encontré el rango de precios en ${toolResult.data.location}:\n\n Ingresa o selecciona el rango de precios que se ajuste a tu búsqueda`;
 
                             // Generar respuesta contextual
                             return this.generateContextualResponse(baseMessage, 'get-min-max-prices', minMax.data.message, updatedState)
@@ -591,7 +595,6 @@ export class GeminiService {
                         };
                     }
                     break;
-
                 case 'get-min-max-prices':
                     if (toolResult.success && toolResult.data && toolResult.data.priceMin && toolResult.data.priceMax) {
                         this.updateSessionState(sessionId, {
@@ -602,7 +605,7 @@ export class GeminiService {
                             lastToolUsed: toolName
                         });
 
-                        const baseMessage = `¡Excelente! Encontré el rango de precios en ${toolResult.data.location}:\n\nMínimo: $${toolResult.data.priceMin?.toLocaleString()}\nMáximo: $${toolResult.data.priceMax?.toLocaleString()}\n\nSelecciona el rango de precios que se ajuste a tu búsqueda`;
+                        const baseMessage = `¡Excelente! Encontré el rango de precios en ${toolResult.data.location}:\n\nSelecciona el rango de precios que se ajuste a tu búsqueda`;
 
                         // Generar respuesta contextual
                         return this.generateContextualResponse(baseMessage, toolName, toolResult.data.message, sessionState)
@@ -663,7 +666,7 @@ export class GeminiService {
                             amenitiesText = 'No se encontraron amenidades específicas';
                         }
 
-                        const baseMessage = `¡Excelente! Encontré las amenidades en ${toolResult.data.location}:\n\n🎯 AMENIDADES DISPONIBLES:\n${amenitiesText}\n\n¿Te interesa información específica de alguna comunidad?`;
+                        const baseMessage = `¡Excelente! Encontré las amenidades en ${toolResult.data.location}:\n\n¿Te interesa información específica de alguna comunidad?`;
 
                         // Generar respuesta contextual
                         return this.generateContextualResponse(baseMessage, toolName, toolResult.data.message, updatedState)
