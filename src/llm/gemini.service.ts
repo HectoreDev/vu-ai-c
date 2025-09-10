@@ -115,7 +115,7 @@ export class GeminiService {
                                     lastToolUsed: 'get-name'
                                 });
 
-                                const baseMessage = `¡Hola ${extractedName}! Sesión iniciada exitosamente. Ahora necesito saber en qué ubicación estás buscando tu hogar.`;
+                                const baseMessage = [`¡Hola ${extractedName}! Sesión iniciada exitosamente.`, `Ahora necesito saber en qué ubicación estás buscando tu hogar.`];
 
                                 return this.generateContextualResponse(baseMessage, 'get-name', nameResult, newSessionState)
                                     .then(enhancedResponse => ({
@@ -344,7 +344,7 @@ export class GeminiService {
             - Solo ejecutar UNA herramienta por interacción
             - Seguir el orden estricto: init -> get-name -> get-location -> get-min-max-prices -> get-amenities-from-prices -> get-communities -> get-community-info
             - NO saltar pasos ni retroceder
-            - Esperar confirmación del sistema antes de avanzar
+            - Esperar confirmación del sistema antes de avanzar 
 
             Usuario: ${message}
 
@@ -358,7 +358,7 @@ export class GeminiService {
             Si no necesitas herramientas, responde normalmente.`;
     }
 
-    private async generateContextualResponse(baseMessage: string, toolName: string, toolResult: any, sessionState: SessionState): Promise<string> {
+    private async generateContextualResponse(baseMessage: string[], toolName: string, toolResult: any, sessionState: SessionState): Promise<string> {
         try {
             const contextPrompt = `
                 Eres un asistente amigable y profesional para una aplicación de búsqueda de casas.
@@ -373,7 +373,7 @@ export class GeminiService {
                 ${sessionState.amenities ? `Amenidades: ${sessionState.amenities}` : ''} 
                 ${sessionState.communities ? `Comunidades: ${sessionState.communities}` : ''}
                 
-                MENSAJE BASE: ${baseMessage}
+                MENSAJE BASE: ${baseMessage.join(', ')}
                 
                 RESULTADO DE LA HERRAMIENTA: ${JSON.stringify(toolResult)}
                 
@@ -382,18 +382,19 @@ export class GeminiService {
                 - Datos disponibles: ${JSON.stringify(sessionState)}
                 
                 INSTRUCCIONES:
-                - Genera una respuesta natural, amigable y profesional
-                - Mantén el mensaje base pero hazlo más conversacional
-                - el nombre si se muestra normal, no lo agregues en el json
-                - Los datos recolectados agregalos en formato JSON con las siguientes claves: min, max, amenities, communities, solo muestra los que tengan informacion
-                - en la tool de get-min-max-prices muestra el dato de min max como un objeto json: {min: precio_minimo, max: precio_maximo}
-                - en la tool de get-amenities-from-prices muestra el dato de amenities como un objeto json array de string y no lo agregues dentro del texto
-                - Si hay información adicional en el resultado de la herramienta, incorpórala naturalmente
+                - Genera una respuesta natural, amigable y profesional para los textos del baseMessage
+                - Mantén el mensaje base pero hazlo más conversacional 
+                - Utiliza este formato json de respuesta para la tool session-start: [{message:${baseMessage[0]}, type: ${toolName}, sessionId: ${toolResult?.data?.sessionId}}, {message: ${baseMessage[1]}}]
+                - Utiliza este formato de respuesta para la tool get-name: [{message:${baseMessage[0]}, type: ${toolName}, sessionId: ${sessionState.sessionId}}, {message: ${baseMessage[1]}}]
+                - Utiliza este formato de respuesta para la tool get-location: [{message:${baseMessage[0]}, type: ${toolName}, sessionId: ${sessionState.sessionId}}, {message: ${baseMessage[1]}}]   
+                - Utiliza este formato de respuesta para la tool get-min-max-prices: [{message:${baseMessage[0]}, type: ${toolName}, sessionId: ${sessionState.sessionId}}, {min: precio_minimo, max: precio_maximo}, {message: ${baseMessage[1]}}]   
+                - Utiliza este formato de respuesta para la tool get-amenities-from-prices: [{message:${baseMessage[0]}, type: ${toolName}, sessionId: ${sessionState.sessionId}, amenities: ${JSON.stringify(toolResult?.data?.amenities)}, {message: ${baseMessage[1]}}]
+                - Utiliza este formato de respuesta para la tool get-communities: [{message:${baseMessage[0]}, type: ${toolName}, sessionId: ${sessionState.sessionId}}, {message: ${baseMessage[1]}}]
                 - Para el caso de get-communities, solo muestra 4 comunidades del listado de comunidades
                 - Usa emojis apropiados (máximo 2)
                 - Mantén un tono positivo y guía al usuario hacia el siguiente paso
-                - La respuesta debe ser concisa (máximo 2-3 líneas)
-                
+                - La respuesta debe ser concisa y siempre responder en el formato json, codificalo correctamente para que no muestre caracteres "\n" o espacios en blanco 
+                - El mensaje debe ser amigable y profesional
                 Responde únicamente con el mensaje mejorado, sin explicaciones adicionales.
             `;
 
@@ -406,7 +407,7 @@ export class GeminiService {
         } catch (error) {
             console.error('Error generando respuesta contextual:', error);
             // Si falla, devolver el mensaje base
-            return baseMessage;
+            return baseMessage.join(', ');
         }
     }
 
@@ -414,9 +415,7 @@ export class GeminiService {
         console.log(`Manejando resultado de ${toolName}:`, toolResult);
 
         // Verificar si el resultado indica éxito
-        if (toolResult.success) {
-            let responseText = '';
-            let nextStep = sessionState.step;
+        if (toolResult.success) { 
 
             switch (toolName) {
                 case 'session-start':
@@ -430,11 +429,11 @@ export class GeminiService {
 
                         // Usar el mensaje específico de la herramienta si está disponible
                         const baseMessage = toolResult.data.nextStep
-                            ? `Sesión iniciada exitosamente ${toolResult.data.nextStep}`
-                            : `Sesión iniciada exitosamente. Ahora necesito que me proporciones tu nombre.`;
+                            ? [`Sesión iniciada exitosamente`, `${toolResult.data.nextStep}`]
+                            : [`Sesión iniciada exitosamente`, `Ahora necesito que me proporciones tu nombre.`];
 
                         // Generar respuesta contextual
-                        return this.generateContextualResponse(baseMessage, toolName, toolResult.message, sessionState)
+                        return this.generateContextualResponse(baseMessage, toolName, toolResult, sessionState)
                             .then(enhancedResponse => ({
                                 text: enhancedResponse,
                                 toolsUsed: [toolName],
@@ -467,7 +466,7 @@ export class GeminiService {
                             lastToolUsed: toolName
                         });
 
-                        const baseMessage = `Ahora necesito tu ubicación.`;
+                        const baseMessage = [`Gracias, ${toolResult.data.name}`,`Ahora necesito tu ubicación.`];
 
                         // Generar respuesta contextual
                         return this.generateContextualResponse(baseMessage, toolName, toolResult.message, { ...sessionState, name: toolResult.data.name })
@@ -525,7 +524,7 @@ export class GeminiService {
                             console.error('❌ Error en get-min-max-prices automático:', error.message);
 
                             // Si hay error, devolver respuesta indicando el problema pero manteniendo la ubicación guardada
-                            const errorMessage = `Ubicación guardada correctamente en ${toolResult.data.location}, pero hubo un problema obteniendo los precios: ${error.message}. ¿Podrías intentar nuevamente o verificar la ubicación?`;
+                            const errorMessage = [`Ubicación guardada correctamente en ${toolResult.data.location}, pero hubo un problema obteniendo los precios: ${error.message}. ¿Podrías intentar nuevamente o verificar la ubicación?`];
 
                             return this.generateContextualResponse(errorMessage, toolName, toolResult, { ...sessionState, location: toolResult.data.location })
                                 .then(enhancedResponse => ({
@@ -551,7 +550,7 @@ export class GeminiService {
                             });
 
                             const updatedState = this.getSessionState(sessionId)!;
-                            const baseMessage = `¡Excelente! Encontré el rango de precios en ${toolResult.data.location}:\n\n Ingresa o selecciona el rango de precios que se ajuste a tu búsqueda`;
+                            const baseMessage = [`¡Excelente! Encontré el rango de precios en ${toolResult.data.location}:`, `Ingresa o selecciona el rango de precios que se ajuste a tu búsqueda`];
 
                             // Generar respuesta contextual
                             return this.generateContextualResponse(baseMessage, 'get-min-max-prices', minMax.data.message, updatedState)
@@ -569,7 +568,7 @@ export class GeminiService {
                                 }));
                         } else {
                             // Si get-min-max-prices falla, mantener en step 3 para retry
-                            const errorMessage = `Ubicación guardada en ${toolResult.data.location}, pero hubo un problema obteniendo los precios: ${minMax.error || 'Error desconocido'}. ¿Podrías intentar con otra ubicación o verificar que sea correcta?`;
+                            const errorMessage = [`Ubicación guardada en ${toolResult.data.location}, pero hubo un problema obteniendo los precios: ${minMax.error || 'Error desconocido'}. ¿Podrías intentar con otra ubicación o verificar que sea correcta?`];
 
                             return this.generateContextualResponse(errorMessage, toolName, toolResult, { ...sessionState, location: toolResult.data.location })
                                 .then(enhancedResponse => ({
@@ -605,7 +604,7 @@ export class GeminiService {
                             lastToolUsed: toolName
                         });
 
-                        const baseMessage = `¡Excelente! Encontré el rango de precios en ${toolResult.data.location}:\n\nSelecciona el rango de precios que se ajuste a tu búsqueda`;
+                        const baseMessage = [`¡Excelente! Encontré el rango de precios en ${toolResult.data.location}:`,`Selecciona el rango de precios que se ajuste a tu búsqueda`];
 
                         // Generar respuesta contextual
                         return this.generateContextualResponse(baseMessage, toolName, toolResult.data.message, sessionState)
@@ -651,25 +650,10 @@ export class GeminiService {
 
                         const updatedState = this.getSessionState(sessionId)!;
 
-                        // Formatear las amenidades para mostrar información legible
-                        let amenitiesText = '';
-                        if (toolResult.data.amenities && Array.isArray(toolResult.data.amenities)) {
-                            const allAmenities = toolResult.data.amenities.flat(); // Aplanar el array anidado
-                            const uniqueAmenities = allAmenities.filter((amenity: any, index: number, self: any[]) =>
-                                index === self.findIndex((a: any) => a.name === amenity.name)
-                            );
-
-                            amenitiesText = uniqueAmenities.map((amenity: any) =>
-                                `• ${amenity.name}: ${amenity.description}`
-                            ).join('\n');
-                        } else {
-                            amenitiesText = 'No se encontraron amenidades específicas';
-                        }
-
-                        const baseMessage = `¡Excelente! Encontré las amenidades en ${toolResult.data.location}:\n\n¿Te interesa información específica de alguna comunidad?`;
+                        const baseMessage = [`¡Excelente! Encontré las amenidades en ${toolResult.data.location}:`,`¿Te interesa información específica de alguna comunidad?`];
 
                         // Generar respuesta contextual
-                        return this.generateContextualResponse(baseMessage, toolName, toolResult.data.message, updatedState)
+                        return this.generateContextualResponse(baseMessage, toolName, toolResult, updatedState)
                             .then(enhancedResponse => ({
                                 text: enhancedResponse,
                                 toolsUsed: [toolName],
@@ -710,7 +694,7 @@ export class GeminiService {
                         });
                         const finalState = this.getSessionState(sessionId)!;
 
-                        const baseMessage = `¡Excelente! Encontré varias comunidades en ${toolResult.data.location || finalState.location}:\n\n${toolResult.data.communities}\n\n¿Te interesa información específica de alguna comunidad?`;
+                        const baseMessage = [`¡Excelente! Encontré varias comunidades en ${toolResult.data.location || finalState.location}:`,`${toolResult.data.communities}`,`¿Te interesa información específica de alguna comunidad?`];
 
                         // Generar respuesta contextual
                         return this.generateContextualResponse(baseMessage, toolName, toolResult.data.message, finalState)
@@ -801,7 +785,7 @@ export class GeminiService {
                                 ❌ No se encontraron siteplans para esta comunidad`;
                         }
 
-                        const baseMessage = `¡Perfecto! tenemos informacion de tu búsqueda de hogar. 
+                        const baseMessage = [`¡Perfecto! tenemos informacion de tu búsqueda de hogar. 
                                                         
                                 📋 RESUMEN DE TU BÚSQUEDA:
                                 👤 Nombre: ${finalState.name}
@@ -813,7 +797,7 @@ export class GeminiService {
                                 ${amenitiesList}
                                 ${siteplanInfo}
 
-                                ¡Gracias por usar nuestro servicio! Si deseas realizar una nueva búsqueda, puedes decir 'hola' o directamente indicar tu nombre para comenzar de nuevo.`;
+                                ¡Gracias por usar nuestro servicio! Si deseas realizar una nueva búsqueda, puedes decir 'hola' o directamente indicar tu nombre para comenzar de nuevo.`];
 
                         // Generar respuesta contextual
                         return this.generateContextualResponse(baseMessage, toolName, toolResult.data.message, finalState)
