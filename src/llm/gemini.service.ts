@@ -67,7 +67,17 @@ export class GeminiService {
 		// @ts-ignore
 		console.log('tools function3', result.response.functionCalls())
 		// @ts-ignore
-		console.log('tools function3-3', result.response.candidates?.length)
+		console.log('tools function3-3', result.response.candidates[0].functionCalls)
+
+		const functionCalls = result.response.functionCalls() ? result.response.functionCalls() : [];
+
+		if(functionCalls && functionCalls.length) {
+			const { name, args } = functionCalls[0]
+			const mcpResult = await mcpServer.callTool(name, args);
+			console.log('Resultados de herramientas:', mcpResult);
+		} else {
+			console.log('No se detectaron llamadas a herramientas en la respuesta.');
+		}
 
 		console.log('🤖 Respuesta contextual generada:', enhancedResponse);
 		return {

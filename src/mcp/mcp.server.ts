@@ -9,10 +9,10 @@ export class SimpleMcpServer {
     private tools: Map<string, Function> = new Map();
 
     constructor() {
-        this.tools.set("get-name", executeGetNameTool);
-        this.tools.set("get-location", executeGetLocationTool);
-        this.tools.set("get-min-max-prices", executeGetMinMaxPricesTool);
-        this.tools.set("get-amenities-from-prices", executeGetAmenitiesFromPricesTool);
+        this.tools.set("getName", executeGetNameTool);
+        this.tools.set("getLocation", executeGetLocationTool);
+        this.tools.set("getBudget", executeGetMinMaxPricesTool);
+        this.tools.set("getAmenities", executeGetAmenitiesFromPricesTool);
         this.tools.set("session-start", executeSessionTool);
         this.tools.set("get-communities", executeGetCommunitiesTool);
         this.tools.set("get-community-info", executeGetCommunityInfoTool);
