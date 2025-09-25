@@ -29,6 +29,20 @@ export class SessionHelper {
             lastToolUsed: state.lastToolUsed,
             sessionId: state.sessionId,
             mcpSessionId: state.mcpSessionId,
+
+            // Nuevos campos del flujo extendido
+            welcome: state.welcome,
+            nameSpecs: state.nameSpecs,
+            interest: state.interest,
+            markets: state.markets,
+            budgetProduct: state.budgetProduct,
+            budgetType: state.budgetType,
+            budget: state.budget,
+            customizing: state.customizing,
+            moveInReady: state.moveInReady,
+            renting: state.renting,
+            floorplanSpecs: state.floorplanSpecs,
+            homeInterest: state.homeInterest,
         };
     }
 
@@ -50,6 +64,20 @@ export class SessionHelper {
             lastToolUsed: sessionState.lastToolUsed,
             sessionId: sessionState.sessionId,
             mcpSessionId: sessionState.mcpSessionId,
+
+            // Nuevos campos del flujo extendido
+            welcome: sessionState.welcome,
+            nameSpecs: sessionState.nameSpecs,
+            interest: sessionState.interest,
+            markets: sessionState.markets,
+            budgetProduct: sessionState.budgetProduct,
+            budgetType: sessionState.budgetType,
+            budget: sessionState.budget,
+            customizing: sessionState.customizing,
+            moveInReady: sessionState.moveInReady,
+            renting: sessionState.renting,
+            floorplanSpecs: sessionState.floorplanSpecs,
+            homeInterest: sessionState.homeInterest,
         });
     }
 
@@ -160,6 +188,20 @@ export class SessionHelper {
         if (state.communities) completedData.push('Comunidades encontradas');
         else missingData.push('Comunidades');
 
+        // Verificar nuevos campos del flujo extendido
+        if (state.welcome) completedData.push(`Bienvenida: ${state.welcome}`);
+        if (state.nameSpecs) completedData.push(`Especificaciones de nombre: ${state.nameSpecs}`);
+        if (state.interest.length > 0) completedData.push(`Intereses: ${state.interest.join(', ')}`);
+        if (state.markets.length > 0) completedData.push(`Mercados: ${state.markets.join(', ')}`);
+        if (state.budgetProduct) completedData.push(`Producto presupuestario: ${state.budgetProduct}`);
+        if (state.budgetType) completedData.push(`Tipo de presupuesto: ${state.budgetType}`);
+        if (state.budget) completedData.push(`Presupuesto: $${state.budget.toLocaleString()}`);
+        if (state.customizing) completedData.push(`Personalización: ${state.customizing}`);
+        if (state.moveInReady) completedData.push(`Listo para mudanza: ${state.moveInReady}`);
+        if (state.renting) completedData.push(`Alquiler: ${state.renting}`);
+        if (state.floorplanSpecs) completedData.push(`Especificaciones de plano: ${state.floorplanSpecs}`);
+        if (state.homeInterest.length > 0) completedData.push(`Interés en hogar: ${state.homeInterest.join(', ')}`);
+
         // Determinar siguiente acción
         const nextStep = this.getNextValidStep();
         const nextActions = [
@@ -181,14 +223,128 @@ export class SessionHelper {
             nextAction: nextActions[nextStep] || 'Acción desconocida'
         };
     }
+
+    /**
+     * Obtiene un resumen de los nuevos campos del flujo extendido
+     */
+    static getExtendedFieldsSummary(): {
+        welcome: string | null;
+        nameSpecs: string | null;
+        interests: string[];
+        markets: string[];
+        budget: {
+            product: string | null;
+            type: string | null;
+            amount: number | undefined;
+        };
+        preferences: {
+            customizing: string | null;
+            moveInReady: string | null;
+            renting: string | null;
+        };
+        homeSpecs: {
+            floorplan: string | undefined;
+            interests: string[];
+        };
+    } {
+        const state = useSessionStore.getState();
+
+        return {
+            welcome: state.welcome,
+            nameSpecs: state.nameSpecs,
+            interests: state.interest,
+            markets: state.markets,
+            budget: {
+                product: state.budgetProduct,
+                type: state.budgetType,
+                amount: state.budget,
+            },
+            preferences: {
+                customizing: state.customizing,
+                moveInReady: state.moveInReady,
+                renting: state.renting,
+            },
+            homeSpecs: {
+                floorplan: state.floorplanSpecs,
+                interests: state.homeInterest,
+            },
+        };
+    }
+
+    /**
+     * Limpia solo los nuevos campos del flujo extendido
+     */
+    static resetExtendedFields(): void {
+        const { updateSessionData } = useSessionStore.getState();
+
+        updateSessionData({
+            welcome: null,
+            nameSpecs: null,
+            interest: [],
+            markets: [],
+            budgetProduct: null,
+            budgetType: null,
+            budget: undefined,
+            customizing: null,
+            moveInReady: null,
+            renting: null,
+            floorplanSpecs: undefined,
+            homeInterest: [],
+        });
+    }
+
+    /**
+     * Valida si hay suficiente información en los nuevos campos
+     */
+    static validateExtendedFields(): {
+        isValid: boolean;
+        completedFields: string[];
+        missingFields: string[];
+    } {
+        const state = useSessionStore.getState();
+        const completedFields: string[] = [];
+        const missingFields: string[] = [];
+
+        // Validar campos opcionales pero importantes
+        if (state.welcome) completedFields.push('welcome');
+        else missingFields.push('welcome');
+
+        if (state.interest.length > 0) completedFields.push('interest');
+        else missingFields.push('interest');
+
+        if (state.markets.length > 0) completedFields.push('markets');
+        else missingFields.push('markets');
+
+        if (state.budget) completedFields.push('budget');
+        else missingFields.push('budget');
+
+        if (state.homeInterest.length > 0) completedFields.push('homeInterest');
+        else missingFields.push('homeInterest');
+
+        return {
+            isValid: completedFields.length >= 3, // Al menos 3 campos completados
+            completedFields,
+            missingFields,
+        };
+    }
 }
 
 // Funciones de utilidad exportadas
 export const sessionUtils = {
+    // Conversión y compatibilidad
     toSessionState: SessionHelper.toSessionState,
     fromSessionState: SessionHelper.fromSessionState,
+
+    // Validación y flujo
     validateStateForStep: SessionHelper.validateStateForStep,
     getNextValidStep: SessionHelper.getNextValidStep,
     startNewSession: SessionHelper.startNewSession,
+
+    // Resúmenes y análisis
     getFullSummary: SessionHelper.getFullSummary,
+    getExtendedFieldsSummary: SessionHelper.getExtendedFieldsSummary,
+
+    // Gestión de campos extendidos
+    resetExtendedFields: SessionHelper.resetExtendedFields,
+    validateExtendedFields: SessionHelper.validateExtendedFields,
 };
