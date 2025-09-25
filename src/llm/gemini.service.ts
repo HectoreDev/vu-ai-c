@@ -8,29 +8,6 @@ import { SessionHelper } from "../store/helper";
 import type { SessionState } from "./types/gemini.types";
 
 export class GeminiService {
-	/**
-	 * Obtiene el estado actual de la sesión desde el store de Zustand
-	 */
-	private getSessionState(): SessionState {
-		return SessionHelper.toSessionState();
-	}
-
-	/**
-	 * Actualiza el estado de la sesión en el store de Zustand
-	 */
-	private updateSessionState(updates: Partial<SessionState>): void {
-		const store = useSessionStore.getState();
-		store.updateSessionData(updates as any);
-		console.log('Estado de sesión actualizado:', this.getSessionState());
-	}
-
-	/**
-	 * Crea una nueva sesión inicializando el store
-	 */
-	private createNewSessionState(mcpSessionId?: string): SessionState {
-		SessionHelper.startNewSession(mcpSessionId);
-		return this.getSessionState();
-	}
 
 	async chatWithTools(message: string, sessionId?: number) {
 
@@ -43,48 +20,48 @@ export class GeminiService {
 				{ role: 'user', parts: [{ text: contextPrompt }] }
 			]
 		});
-		const enhancedResponse = result.response.text().trim();
+		// const enhancedResponse = result.response.text().trim();
 
-
-		console.log('Resultados de herramientas:', enhancedResponse);
+		// console.log('Resultados de herramientas:', enhancedResponse);
 
 		// @ts-ignore
 		console.log('tools function3', result.response.functionCalls())
-		// @ts-ignore
-		console.log('tools function3-3', result.response.candidates[0].functionCalls)
 
 		const functionCalls = result.response.functionCalls() ? result.response.functionCalls() : [];
 
 		if (functionCalls && functionCalls.length) {
 			const { name, args } = functionCalls[0]
 			const mcpResult = await mcpServer.callTool(name, args);
-			console.log('Resultados de herramientas:', mcpResult);
+			console.log('Resultados de herramientas:', mcpResult.sessionId);
+
+			const resultMCP = await model.generateContent({
+				contents: [
+					{ role: 'user', parts: [{ text: mcpResult.text }]  }
+				],
+				systemInstruction: 'La información es un arreglo JSON en formato string con las comunidades que cumplen los requisitos del usuario. Usa la información para sugerirle al usuario la mejor opción de casa acorde a sus necesidades y preferencias. Si no tienes suficiente información, haz preguntas adicionales para obtener más detalles sobre sus requisitos y gustos.'
+			});
+
+			console.log('Respuesta final con datos de MCP:', resultMCP);
+
+			// @ts-ignore
+			console.log('text:', resultMCP.response.candidates[0].text);
+			// @ts-ignore
+			console.log('text:', resultMCP.response.text());
+
+			// @ts-ignore
+			return { text: resultMCP.response.candidates[0].text,
+				toolsUsed: [name]
+			};
+
 		} else {
 			console.log('No se detectaron llamadas a herramientas en la respuesta.');
 		}
 
-		console.log('🤖 Respuesta contextual generada:', enhancedResponse);
 		return {
-			text: enhancedResponse,
+			text: '',
 			toolsUsed: []
 		};
 
-	}
-
-	/**
-	 * Limpia el estado de la sesión actual
-	 */
-	clearSessionState(): void {
-		const store = useSessionStore.getState();
-		store.reset();
-		console.log('Estado de sesión limpiado');
-	}
-
-	/**
-	 * Obtiene el estado actual de la sesión (método público)
-	 */
-	getSessionStatePublic(): SessionState {
-		return this.getSessionState();
 	}
 
 }

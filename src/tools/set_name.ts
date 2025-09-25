@@ -2,7 +2,7 @@
 import * as crypto from "node:crypto";
 import { z } from "zod";
 import { useSessionStore } from "./../store/zustandStore";
-
+import { dataFakeCommunities } from "../db/db.testhouse";
 
 const ArgsSchema = z.object({
   sessionId: z.string().trim().min(1).optional(),
@@ -39,7 +39,8 @@ export const handleSetName = async (args: Args) => {
   return {
     ok: true,
     sessionId,
-    state: store,
+    // text: dataInText,
+    // state: store,
     saved: {
       name,
     }
