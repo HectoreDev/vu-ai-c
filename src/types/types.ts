@@ -8,10 +8,10 @@ export type BudgetType = {
 };
 
 export type FloorplanSpecs = {
-  square_footage?: Range;
-  bedroom_count?: Range;
-  bathroom_count?: Range;
-  garage_size?: Range;
+  sqft: Range;
+  beds: Range;
+  baths: Range;
+  garage: Range;
 };
 
 export type Range = { min: number; max: number };

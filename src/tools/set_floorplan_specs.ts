@@ -1,6 +1,7 @@
 // src/mcp/tools/setFloorplanSpecs.ts
 import { z } from "zod";
 import { useSessionStore } from "./../store/zustandStore";
+import { FloorplanSpecs } from "../types/types";
 
 // ---------- parsing helpers ----------
 const parseNumberish = (v?: unknown): number | undefined => {
@@ -24,7 +25,6 @@ const parseNumberish = (v?: unknown): number | undefined => {
 
 const Numberish = z.union([z.number(), z.string()]).transform(parseNumberish);
 
-// Acepta valores top-level o en floorplanSpecs
 const FloorLoose = z
   .object({
     sqft: Numberish.optional(),
@@ -68,22 +68,34 @@ const ArgsSchema = z.object({
 type Range = { min: number; max: number } | undefined;
 
 const toRange = (single?: number, min?: number, max?: number): Range => {
-
   if (typeof single === "number" && Number.isFinite(single)) {
     return { min: single, max: single };
   }
 
-  if (typeof min === "number" && Number.isFinite(min) && (typeof max !== "number" || !Number.isFinite(max))) {
+  if (
+    typeof min === "number" &&
+    Number.isFinite(min) &&
+    (typeof max !== "number" || !Number.isFinite(max))
+  ) {
     return { min, max: min };
   }
-  if (typeof max === "number" && Number.isFinite(max) && (typeof min !== "number" || !Number.isFinite(min))) {
+  if (
+    typeof max === "number" &&
+    Number.isFinite(max) &&
+    (typeof min !== "number" || !Number.isFinite(min))
+  ) {
     return { min: max, max };
   }
 
-  if (typeof min === "number" && Number.isFinite(min) && typeof max === "number" && Number.isFinite(max)) {
+  if (
+    typeof min === "number" &&
+    Number.isFinite(min) &&
+    typeof max === "number" &&
+    Number.isFinite(max)
+  ) {
     return { min, max };
   }
- 
+
   return undefined;
 };
 
@@ -105,7 +117,6 @@ const normalizeAndValidate = (input: z.infer<typeof ArgsSchema>) => {
   const garageSingle = input.garage ?? input.garages ?? g.garage ?? g.garages;
   const garageMin = input.garage_min ?? g.garage_min;
   const garageMax = input.garage_max ?? g.garage_max;
-
 
   const isPositive = (n?: number) => (n == null ? true : n >= 0);
   if (
@@ -152,16 +163,11 @@ const normalizeAndValidate = (input: z.infer<typeof ArgsSchema>) => {
 
   return {
     floorplanPatch: {
-      square_footage: sqftRange,
-      bedroom_count: bedroomRange,
-      bathroom_count: bathroomRange,
-      garage_size: garageRange,
-    } as {
-      square_footage: Range;
-      bedroom_count: Range;
-      bathroom_count: Range;
-      garage_size: Range;
-    },
+      sqft: sqftRange,
+      beds: bedroomRange,
+      baths: bathroomRange,
+      garage: garageRange,
+    } as FloorplanSpecs,
   };
 };
 

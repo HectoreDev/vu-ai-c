@@ -2,6 +2,7 @@
 import { z } from "zod";
 import { useSessionStore } from "./../store/zustandStore";
 import { InterestRate } from "../types/types";
+import { validateSession } from "../utils/validateSession";
 
 
 const ArgsSchema = z.object({
@@ -59,26 +60,16 @@ function normalizeProduct(input?: {
 type Args = z.infer<typeof ArgsSchema>;
 
 export const handleGetInterestRate =  async (rawArgs: Args) => {
-  // Fast check for session
-  const pre = z.object({ sessionId: z.string().trim().min(1).optional() }).safeParse(rawArgs);
-  if (!pre.success || !pre.data.sessionId) {
-    return {
-      ok: false,
-      error: "MISSING_SESSION",
-      message: "Missing sessionId. Ask for the user's name to start a session.",
-      suggest: {
-        nextTool: "get_name",
-        reason: "Capture the user's name to create or resume a session.",
-      },
-    };
-  }
+ 
+   const pre = validateSession(rawArgs);
+    if (!pre.ok) return pre;
 
   const parsed = ArgsSchema.safeParse(rawArgs);
   if (!parsed.success) {
     return {
       ok: false,
       error: "VALIDATION_ERROR",
-      sessionId: pre.data.sessionId,
+      sessionId: pre.sessionId,
       issues: parsed.error.issues,
       message: "Invalid get_interest_rate arguments.",
     };

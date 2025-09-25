@@ -1,6 +1,7 @@
 // src/mcp/tools/customizing.ts
 import { z } from "zod";
 import { useSessionStore } from "./../store/zustandStore";
+import { validateSession } from "../utils/validateSession";
 
 const ArgsSchema = z.object({
   sessionId: z.string().trim().min(1, "sessionId is required."),
@@ -12,7 +13,7 @@ const ArgsSchema = z.object({
   path: ["customizing"],
 });
 
-// normaliza yes/no desde answer/label
+
 function normalizeBoolean(input?: { customizing?: boolean; answer?: string; label?: string }): boolean | undefined {
   if (typeof input?.customizing === "boolean") return input.customizing;
 
@@ -39,27 +40,17 @@ function normalizeBoolean(input?: { customizing?: boolean; answer?: string; labe
 
 type Args = z.infer<typeof ArgsSchema>;
 
-export const handleCustomizing = (rawArgs: unknown) => {
+export const handleCustomizing = (rawArgs: Args) => {
 
-  const pre = z.object({ sessionId: z.string().trim().min(1).optional() }).safeParse(rawArgs);
-  if (!pre.success || !pre.data.sessionId) {
-    return {
-      ok: false,
-      error: "MISSING_SESSION",
-      message: "Missing sessionId. Ask for the user's name to start a session.",
-      suggest: {
-        nextTool: "get_name_render",
-        reason: "Capture the user's name to create or resume a session.",
-      },
-    };
-  }
+   const pre = validateSession(rawArgs);
+    if (!pre.ok) return pre;
 
   const parsed = ArgsSchema.safeParse(rawArgs);
   if (!parsed.success) {
     return {
       ok: false,
       error: "VALIDATION_ERROR",
-      sessionId: pre.data.sessionId,
+      sessionId: pre.sessionId,
       issues: parsed.error.issues,
       message: "Invalid customizing arguments.",
     };

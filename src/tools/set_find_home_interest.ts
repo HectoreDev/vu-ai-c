@@ -1,6 +1,7 @@
 // src/mcp/tools/interestedFindHome.ts
 import { z } from "zod";
 import { useSessionStore } from "./../store/zustandStore";
+import { validateSession } from "../utils/validateSession";
 
 const InterestAsArray = z
   .union([z.array(z.string()), z.string()])
@@ -16,20 +17,8 @@ type Args = z.infer<typeof ArgsSchema>;
 
 export const handleInterestedFindHome = async (rawArgs: Args) => {
 
-  const pre = z
-    .object({ sessionId: z.string().trim().min(1).optional() })
-    .safeParse(rawArgs);
-  if (!pre.success || !pre.data.sessionId) {
-    return {
-      ok: false,
-      error: "MISSING_SESSION",
-      message: "Missing sessionId. Ask for the user's name to start a session.",
-      suggest: {
-        nextTool: "get_name",
-        reason: "Capture the user's name to create or resume a session.",
-      },
-    };
-  }
+   const pre = validateSession(rawArgs);
+    if (!pre.ok) return pre;
 
   const parsed = ArgsSchema.safeParse(rawArgs);
 
@@ -37,7 +26,7 @@ export const handleInterestedFindHome = async (rawArgs: Args) => {
     return {
       ok: false,
       error: "VALIDATION_ERROR",
-      sessionId: pre.data.sessionId,
+      sessionId: pre.sessionId,
       issues: parsed.error.issues,
       message: "Invalid interesed_find_home arguments.",
     };
