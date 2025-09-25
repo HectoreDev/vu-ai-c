@@ -31,7 +31,7 @@ export const handleSetLocation = async (rawArgs: Args) => {
       error: "MISSING_SESSION",
       message: "Missing sessionId. Ask for the user's name to start a session.",
       suggest: {
-        nextTool: "get_name_render",
+        nextTool: "get_name",
         reason: "Capture the user's name to create or resume a session.",
       },
     };

@@ -9,7 +9,7 @@ const InterestAsArray = z
 
 const ArgsSchema = z.object({
   sessionId: z.string().trim().min(1, "sessionId is required."),
-  interest: InterestAsArray, // ← ya tipa a string[]
+  interest: InterestAsArray,
 });
 
 type Args = z.infer<typeof ArgsSchema>;
