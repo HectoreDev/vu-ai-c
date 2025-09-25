@@ -51,7 +51,7 @@ export const handleSetLocation = async (rawArgs: Args) => {
   const { locations, sessionId } = parsed.data;
   const locs = toArray(locations);
 
-  const store = useSessionStore();
+  const store = useSessionStore.getState();
 
   store.setlocations(locs);
 

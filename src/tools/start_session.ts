@@ -6,8 +6,8 @@ export const handleStartSession = async () => {
       ? crypto.randomUUID()
       : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
-  const store = useSessionStore();
-  store.setSessionId({ sessionId } as any);
+  const store = useSessionStore.getState();
+  store.setSessionId(sessionId);
 
   return {
     ok: true,
