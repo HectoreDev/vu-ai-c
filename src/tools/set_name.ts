@@ -1,8 +1,8 @@
 // src/mcp/tools/getName.ts
-import crypto from "node:crypto";
+import * as crypto from "node:crypto";
 import { z } from "zod";
 import { useSessionStore } from "./../store/zustandStore";
-
+import { dataFakeCommunities } from "../db/db.testhouse";
 
 const ArgsSchema = z.object({
   sessionId: z.string().trim().min(1).optional(),
@@ -31,20 +31,18 @@ export const handleSetName = async (args: Args) => {
 
   if (!sessionId) sessionId = genSessionId();
 
-  const store = useSessionStore();
+  const store = useSessionStore.getState();
 
   store.setName(name);
+  store.setSessionId(sessionId);
 
   return {
     ok: true,
     sessionId,
-    state: store,
+    // text: dataInText,
+    // state: store,
     saved: {
       name,
-    },
-    // suggest: {
-    //   nextTool: "interest_home_render",
-    //   reason: "Name captured; proceed to ask for motivations/interests.",
-    // },
+    }
   };
 };

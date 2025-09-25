@@ -54,9 +54,9 @@ export const handleInterestedFindHome = async (rawArgs: Args) => {
     };
   }
 
-  const store = useSessionStore();
+  const store = useSessionStore.getState();
 
-  store.setInterestHome(interest);
+  store.setHomeInterest(interest);
 
   return {
     ok: true,

@@ -50,9 +50,9 @@ export class SessionHelper {
      * Actualiza el store desde un objeto SessionState
      */
     static fromSessionState(sessionState: import('../llm/types/gemini.types').SessionState): void {
-        const { updateSessionData } = useSessionStore.getState();
+        const store = useSessionStore.getState();
 
-        updateSessionData({
+        store.updateSessionData({
             step: sessionState.step,
             name: sessionState.name,
             locations: sessionState.locations,
@@ -141,15 +141,15 @@ export class SessionHelper {
      * Resetea el store y prepara para una nueva sesión
      */
     static startNewSession(mcpSessionId?: string): void {
-        const { reset, setMcpSessionId, setStep } = useSessionStore.getState();
+        const store = useSessionStore.getState();
 
-        reset();
+        store.reset();
 
         if (mcpSessionId) {
-            setMcpSessionId(mcpSessionId);
+            store.setMcpSessionId(mcpSessionId);
         }
 
-        setStep(0);
+        store.setStep(0);
     }
 
     /**
@@ -275,9 +275,9 @@ export class SessionHelper {
      * Limpia solo los nuevos campos del flujo extendido
      */
     static resetExtendedFields(): void {
-        const { updateSessionData } = useSessionStore.getState();
+        const store = useSessionStore.getState();
 
-        updateSessionData({
+        store.updateSessionData({
             welcome: null,
             nameSpecs: null,
             interest: [],

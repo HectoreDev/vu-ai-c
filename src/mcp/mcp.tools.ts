@@ -105,7 +105,6 @@ async function loadCommunitiesForMCP(params: LoadCommunitiesForMCPParams): Promi
         };
     }
 }
- 
 
 // Sistema de gestión de sesiones
 interface SessionData {
@@ -221,20 +220,6 @@ setInterval(() => {
     }
 }, 30 * 60 * 1000);
 
-export const sessionTool: Tool = {
-    name: "session-start",
-    description: "Crea una nueva sesión y devuelve un id único",
-    inputSchema: {
-        type: "object",
-        properties: {
-            data: {
-                type: "object",
-                description: "Datos de la sesión"
-            }
-        }
-    }
-};
-
 export async function executeSessionTool(args: any) {
     const session = createSession(args.data);
     return {
@@ -248,212 +233,29 @@ export async function executeSessionTool(args: any) {
     };
 }
 
-export const getNameTool: Tool = {
-    name: "get-name",
-    description: "Pregunta al usuario su nombre, puedes dar opciones como Amigo, Invitado, etc. Requiere una sesión válida para ejecutarse.",
-    inputSchema: {
-        type: "object",
-        properties: {
-            data: {
-                type: "object",
-                description: "Solicita el nombre al usuario. Debe incluir token de sesión válido.",
-                properties: {
-                    sessionId: {
-                        type: "string",
-                        description: "Token de sesión válido"
-                    },
-                    token: {
-                        type: "string",
-                        description: "Token de sesión válido (alternativo)"
-                    },
-                    name: {
-                        type: "string",
-                        description: "Nombre del usuario"
-                    }
-                },
-                required: ["name"],
-                anyOf: [
-                    { required: ["sessionId"] },
-                    { required: ["token"] }
-                ]
-            }
-        }
-    }
-};
-
 export async function executeGetNameTool(args: any) {
-    // Verificar sesión usando el nuevo sistema
-    const sessionId = args.data?.sessionId || args.data?.token || args.data?.id;
-    const validation = validateSession(sessionId);
-
-    if (!validation.valid) {
-        return {
-            success: false,
-            error: validation.error || "Sesión inválida"
-        };
-    }
-
-    // Actualizar sesión con el nombre del usuario
-    const updateResult = updateSession(sessionId, {
-        name: args.data.name
-    });
-
-    if (!updateResult.success) {
-        return {
-            success: false,
-            error: updateResult.error || "Error actualizando sesión"
-        };
-    }
 
     return {
         success: true,
         data: {
             name: args.data.name,
-            sessionId: sessionId,
-            valid: true,
-            session: updateResult.session
+            sessionId: 'sessionId'
         }
     };
 }
- 
-export const getLocationTool: Tool = {
-    name: "get-location",
-    description: "Obtiene la ubicación donde el usuario busca casas, requiere sesión válida para ejecutar",
-    inputSchema: {
-        type: "object",
-        properties: {
-            data: {
-                type: "object",
-                description: "Datos de la ubicación y token de sesión",
-                properties: {
-                    sessionId: {
-                        type: "string",
-                        description: "Token de sesión válido"
-                    },
-                    token: {
-                        type: "string",
-                        description: "Token de sesión válido (alternativo)"
-                    },
-                    location: {
-                        type: "string",
-                        description: "Ubicación donde buscar casas"
-                    }
-                },
-                required: ["location"],
-                anyOf: [
-                    { required: ["sessionId"] },
-                    { required: ["token"] }
-                ]
-            }
-        }
-    }
-};
 
 export async function executeGetLocationTool(args: any) {
-    // Verificar sesión usando el nuevo sistema
-    const sessionId = args.data?.sessionId || args.data?.token || args.data?.id;
-    const validation = validateSession(sessionId);
-
-    if (!validation.valid) {
-        return {
-            success: false,
-            error: validation.error || "Sesión inválida"
-        };
-    }
-
-    let location = args.data.location;
-
-    if (!location) {
-        location = args.location;  // Puede estar directamente en args
-        console.log('🔍 Buscando en args.location:', location);
-    }
-
-    if (!location) {
-        location = args.data.ubicacion;  // Por si viene en español
-        console.log('🔍 Buscando en args.data.ubicacion:', location);
-    }
-
-    if (!location) {
-        // Buscar cualquier propiedad que pueda contener la ubicación
-        const possibleKeys = ['city', 'lugar', 'address', 'direccion'];
-        for (const key of possibleKeys) {
-            if (args.data[key]) {
-                location = args.data[key];
-                break;
-            }
-        }
-    }
-
-    if (!location) {
-        console.log('❌ No se pudo extraer la ubicación de los argumentos');
-        return {
-            success: false,
-            error: 'No se proporcionó ubicación válida',
-            debug: {
-                argsReceived: args,
-                dataReceived: args.data
-            }
-        };
-    }
-
-    // Actualizar sesión con la ubicación
-    const updateResult = updateSession(sessionId, { 
-        location: location
-    });
-
-    if (!updateResult.success) {
-        return {
-            success: false,
-            error: updateResult.error || "Error actualizando sesión"
-        };
-    }
 
     const result = {
         success: true,
         data: {
-            name: updateResult.session?.name,
-            location: location,
-            sessionId: sessionId,
-            session: updateResult.session
+            args
         }
     };
 
     console.log('✅ executeGetLocationTool - Resultado final:', JSON.stringify(result, null, 2));
     return result;
 }
-
-
-export const getMinMaxPricesTool: Tool = {
-    name: "get-min-max-prices",
-    description: "Obtiene los precios mínimos y máximos de una division específica, requiere sesión válida",
-    inputSchema: {
-        type: "object",
-        properties: {
-            data: {
-                type: "object",
-                description: "Datos de la comunidad y token de sesión",
-                properties: {
-                    sessionId: {
-                        type: "string",
-                        description: "Token de sesión válido"
-                    },
-                    token: {
-                        type: "string",
-                        description: "Token de sesión válido (alternativo)"
-                    },
-                    location: {
-                        type: "string",
-                        description: "nombre de la división"
-                    }
-                },
-                anyOf: [
-                    { required: ["sessionId"] },
-                    { required: ["token"] }
-                ]
-            }
-        }
-    }
-};
 
 export const executeGetMinMaxPricesTool = async (args: any) => {
 
@@ -506,46 +308,6 @@ export const executeGetMinMaxPricesTool = async (args: any) => {
         }
     };
 }
-
-export const getAmenitiesFromPricesTool: Tool = {
-    name: "get-amenities-from-prices",
-    description: "Obtiene las amenidades de un grupo de comunidades, a partir de un rango de precios, requiere sesión válida",
-    inputSchema: {
-        type: "object",
-        properties: {
-            data: {
-                type: "object",
-                description: "Datos de la division, rango de precios y token de sesión",
-                properties: {
-                    sessionId: {
-                        type: "string",
-                        description: "Token de sesión válido"
-                    },
-                    token: {
-                        type: "string",
-                        description: "Token de sesión válido (alternativo)"
-                    },
-                    location: {
-                        type: "string",
-                        description: "nombre de la división"
-                    },
-                    priceMin: {
-                        type: "number",
-                        description: "precio minimo"
-                    },
-                    priceMax: {
-                        type: "number",
-                        description: "precio maximo"
-                    }
-                },
-                anyOf: [
-                    { required: ["sessionId"] },
-                    { required: ["token"] }
-                ]
-            }
-        }
-    }
-};
  
 export const executeGetAmenitiesFromPricesTool = async (args: any) => {
     const sessionId = args.data?.sessionId || args.data?.token || args.data?.id;
@@ -598,51 +360,6 @@ export const executeGetAmenitiesFromPricesTool = async (args: any) => {
     };
  
 }
-
-
-export const getCommunitiesTool: Tool = {
-    name: "get-communities",
-    description: "Encuentra comunidades cercanas a la ubicación proporcionada, precios y amenidades, requiere sesión válida",
-    inputSchema: {
-        type: "object",
-        properties: {
-            data: {
-                type: "object",
-                description: "Datos de la búsqueda de comunidades y token de sesión",
-                properties: {
-                    sessionId: {
-                        type: "string",
-                        description: "Token de sesión válido"
-                    },
-                    token: {
-                        type: "string",
-                        description: "Token de sesión válido (alternativo)"
-                    },
-                    location: {
-                        type: "string",
-                        description: "Ubicación para buscar comunidades (opcional, se usa de la sesión si no se proporciona)"
-                    },
-                    priceMin: {
-                        type: "number",
-                        description: "precio minimo"
-                    },
-                    priceMax: {
-                        type: "number",
-                        description: "precio maximo"
-                    },
-                    amenities: {
-                        type: "array",
-                        description: "amenidades"
-                    }
-                },
-                anyOf: [
-                    { required: ["sessionId"] },
-                    { required: ["token"] }
-                ]
-            }
-        }
-    }
-};
 
 export async function executeGetCommunitiesTool(args: any) {
     console.log('🔍 executeGetCommunitiesTool - Datos recibidos:', JSON.stringify(args, null, 2));
@@ -729,42 +446,6 @@ export async function executeGetCommunitiesTool(args: any) {
     console.log('✅ executeFindCommunitiesTool - Resultado final:', JSON.stringify(result));
     return result;
 }
-
-export const getCommunityInfoTool: Tool = {
-    name: "get-community-info",
-    description: "Obtiene información de una comunidad específica, requiere sesión válida",
-    inputSchema: {
-        type: "object",
-        properties: {
-            data: {
-                type: "object",
-                description: "Datos de la comunidad y token de sesión",
-                properties: {
-                    sessionId: {
-                        type: "string",
-                        description: "Token de sesión válido"
-                    },
-                    token: {
-                        type: "string",
-                        description: "Token de sesión válido (alternativo)"
-                    },
-                    communityUID: {
-                        type: "string",
-                        description: "ID de la comunidad"
-                    },
-                    communityName: {
-                        type: "string",
-                        description: "Nombre de la comunidad"
-                    }
-                },
-                anyOf: [
-                    { required: ["sessionId"] },
-                    { required: ["token"] }
-                ]
-            }
-        }
-    }
-};
 
 export async function executeGetCommunityInfoTool(args: any) {
     // Verificar sesión usando el nuevo sistema
@@ -857,40 +538,6 @@ export async function executeGetCommunityInfoTool(args: any) {
     };
 }
 
-
-export const checkSessionTool: Tool = {
-    name: "check-session",
-    description: "Verifica si la sesión es válida y devuelve información de la sesión",
-    inputSchema: {
-        type: "object",
-        properties: {
-            data: {
-                type: "object",
-                description: "Token de sesión a verificar",
-                properties: {
-                    sessionId: {
-                        type: "string",
-                        description: "Token de sesión a verificar"
-                    },
-                    token: {
-                        type: "string",
-                        description: "Token de sesión a verificar (alternativo)"
-                    },
-                    id: {
-                        type: "string",
-                        description: "ID de sesión (compatibilidad)"
-                    }
-                },
-                anyOf: [
-                    { required: ["sessionId"] },
-                    { required: ["token"] },
-                    { required: ["id"] }
-                ]
-            }
-        }
-    }
-};
-
 export async function executeCheckSessionTool(args: any) {
     // Verificar sesión usando el nuevo sistema
     const sessionId = args.data?.sessionId || args.data?.token || args.data?.id;
@@ -912,38 +559,6 @@ export async function executeCheckSessionTool(args: any) {
         message: "Sesión válida y activa"
     };
 }
-
-export const getSiteplansTool: Tool = {
-    name: "get-siteplans",
-    description: "Obtiene los planos de una comunidad específica, requiere sesión válida",
-    inputSchema: {
-        type: "object",
-        properties: {
-            data: {
-                type: "object",
-                description: "Datos de la comunidad y token de sesión",
-                properties: {
-                    sessionId: {
-                        type: "string",
-                        description: "Token de sesión válido"
-                    },
-                    token: {
-                        type: "string",
-                        description: "Token de sesión válido (alternativo)"
-                    },
-                    communityUID: {
-                        type: "string",
-                        description: "UID de la comunidad"
-                    }
-                },
-                anyOf: [
-                    { required: ["sessionId"] },
-                    { required: ["token"] }
-                ]
-            }
-        }
-    }
-};
 
 export const executeSiteplansTool = async (args: any) => {
     const sessionId = args.data?.sessionId || args.data?.token || args.data?.id;
@@ -983,38 +598,6 @@ export const executeSiteplansTool = async (args: any) => {
         }
     };
 }
-
-export const getFloorplansTool: Tool = {
-    name: "get-floorplans",
-    description: "Obtiene los planos de piso de una comunidad específica, requiere sesión válida",
-    inputSchema: {
-        type: "object",
-        properties: {
-            data: {
-                type: "object",
-                description: "Datos de la comunidad y token de sesión",
-                properties: {
-                    sessionId: {
-                        type: "string",
-                        description: "Token de sesión válido"
-                    },
-                    token: {
-                        type: "string",
-                        description: "Token de sesión válido (alternativo)"
-                    },
-                    communityId: {
-                        type: "string",
-                        description: "ID de la comunidad"
-                    }
-                },
-                anyOf: [
-                    { required: ["sessionId"] },
-                    { required: ["token"] }
-                ]
-            }
-        }
-    }
-};
 
 export const executeGetFloorplansTool = async (args: any) => {
     const sessionId = args.data?.sessionId || args.data?.token || args.data?.id;

@@ -1,73 +1,82 @@
-import { SchemaType, type FunctionDeclaration } from "@google/generative-ai";
+import { FunctionDeclaration, SchemaType } from "@google/generative-ai";
 
-export const fdStartSession: FunctionDeclaration = {
-  name: "start_session",
-  description:
-    "Create a new conversation session ID, initialize server state, and set the next step to 'get_name'. " +
-    "After this, you SHOULD call get_name_render with the returned sessionId.",
+const toolsName = {
+  name: "getName",
+  description: "Obten el nombre del usuario si lo ha agregado y solo regresa el nombre",
   parameters: {
-    type: SchemaType.OBJECT,
-    properties: {},
-  },
-};
-
-export const fdGetName: FunctionDeclaration = {
-  name: "get_name",
-  description:
-    "Persist how the user wants to be addressed. If a name is known, send {name}; Creates a sessionId if omitted.",
-  parameters: {
-    type: SchemaType.OBJECT,
+    type: "object",
     properties: {
-      sessionId: {
-        type: SchemaType.STRING,
-        description: "Optional. If omitted, a new session will be created.",
-      },
       name: {
-        type: SchemaType.STRING,
-        description: "The user's preferred name.",
+        type: "string",
+        description: "Retorna el nombre que ha brindado el usuario",
       },
     },
+    required: ["name"],
   },
 };
 
-export const fdGetLocation: FunctionDeclaration = {
-  name: "get_location",
-  description:
-    "Persist the user's preferred locations. Accepts 'locations' (array). If 'sessionId' is missing, returns ok:false and suggests asking the user's name to start a session.",
+const toolsLocation = {
+  name: "getLocation",
+  description: "Sí el usuario ha añadido una ciudad o estado, obten la información del lugar o lugares y añadelas en el array",
   parameters: {
-    type: SchemaType.OBJECT,
+    type: "object",
     properties: {
-      sessionId: {
-        type: SchemaType.STRING,
-        description:
-          "Required. If missing, the tool will respond with a suggestion to ask for the user's name.",
-      },
-      locations: {
-        type: SchemaType.ARRAY,
-        items: { type: SchemaType.STRING },
-        description: "Array of city/state names, e.g., ['Orlando','Phoenix'].",
+      location: {
+        type: "array",
+        items: { type: "string" },
+        description: "Añade locaciones en el formato array",
       },
     },
+    required: ["location"],
   },
 };
 
-export const fdInterestedFindHome: FunctionDeclaration = {
-  name: "interesed_find_home",
+const toolsBudget = {
+  name: "getBudget",
+  description: "This tool help to user to find a house, if user add a budget for house, get this information.",
+  parameters: {
+    type: 'object',
+    description: "Return budget for the house",
+    properties: {
+      budget: {
+        type: 'string',
+      },
+    },
+    required: ['budget']
+  }
+}
+
+const toolsAmenities = {
+  name: "getAmenities",
+  description: "If user search a house, ask for amenities it's a must, if you detect some amenities, add a list of this.",
+  parameters: {
+    type: 'object',
+    description: "Return budget for the house",
+    properties: {
+      amenities: {
+        type: 'string',
+      },
+    },
+    required: ['amenities']
+  }
+}
+
+export const toolInterestedFindHome = {
+  name: "interestedFindHome",
   description:
     "Persist the user's motivations for finding a home. Accepts 'interest' or 'interests' (array or string). If 'sessionId' is missing, returns ok:false and suggests asking for the user's name to start a session.",
   parameters: {
-    type: SchemaType.OBJECT,
+    type: "object",
     properties: {
       sessionId: {
-        type: SchemaType.STRING,
-        description:
-          "Required. If missing, the tool responds with a suggestion to capture the user's name.",
+        type: "string",
+        description: "Required. If missing, the tool responds with a suggestion to capture the user's name.",
       },
       interest: {
-        type: SchemaType.ARRAY,
-        items: { type: SchemaType.STRING },
+        type: "array",
+        items: { type: "string" },
         description: "Array of interest tags.",
-      },
+      }
     },
   },
 };
@@ -143,7 +152,7 @@ export const fdSetBudget: FunctionDeclaration = {
 };
 
 export const fdCustomizing: FunctionDeclaration = {
-  name: "customizing",
+  name: "set_customizing",
   description:
     "Persist whether the user is interested in customizable homes. Accepts {customizing:boolean} or {answer|label} free-text. Requires sessionId. If missing, returns ok:false and suggests asking for the user's name.",
   parameters: {
@@ -316,8 +325,6 @@ export const fdSetInterestingHome: FunctionDeclaration = {
         description: "Comma/semicolon separated list of features.",
       },
     },
-
-    // Keep permissive here; the server validates.
   },
 };
 
@@ -337,17 +344,9 @@ export const fdSearchCommunities: FunctionDeclaration = {
   },
 };
 
-export const FUNCTION_DECLARATIONS: FunctionDeclaration[] = [
-  fdStartSession,
-  fdGetName,
-  fdGetLocation,
-  fdInterestedFindHome,
-  fdGetInterestRate,
-  fdSetBudget,
-  fdCustomizing,
-  fdMoveInReady,
-  fdSetRenting,
-  fdSetFloorplanSpecs,
-  fdSetInterestingHome,
-  fdSearchCommunities
-];
+
+// ...existing code...
+export const generalTools = {
+  tools: [toolsName, toolsLocation, toolsBudget, toolsAmenities, toolInterestedFindHome],
+  listTools: [toolsName.name, toolsLocation.name, toolsBudget.name, toolsAmenities.name, toolInterestedFindHome.name]
+};
