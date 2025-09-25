@@ -321,6 +321,22 @@ export const fdSetInterestingHome: FunctionDeclaration = {
   },
 };
 
+export const fdSearchCommunities: FunctionDeclaration = {
+  name: "search_communities",
+  description:
+    "Search communities using filters from the session (markets and budget). If missing, suggests collecting them.",
+  parameters: {
+    type: SchemaType.OBJECT,
+    properties: {
+      sessionId: {
+        type: SchemaType.STRING,
+        description: "Required session id used to read filters from the store.",
+      },
+    },
+    required: ["sessionId"],
+  },
+};
+
 export const FUNCTION_DECLARATIONS: FunctionDeclaration[] = [
   fdStartSession,
   fdGetName,
@@ -332,5 +348,6 @@ export const FUNCTION_DECLARATIONS: FunctionDeclaration[] = [
   fdMoveInReady,
   fdSetRenting,
   fdSetFloorplanSpecs,
-  fdSetInterestingHome
+  fdSetInterestingHome,
+  fdSearchCommunities
 ];
