@@ -15,13 +15,14 @@ const toolsName = {
 
 const toolsLocation = {
   name: "getLocation",
-  description: "Sí el usuario ha añadido una ciudad o estado, obten la información del lugar",
+  description: "Sí el usuario ha añadido una ciudad o estado, obten la información del lugar o lugares y añadelas en el array",
   parameters: {
     type: "object",
     properties: {
       location: {
-        type: "string",
-        description: "Añade locación",
+        type: "array",
+        items: { type: "string" },
+        description: "Añade locaciones en el formato array",
       },
     },
     required: ["location"],
@@ -58,8 +59,28 @@ const toolsAmenities = {
   }
 }
 
+export const toolInterestedFindHome = {
+  name: "interestedFindHome",
+  description:
+    "Persist the user's motivations for finding a home. Accepts 'interest' or 'interests' (array or string). If 'sessionId' is missing, returns ok:false and suggests asking for the user's name to start a session.",
+  parameters: {
+    type: "object",
+    properties: {
+      sessionId: {
+        type: "string",
+        description: "Required. If missing, the tool responds with a suggestion to capture the user's name.",
+      },
+      interest: {
+        type: "array",
+        items: { type: "string" },
+        description: "Array of interest tags.",
+      }
+    },
+  },
+};
+
 // ...existing code...
 export const generalTools = {
-  tools: [toolsName, toolsLocation, toolsBudget, toolsAmenities],
-  listTools: [toolsName.name, toolsLocation.name, toolsBudget.name, toolsAmenities.name]
+  tools: [toolsName, toolsLocation, toolsBudget, toolsAmenities, toolInterestedFindHome],
+  listTools: [toolsName.name, toolsLocation.name, toolsBudget.name, toolsAmenities.name, toolInterestedFindHome.name]
 };

@@ -234,36 +234,12 @@ export async function executeSessionTool(args: any) {
 }
 
 export async function executeGetNameTool(args: any) {
-    // Verificar sesión usando el nuevo sistema
-    const sessionId = args.data?.sessionId || args.data?.token || args.data?.id;
-    const validation = validateSession(sessionId);
-
-    if (!validation.valid) {
-        return {
-            success: false,
-            error: validation.error || "Sesión inválida"
-        };
-    }
-
-    // Actualizar sesión con el nombre del usuario
-    const updateResult = updateSession(sessionId, {
-        name: args.data.name
-    });
-
-    if (!updateResult.success) {
-        return {
-            success: false,
-            error: updateResult.error || "Error actualizando sesión"
-        };
-    }
 
     return {
         success: true,
         data: {
             name: args.data.name,
-            sessionId: sessionId,
-            valid: true,
-            session: updateResult.session
+            sessionId: 'sessionId'
         }
     };
 }

@@ -50,7 +50,7 @@ export class GeminiService {
 
 	async chatWithTools(message: string, sessionId?: number) {
 
-		const contextPrompt = 'hola, estoy buscando una casa en austin, mi nombre es jose, tengo un presupues de 2000 mil dolares, y me gustaría que tuviera alberca y parques para mascotas';
+		const contextPrompt = 'hola, estoy buscando una casa en austin o phoenix, mi nombre es jose, tengo un presupues de 2000 mil dolares, y me gustaría que tuviera alberca y parques para mascotas';
 
 		console.log('Generando respuesta contextual con Gemini...2');
 		// @ts-ignore

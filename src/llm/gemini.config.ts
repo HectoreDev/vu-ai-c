@@ -1,6 +1,7 @@
 import { FunctionCallingMode, GoogleGenerativeAI } from "@google/generative-ai";
 import dotenv from 'dotenv';
-import { generalTools } from "../tools/generalTools";
+// import { generalTools } from "../tools/generalTools";
+import { generalTools } from "../tools/agent.tools";
 
 dotenv.config();
 const API_KEY = process.env.GEMINI_API_KEY || "";

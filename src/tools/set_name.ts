@@ -41,10 +41,6 @@ export const handleSetName = async (args: Args) => {
     state: store,
     saved: {
       name,
-    },
-    // suggest: {
-    //   nextTool: "interest_home_render",
-    //   reason: "Name captured; proceed to ask for motivations/interests.",
-    // },
+    }
   };
 };
