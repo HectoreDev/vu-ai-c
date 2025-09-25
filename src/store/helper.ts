@@ -2,7 +2,7 @@ import { useSessionStore, SessionStore } from './zustandStore';
 
 // Tipos helper para el store
 export type SessionData = Pick<SessionStore,
-    'sessionId' | 'name' | 'location' | 'priceMin' | 'priceMax' | 'amenities'
+    'sessionId' | 'name' | 'locations' | 'priceMin' | 'priceMax' | 'amenities'
 >;
 
 export type SessionFlow = Pick<SessionStore,
@@ -20,7 +20,7 @@ export class SessionHelper {
         return {
             step: state.step,
             name: state.name,
-            location: state.location,
+            locations: state.locations,
             priceMin: state.priceMin,
             priceMax: state.priceMax,
             amenities: state.amenities,
@@ -55,7 +55,7 @@ export class SessionHelper {
         updateSessionData({
             step: sessionState.step,
             name: sessionState.name,
-            location: sessionState.location,
+            locations: sessionState.locations,
             priceMin: sessionState.priceMin,
             priceMax: sessionState.priceMax,
             amenities: sessionState.amenities,
@@ -95,11 +95,11 @@ export class SessionHelper {
             case 2: // get-location
                 return !!(state.name && (state.sessionId || state.mcpSessionId));
             case 3: // get-min-max-prices
-                return !!(state.name && state.location && (state.sessionId || state.mcpSessionId));
+                return !!(state.name && state.locations && (state.sessionId || state.mcpSessionId));
             case 4: // get-amenities-from-prices
-                return !!(state.location && state.priceMin && state.priceMax);
+                return !!(state.locations && state.priceMin && state.priceMax);
             case 5: // get-communities
-                return !!(state.location && state.amenities);
+                return !!(state.locations && state.amenities);
             case 6: // get-community-info
                 return !!(state.communities);
             case 7: // completed
@@ -122,7 +122,7 @@ export class SessionHelper {
         if (!state.name) return 1;
 
         // Si no hay ubicación, la necesitamos
-        if (!state.location) return 2;
+        if (!state.locations) return 2;
 
         // Si no tenemos precios, los buscamos
         if (!state.priceMin || !state.priceMax) return 3;
@@ -173,7 +173,7 @@ export class SessionHelper {
         if (state.name) completedData.push(`Nombre: ${state.name}`);
         else missingData.push('Nombre');
 
-        if (state.location) completedData.push(`Ubicación: ${state.location}`);
+        if (state.locations) completedData.push(`Ubicación: ${state.locations}`);
         else missingData.push('Ubicación');
 
         if (state.priceMin && state.priceMax) {

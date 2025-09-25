@@ -2,7 +2,7 @@
 export interface SessionState {
     step: number; // 0: session-start, 1: get-name, 2: get-location, 3: get-min-max-prices, 4: get-amenities-from-prices, 5: get-communities, 6: get-community-info, 7: completed
     name?: string;
-    location?: string;
+    locations?: string[];
     priceMin?: number;
     priceMax?: number;
     amenities?: string;
