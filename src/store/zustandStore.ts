@@ -6,11 +6,11 @@ interface SessionStore {
     // Estados principales
     sessionId?: string;
     name?: string;
-    location?: string;
+    locations?: string[];
     priceMin?: number;
     priceMax?: number;
     amenities?: string;
-
+    interestHome: string[];
 
     step: number;
     communities?: string;
@@ -21,7 +21,7 @@ interface SessionStore {
 
     setSessionId: (sessionId: string) => void;
     setName: (name: string) => void;
-    setLocation: (location: string) => void;
+    setlocations: (locations: string[]) => void;
     setPriceRange: (priceMin: number, priceMax: number) => void;
     setPriceMin: (priceMin: number) => void;
     setPriceMax: (priceMax: number) => void;
@@ -31,6 +31,7 @@ interface SessionStore {
     setCommunity: (community: string) => void;
     setLastToolUsed: (tool: string) => void;
     setMcpSessionId: (mcpSessionId: string) => void;
+    setInterestHome: (interestHome: string[]) => void;
 
     // Acciones de utilidad
     reset: () => void;
@@ -40,10 +41,10 @@ interface SessionStore {
 }
 
 // Estado inicial
-const initialState = {
+export const initialState = {
     sessionId: undefined,
     name: undefined,
-    location: undefined,
+    locations: undefined,
     priceMin: undefined,
     priceMax: undefined,
     amenities: undefined,
@@ -52,6 +53,7 @@ const initialState = {
     community: undefined,
     lastToolUsed: undefined,
     mcpSessionId: undefined,
+    interestHome: []
 };
 
 
@@ -69,8 +71,8 @@ export const useSessionStore = create<SessionStore>()(
                 setName: (name: string) =>
                     set({ name }, false, 'setName'),
 
-                setLocation: (location: string) =>
-                    set({ location }, false, 'setLocation'),
+                setlocations: (locations: string[]) =>
+                    set({ locations }, false, 'setlocations'),
 
                 setPriceRange: (priceMin: number, priceMax: number) =>
                     set({ priceMin, priceMax }, false, 'setPriceRange'),
@@ -111,12 +113,15 @@ export const useSessionStore = create<SessionStore>()(
                     return !!(state.sessionId || state.mcpSessionId);
                 },
 
+                setInterestHome: (interestHome: string[]) => set({
+                    interestHome
+                }),
                 getSessionSummary: () => {
                     const state = get();
                     const summary = [];
 
                     if (state.name) summary.push(`Nombre: ${state.name}`);
-                    if (state.location) summary.push(`Ubicación: ${state.location}`);
+                    if (state.locations) summary.push(`Ubicación: ${state.locations}`);
                     if (state.priceMin && state.priceMax) {
                         summary.push(`Rango de precios: $${state.priceMin.toLocaleString()} - $${state.priceMax.toLocaleString()}`);
                     }
@@ -133,7 +138,7 @@ export const useSessionStore = create<SessionStore>()(
                     // Solo persistir estos campos específicos
                     sessionId: state.sessionId,
                     name: state.name,
-                    location: state.location,
+                    locations: state.locations,
                     priceMin: state.priceMin,
                     priceMax: state.priceMax,
                     amenities: state.amenities,
@@ -153,7 +158,7 @@ export const useSessionStore = create<SessionStore>()(
 // Hooks de utilidad para acceso rápido a partes específicas del estado
 export const useSessionId = () => useSessionStore((state) => state.sessionId);
 export const useName = () => useSessionStore((state) => state.name);
-export const useLocation = () => useSessionStore((state) => state.location);
+export const uselocations = () => useSessionStore((state) => state.locations);
 export const usePriceRange = () => useSessionStore((state) => ({
     priceMin: state.priceMin,
     priceMax: state.priceMax
@@ -166,7 +171,7 @@ export const useMcpSessionId = () => useSessionStore((state) => state.mcpSession
 export const useSessionActions = () => useSessionStore((state) => ({
     setSessionId: state.setSessionId,
     setName: state.setName,
-    setLocation: state.setLocation,
+    setlocations: state.setlocations,
     setPriceRange: state.setPriceRange,
     setPriceMin: state.setPriceMin,
     setPriceMax: state.setPriceMax,
