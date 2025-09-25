@@ -11,6 +11,18 @@ export interface SessionState {
     lastToolUsed?: string;
     sessionId?: string;
     mcpSessionId?: string; // Token de sesión del sistema MCP
+    welcome?: string | null;
+    nameSpecs?: string | null;
+    interest?: string[];
+    markets?: string[];
+    budgetProduct?: string | null;
+    budgetType?: string | null;
+    budget?: number | undefined;
+    customizing?: string | null;
+    moveInReady?: string | null;
+    renting?: string | null;
+    floorplanSpecs?: string | undefined;
+    homeInterest?: string[];
 }
 
 // Nuevos tipos que reemplazan SessionState
