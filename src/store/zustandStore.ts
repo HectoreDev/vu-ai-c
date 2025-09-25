@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
+import { devtools } from 'zustand/middleware';
 
 
 interface SessionStore {
@@ -10,7 +10,6 @@ interface SessionStore {
     priceMin?: number;
     priceMax?: number;
     amenities?: string;
-    interestHome: string[];
 
     step: number;
     // Estados adicionales
@@ -46,7 +45,6 @@ interface SessionStore {
     setCommunity: (community: string) => void;
     setLastToolUsed: (tool: string) => void;
     setMcpSessionId: (mcpSessionId: string) => void;
-    setInterestHome: (interestHome: string[]) => void;
 
     // Acciones para nuevos campos
     setWelcome: (welcome: string) => void;
@@ -88,7 +86,6 @@ export const initialState = {
     community: undefined,
     lastToolUsed: undefined,
     mcpSessionId: undefined,
-    interestHome: [],
 
     // Nuevos campos del flujo extendido
     welcome: null,
@@ -106,185 +103,151 @@ export const initialState = {
 };
 
 
+// Crear el store sin persistencia para evitar errores en Node.js
 export const useSessionStore = create<SessionStore>()(
     devtools(
-        persist(
-            (set, get) => ({
-                // Estado inicial
-                ...initialState,
+        (set, get) => ({
+            // Estado inicial
+            ...initialState,
 
-                // Acciones básicas
-                setSessionId: (sessionId: string) =>
-                    set({ sessionId }, false, 'setSessionId'),
+            // Acciones básicas
+            setSessionId: (sessionId: string) =>
+                set({ sessionId }, false, 'setSessionId'),
 
-                setName: (name: string) =>
-                    set({ name }, false, 'setName'),
+            setName: (name: string) =>
+                set({ name }, false, 'setName'),
 
-                setlocations: (locations: string[]) =>
-                    set({ locations }, false, 'setlocations'),
+            setlocations: (locations: string[]) =>
+                set({ locations }, false, 'setlocations'),
 
-                setPriceRange: (priceMin: number, priceMax: number) =>
-                    set({ priceMin, priceMax }, false, 'setPriceRange'),
+            setPriceRange: (priceMin: number, priceMax: number) =>
+                set({ priceMin, priceMax }, false, 'setPriceRange'),
 
-                setPriceMin: (priceMin: number) =>
-                    set({ priceMin }, false, 'setPriceMin'),
+            setPriceMin: (priceMin: number) =>
+                set({ priceMin }, false, 'setPriceMin'),
 
-                setPriceMax: (priceMax: number) =>
-                    set({ priceMax }, false, 'setPriceMax'),
+            setPriceMax: (priceMax: number) =>
+                set({ priceMax }, false, 'setPriceMax'),
 
-                setAmenities: (amenities: string) =>
-                    set({ amenities }, false, 'setAmenities'),
+            setAmenities: (amenities: string) =>
+                set({ amenities }, false, 'setAmenities'),
 
-                setStep: (step: number) =>
-                    set({ step }, false, 'setStep'),
+            setStep: (step: number) =>
+                set({ step }, false, 'setStep'),
 
-                setCommunities: (communities: string) =>
-                    set({ communities }, false, 'setCommunities'),
+            setCommunities: (communities: string) =>
+                set({ communities }, false, 'setCommunities'),
 
-                setCommunity: (community: string) =>
-                    set({ community }, false, 'setCommunity'),
+            setCommunity: (community: string) =>
+                set({ community }, false, 'setCommunity'),
 
-                setLastToolUsed: (lastToolUsed: string) =>
-                    set({ lastToolUsed }, false, 'setLastToolUsed'),
+            setLastToolUsed: (lastToolUsed: string) =>
+                set({ lastToolUsed }, false, 'setLastToolUsed'),
 
-                setMcpSessionId: (mcpSessionId: string) =>
-                    set({ mcpSessionId }, false, 'setMcpSessionId'),
+            setMcpSessionId: (mcpSessionId: string) =>
+                set({ mcpSessionId }, false, 'setMcpSessionId'),
 
-                // Acciones para nuevos campos
-                setWelcome: (welcome: string) =>
-                    set({ welcome }, false, 'setWelcome'),
+            // Acciones para nuevos campos
+            setWelcome: (welcome: string) =>
+                set({ welcome }, false, 'setWelcome'),
 
-                setNameSpecs: (nameSpecs: string) =>
-                    set({ nameSpecs }, false, 'setNameSpecs'),
+            setNameSpecs: (nameSpecs: string) =>
+                set({ nameSpecs }, false, 'setNameSpecs'),
 
-                setInterest: (interest: string[]) =>
-                    set({ interest }, false, 'setInterest'),
+            setInterest: (interest: string[]) =>
+                set({ interest }, false, 'setInterest'),
 
-                addInterest: (newInterest: string) =>
-                    set((state) => ({
-                        interest: state.interest.includes(newInterest)
-                            ? state.interest
-                            : [...state.interest, newInterest]
-                    }), false, 'addInterest'),
+            addInterest: (newInterest: string) =>
+                set((state) => ({
+                    interest: state.interest.includes(newInterest)
+                        ? state.interest
+                        : [...state.interest, newInterest]
+                }), false, 'addInterest'),
 
-                removeInterest: (interestToRemove: string) =>
-                    set((state) => ({
-                        interest: state.interest.filter(i => i !== interestToRemove)
-                    }), false, 'removeInterest'),
+            removeInterest: (interestToRemove: string) =>
+                set((state) => ({
+                    interest: state.interest.filter(i => i !== interestToRemove)
+                }), false, 'removeInterest'),
 
-                setMarkets: (markets: string[]) =>
-                    set({ markets }, false, 'setMarkets'),
+            setMarkets: (markets: string[]) =>
+                set({ markets }, false, 'setMarkets'),
 
-                addMarket: (newMarket: string) =>
-                    set((state) => ({
-                        markets: state.markets.includes(newMarket)
-                            ? state.markets
-                            : [...state.markets, newMarket]
-                    }), false, 'addMarket'),
+            addMarket: (newMarket: string) =>
+                set((state) => ({
+                    markets: state.markets.includes(newMarket)
+                        ? state.markets
+                        : [...state.markets, newMarket]
+                }), false, 'addMarket'),
 
-                removeMarket: (marketToRemove: string) =>
-                    set((state) => ({
-                        markets: state.markets.filter(m => m !== marketToRemove)
-                    }), false, 'removeMarket'),
+            removeMarket: (marketToRemove: string) =>
+                set((state) => ({
+                    markets: state.markets.filter(m => m !== marketToRemove)
+                }), false, 'removeMarket'),
 
-                setBudgetProduct: (budgetProduct: string) =>
-                    set({ budgetProduct }, false, 'setBudgetProduct'),
+            setBudgetProduct: (budgetProduct: string) =>
+                set({ budgetProduct }, false, 'setBudgetProduct'),
 
-                setBudgetType: (budgetType: string) =>
-                    set({ budgetType }, false, 'setBudgetType'),
+            setBudgetType: (budgetType: string) =>
+                set({ budgetType }, false, 'setBudgetType'),
 
-                setBudget: (budget: number) =>
-                    set({ budget }, false, 'setBudget'),
+            setBudget: (budget: number) =>
+                set({ budget }, false, 'setBudget'),
 
-                setCustomizing: (customizing: string) =>
-                    set({ customizing }, false, 'setCustomizing'),
+            setCustomizing: (customizing: string) =>
+                set({ customizing }, false, 'setCustomizing'),
 
-                setMoveInReady: (moveInReady: string) =>
-                    set({ moveInReady }, false, 'setMoveInReady'),
+            setMoveInReady: (moveInReady: string) =>
+                set({ moveInReady }, false, 'setMoveInReady'),
 
-                setRenting: (renting: string) =>
-                    set({ renting }, false, 'setRenting'),
+            setRenting: (renting: string) =>
+                set({ renting }, false, 'setRenting'),
 
-                setFloorplanSpecs: (floorplanSpecs: string) =>
-                    set({ floorplanSpecs }, false, 'setFloorplanSpecs'),
+            setFloorplanSpecs: (floorplanSpecs: string) =>
+                set({ floorplanSpecs }, false, 'setFloorplanSpecs'),
 
-                setHomeInterest: (homeInterest: string[]) =>
-                    set({ homeInterest }, false, 'setHomeInterest'),
+            setHomeInterest: (homeInterest: string[]) =>
+                set({ homeInterest }, false, 'setHomeInterest'),
 
-                addHomeInterest: (newHomeInterest: string) =>
-                    set((state) => ({
-                        homeInterest: state.homeInterest.includes(newHomeInterest)
-                            ? state.homeInterest
-                            : [...state.homeInterest, newHomeInterest]
-                    }), false, 'addHomeInterest'),
+            addHomeInterest: (newHomeInterest: string) =>
+                set((state) => ({
+                    homeInterest: state.homeInterest.includes(newHomeInterest)
+                        ? state.homeInterest
+                        : [...state.homeInterest, newHomeInterest]
+                }), false, 'addHomeInterest'),
 
-                removeHomeInterest: (homeInterestToRemove: string) =>
-                    set((state) => ({
-                        homeInterest: state.homeInterest.filter(h => h !== homeInterestToRemove)
-                    }), false, 'removeHomeInterest'),
+            removeHomeInterest: (homeInterestToRemove: string) =>
+                set((state) => ({
+                    homeInterest: state.homeInterest.filter(h => h !== homeInterestToRemove)
+                }), false, 'removeHomeInterest'),
 
-                // Acciones de utilidad
-                reset: () =>
-                    set(initialState, false, 'reset'),
+            // Acciones de utilidad
+            reset: () =>
+                set(initialState, false, 'reset'),
 
-                updateSessionData: (data: Partial<SessionStore>) =>
-                    set((state) => ({ ...state, ...data }), false, 'updateSessionData'),
+            updateSessionData: (data: Partial<SessionStore>) =>
+                set((state) => ({ ...state, ...data }), false, 'updateSessionData'),
 
-                isSessionActive: () => {
-                    const state = get();
-                    return !!(state.sessionId || state.mcpSessionId);
-                },
+            isSessionActive: () => {
+                const state = get();
+                return !!(state.sessionId || state.mcpSessionId);
+            },
 
-                setInterestHome: (interestHome: string[]) => set({
-                    interestHome
-                }),
-                getSessionSummary: () => {
-                    const state = get();
-                    const summary = [];
+            getSessionSummary: () => {
+                const state = get();
+                const summary = [];
 
-                    if (state.name) summary.push(`Nombre: ${state.name}`);
-                    if (state.locations) summary.push(`Ubicación: ${state.locations}`);
-                    if (state.priceMin && state.priceMax) {
-                        summary.push(`Rango de precios: $${state.priceMin.toLocaleString()} - $${state.priceMax.toLocaleString()}`);
-                    }
-                    if (state.amenities) summary.push(`Amenidades: ${state.amenities}`);
-                    if (state.communities) summary.push(`Comunidades encontradas: Sí`);
-                    if (state.community) summary.push(`Comunidad seleccionada: ${state.community}`);
+                if (state.name) summary.push(`Nombre: ${state.name}`);
+                if (state.locations) summary.push(`Ubicación: ${state.locations}`);
+                if (state.priceMin && state.priceMax) {
+                    summary.push(`Rango de precios: $${state.priceMin.toLocaleString()} - $${state.priceMax.toLocaleString()}`);
+                }
+                if (state.amenities) summary.push(`Amenidades: ${state.amenities}`);
+                if (state.communities) summary.push(`Comunidades encontradas: Sí`);
+                if (state.community) summary.push(`Comunidad seleccionada: ${state.community}`);
 
-                    return summary.length > 0 ? summary.join(' | ') : 'Sin datos de sesión';
-                },
-            }),
-            {
-                name: 'session-storage', // Nombre para localStorage
-                partialize: (state) => ({
-                    // Campos principales
-                    sessionId: state.sessionId,
-                    name: state.name,
-                    locations: state.locations,
-                    step: state.step,
-                    priceMin: state.priceMin,
-                    priceMax: state.priceMax,
-                    amenities: state.amenities,
-                    communities: state.communities,
-                    community: state.community,
-                    mcpSessionId: state.mcpSessionId,
-
-                    // Nuevos campos del flujo extendido
-                    welcome: state.welcome,
-                    nameSpecs: state.nameSpecs,
-                    interest: state.interest,
-                    markets: state.markets,
-                    budgetProduct: state.budgetProduct,
-                    budgetType: state.budgetType,
-                    budget: state.budget,
-                    customizing: state.customizing,
-                    moveInReady: state.moveInReady,
-                    renting: state.renting,
-                    floorplanSpecs: state.floorplanSpecs,
-                    homeInterest: state.homeInterest,
-                }),
-            }
-        ),
+                return summary.length > 0 ? summary.join(' | ') : 'Sin datos de sesión';
+            },
+        }),
         {
             name: 'session-store', // Nombre para DevTools
         }

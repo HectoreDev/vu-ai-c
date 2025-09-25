@@ -1,5 +1,5 @@
 // src/mcp/tools/getName.ts
-import crypto from "node:crypto";
+import * as crypto from "node:crypto";
 import { z } from "zod";
 import { useSessionStore } from "./../store/zustandStore";
 
@@ -31,9 +31,10 @@ export const handleSetName = async (args: Args) => {
 
   if (!sessionId) sessionId = genSessionId();
 
-  const store = useSessionStore();
+  const store = useSessionStore.getState();
 
   store.setName(name);
+  store.setSessionId(sessionId);
 
   return {
     ok: true,

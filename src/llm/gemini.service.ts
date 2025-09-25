@@ -3,49 +3,33 @@ import { mcpServer } from "../mcp/mcp.server";
 import { invalidateSession } from "../mcp/mcp.tools";
 import { generalTools } from "../tools/generalTools";
 import { SchemaType } from "@google/generative-ai";
-
-
-interface SessionState {
-	step: number; // 0: session-start, 1: get-name, 2: get-location, 3: get-min-max-prices, 4: get-amenities-from-prices, 5: get-communities, 6: get-community-info, 7: completed
-	name?: string;
-	location?: string;
-	priceMin?: number;
-	priceMax?: number;
-	amenities?: string;
-	communities?: string;
-	community?: string;
-	lastToolUsed?: string;
-	sessionId?: string;
-	mcpSessionId?: string; // Token de sesión del sistema MCP
-}
+import { useSessionStore } from "../store/zustandStore";
+import { SessionHelper } from "../store/helper";
+import type { SessionState } from "./types/gemini.types";
 
 export class GeminiService {
-	// Storage simple para el estado de las sesiones  
-	private sessionStates: Map<string, SessionState> = new Map();
-
-	private getSessionKey(sessionId?: number): string {
-		return sessionId ? `session_${sessionId}` : 'default_session';
+	/**
+	 * Obtiene el estado actual de la sesión desde el store de Zustand
+	 */
+	private getSessionState(): SessionState {
+		return SessionHelper.toSessionState();
 	}
 
-	private getSessionState(sessionId?: number): SessionState | null {
-		const key = this.getSessionKey(sessionId);
-		return this.sessionStates.get(key) || null;
+	/**
+	 * Actualiza el estado de la sesión en el store de Zustand
+	 */
+	private updateSessionState(updates: Partial<SessionState>): void {
+		const store = useSessionStore.getState();
+		store.updateSessionData(updates as any);
+		console.log('Estado de sesión actualizado:', this.getSessionState());
 	}
 
-	private createNewSessionState(sessionId?: number): SessionState {
-		const key = this.getSessionKey(sessionId);
-		const newState: SessionState = { step: 0 };
-		this.sessionStates.set(key, newState);
-		return newState;
-	}
-
-	private updateSessionState(sessionId: number | undefined, updates: Partial<SessionState>): void {
-		const key = this.getSessionKey(sessionId);
-		const currentState = this.getSessionState(sessionId);
-		if (currentState) {
-			this.sessionStates.set(key, { ...currentState, ...updates });
-			console.log('Estado de sesión actualizado:', this.sessionStates.get(key));
-		}
+	/**
+	 * Crea una nueva sesión inicializando el store
+	 */
+	private createNewSessionState(mcpSessionId?: string): SessionState {
+		SessionHelper.startNewSession(mcpSessionId);
+		return this.getSessionState();
 	}
 
 	async chatWithTools(message: string, sessionId?: number) {
@@ -71,7 +55,7 @@ export class GeminiService {
 
 		const functionCalls = result.response.functionCalls() ? result.response.functionCalls() : [];
 
-		if(functionCalls && functionCalls.length) {
+		if (functionCalls && functionCalls.length) {
 			const { name, args } = functionCalls[0]
 			const mcpResult = await mcpServer.callTool(name, args);
 			console.log('Resultados de herramientas:', mcpResult);
@@ -87,16 +71,20 @@ export class GeminiService {
 
 	}
 
-	// Método para limpiar el estado de una sesión (opcional)
-	clearSessionState(sessionId?: number): void {
-		const key = this.getSessionKey(sessionId);
-		this.sessionStates.delete(key);
-		console.log(`Estado de sesión ${key} limpiado`);
+	/**
+	 * Limpia el estado de la sesión actual
+	 */
+	clearSessionState(): void {
+		const store = useSessionStore.getState();
+		store.reset();
+		console.log('Estado de sesión limpiado');
 	}
 
-	// Método para obtener el estado actual de una sesión (opcional)
-	getSessionStatePublic(sessionId?: number): SessionState | null {
-		return this.getSessionState(sessionId);
+	/**
+	 * Obtiene el estado actual de la sesión (método público)
+	 */
+	getSessionStatePublic(): SessionState {
+		return this.getSessionState();
 	}
 
 }
