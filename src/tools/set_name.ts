@@ -36,13 +36,19 @@ export const handleSetName = async (args: Args) => {
   store.setName(name);
   store.setSessionId(sessionId);
 
-  return {
-    ok: true,
-    sessionId,
-    // text: dataInText,
-    // state: store,
-    saved: {
-      name,
+  const hits = dataFakeCommunities;
+
+  const listOfHouse: { type: 'text', text: string }[] = hits.map((lot:any) => {
+
+    const specs = JSON.stringify(lot.amenities);
+
+    return {
+      type: "text",
+      text: `Encontramos en las siguiente comunidades ${lot._origin.community.name}, con el UID ${lot._origin.community.uid}, en la ciudad de ${lot._origin.division.name}, con las siguientes amenidades: ${specs}`,
     }
-  };
+  })
+
+  console.log("store2", store.name, store.sessionId);
+
+  return listOfHouse
 };

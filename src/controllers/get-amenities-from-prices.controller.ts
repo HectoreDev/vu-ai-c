@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { mcpServer } from "../mcp/mcp.server";
+import { mcpServer } from "../mcp-llm/mcp.server";
 import { amenitiesFromPrices } from "../schemas/amenitiesfromprices";
 
 // Endpoint de prueba simple

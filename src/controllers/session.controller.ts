@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { sessionSchema } from "../schemas/session.schema";
-import { mcpServer } from "../mcp/mcp.server";
+import { mcpServer } from "../mcp-llm/mcp.server";
 
 export const startSession = async (req: Request, res: Response) => {
     try {

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { lotSchema } from "../schemas/lot.schema";
-import { mcpServer } from "../mcp/mcp.server";
+import { mcpServer } from "../mcp-llm/mcp.server";
 
 export const getLots = async (req: Request, res: Response) => {
   try {

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { mcpServer } from "../mcp/mcp.server";
+import { mcpServer } from "../mcp-llm/mcp.server";
 import { location } from "../schemas/location.schema";
 
 export const getLocation = async (req: Request, res: Response) => {
