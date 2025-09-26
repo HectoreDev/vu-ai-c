@@ -37,7 +37,7 @@ export interface MCPSessionData {
     id: string;
     userId?: string;
     name?: string;
-    location?: string;
+    locations?: string[];
     priceMin?: number;
     priceMax?: number;
     amenities?: string[];
