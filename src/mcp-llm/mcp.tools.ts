@@ -13,7 +13,6 @@ import {
 import { filtrarComunidadesPorPrecio } from '../tools/filterCommunities'; 
 import { IFAlgoliaSearchProps, makeLLMAlgoliaRequest, AlgoliaSearchResult, AlgoliaCommunityResult } from '../tools/algoliaSearch';
 
-
 let communitiesCache: any = null;
 let siteplansCache: any = null; 
 

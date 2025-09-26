@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { communitySchema } from "../schemas/community.schema";
 import { communityInfoSchema } from "../schemas/communityInfo.schema";
-import { mcpServer } from "../mcp/mcp.server";
+import { mcpServer } from "../mcp-llm/mcp.server";
 
 export const getCommunities = async (req: Request, res: Response): Promise<void> => {
     try {

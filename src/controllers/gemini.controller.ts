@@ -1,5 +1,5 @@
 import {Request, Response} from "express";
-import {geminiService} from "../llm/gemini.service";
+import {geminiService} from "../mcp-llm/gemini.service";
 import {parseResponse} from "../utils/parse";
 
 interface IFData {
@@ -45,12 +45,12 @@ export const chatWithGemini = async (req : Request, res : Response) : Promise < 
             siteplans: result.siteplans,
         }; */
 
-        const parseRes = parseResponse(result.text);
+        // const parseRes = parseResponse(result.text);
 
-        console.log('RES', parseRes);
+        // console.log('RES', parseRes);
 
 
-        res.json({success: true, response: parseRes[0]});
+        res.json({success: true, response: 'respuesta generada'});
     } catch (error) {
         const errMsg = error instanceof Error ? error.message : String(error);
         res.status(500).json({success: false, error: errMsg});
