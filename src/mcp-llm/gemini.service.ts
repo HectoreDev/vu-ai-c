@@ -13,7 +13,7 @@ export class GeminiService {
 
 	async chatWithTools(message: string, sessionId?: number) {
 
-		const contextPrompt = 'hola, estoy buscando una casa en austin o phoenix, mi nombre es jose, tengo un presupues de 2000 mil dolares, y me gustaría que tuviera alberca y parques para mascotas';
+		const contextPrompt = 'quiero una receta de cocina con pollo y arroz';
 
 		console.log('Generando respuesta contextual con Gemini...2');
 		// @ts-ignore
@@ -59,7 +59,7 @@ export class GeminiService {
 			console.log('Respuesta final con datos de MCP:', resultMCP);
 
 
-			return { text: response1.candidates?.[0]?.content?.parts,
+			return { text: response1.candidates?.[0]?.content?.parts || '',
 				toolsUsed: [name]
 			};
 
