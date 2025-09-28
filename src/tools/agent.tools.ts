@@ -1,15 +1,16 @@
 import { FunctionDeclaration, SchemaType } from "@google/generative-ai";
 
-const tools = {
+
+const toolSchema: Record<string, FunctionDeclaration> = {
   getName: {
     name: "getName",
     description:
       "Obten el nombre del usuario si lo ha agregado y solo regresa el nombre",
     parameters: {
-      type: "object",
+      type: SchemaType.OBJECT,
       properties: {
         name: {
-          type: "string",
+          type: SchemaType.STRING,
           description: "Retorna el nombre que ha brindado el usuario",
         },
       },
@@ -21,15 +22,15 @@ const tools = {
     description:
       "Sí el usuario ha añadido una ciudad o estado, obten la información del lugar o lugares y añadelas en el array",
     parameters: {
-      type: "object",
+      type: SchemaType.OBJECT,
       properties: {
-        location: {
-          type: "array",
-          items: { type: "string" },
+        locations: {
+          type: SchemaType.ARRAY,
+          items: { type: SchemaType.STRING },
           description: "Añade locaciones en el formato array",
         },
       },
-      required: ["location"],
+      required: ["locations"],
     },
   },
   getBudget: {
@@ -74,11 +75,11 @@ const tools = {
     description:
       "If user search a house, ask for amenities it's a must, if you detect some amenities, add a list of this.",
     parameters: {
-      type: "object",
+      type: SchemaType.OBJECT,
       description: "Return budget for the house",
       properties: {
         amenities: {
-          type: "string",
+          type: SchemaType.STRING,
         },
       },
       required: ["amenities"],
@@ -89,16 +90,16 @@ const tools = {
     description:
       "Persist the user's motivations for finding a home. Accepts 'interest' or 'interests' (array or string). If 'sessionId' is missing, returns ok:false and suggests asking for the user's name to start a session.",
     parameters: {
-      type: "object",
+      type: SchemaType.OBJECT,
       properties: {
         sessionId: {
-          type: "string",
+          type: SchemaType.STRING,
           description:
             "Required. If missing, the tool responds with a suggestion to capture the user's name.",
         },
         interest: {
-          type: "array",
-          items: { type: "string" },
+          type: SchemaType.ARRAY,
+          items: { type: SchemaType.STRING },
           description: "Array of interest tags.",
         },
       },
@@ -329,8 +330,7 @@ const tools = {
   },
 };
 
-type toolTypes = keyof typeof tools;
+export type ToolTypes = keyof typeof toolSchema;
 
-interface IResponse {
-  nextTool: toolTypes;
-}
+export const tools = Object.values(toolSchema);
+
