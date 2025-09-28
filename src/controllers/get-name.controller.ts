@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { mcpServer } from "../mcp/mcp.server";
+import { mcpServer } from "../mcp-llm/mcp.server";
 
 export const getName = async (req: Request, res: Response) => {
     const { name, sessionId, token } = req.body;

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { mcpServer } from "../mcp/mcp.server";
+import { mcpServer } from "../mcp-llm/mcp.server";
 import { minMaxPricesSchema } from "../schemas/minMaxPrices.schema";
 
 export const getMinMaxPrices = async (req: Request, res: Response) => {

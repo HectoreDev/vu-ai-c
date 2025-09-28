@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { siteplansSchema } from "../schemas/siteplans.schema";
-import { mcpServer } from "../mcp/mcp.server";
+import { mcpServer } from "../mcp-llm/mcp.server";
 
 export const getSiteplans = async (req: Request, res: Response) => {
   try {

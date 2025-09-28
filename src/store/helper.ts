@@ -14,7 +14,7 @@ export class SessionHelper {
     /**
      * Convierte el estado del store a formato SessionState compatible
      */
-    static toSessionState(): import('../llm/types/gemini.types').SessionState {
+    static toSessionState(): import('../mcp-llm/types/gemini.types').SessionState {
         const state = useSessionStore.getState();
 
         return {
@@ -49,7 +49,7 @@ export class SessionHelper {
     /**
      * Actualiza el store desde un objeto SessionState
      */
-    static fromSessionState(sessionState: import('../llm/types/gemini.types').SessionState): void {
+    static fromSessionState(sessionState: import('../mcp-llm/types/gemini.types').SessionState): void {
         const store = useSessionStore.getState();
 
         store.updateSessionData({
