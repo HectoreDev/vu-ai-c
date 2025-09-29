@@ -71,7 +71,7 @@ export const handleSearchCommunities = async (rawArgs: Args) => {
     };
   }
 
-  // const LIMIT = 3;
+  const LIMIT = 3;
   // const { hits } = await queryCommunities({
   //   locations,
   //   priceMin: min,

@@ -41,7 +41,7 @@ const normalizeRenting = (
 
 type Args = z.infer<typeof ArgsSchema>;
 
-export const handleSetRenting = async (rawArgs: Args) => {
+export const handleGetRenting = async (rawArgs: Args) => {
 
    const pre = validateSession(rawArgs);
     if (!pre.ok) return pre;

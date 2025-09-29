@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { useSessionStore } from "./../store/zustandStore";
+import { useSessionStore } from "../store/zustandStore";
 import { toArray } from "../utils/toArray";
 import { validateSession } from "../utils/validateSession";
 
@@ -22,8 +22,10 @@ const ArgsSchema = z
 
 type Args = z.infer<typeof ArgsSchema>;
 
-export const handleSetLocation = async (rawArgs: Args) => {
+export const handleGetLocation= async (rawArgs: Args) => {
   const pre = validateSession(rawArgs);
+  // console.log('PREEEE', pre);
+  
   if (!pre.ok) return pre;
 
   const parsed = ArgsSchema.safeParse(rawArgs);

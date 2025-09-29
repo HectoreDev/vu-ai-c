@@ -54,7 +54,7 @@ const collectFeatures = (data: z.infer<typeof ArgsSchema>): string[] => {
 
 type Args = z.infer<typeof ArgsSchema>;
 
-export const handleSetInterestingHome = async (rawArgs: Args) => {
+export const handleGetInterestedHome = async (rawArgs: Args) => {
   const pre = validateSession(rawArgs);
   if (!pre.ok) return pre;
 
@@ -84,7 +84,7 @@ export const handleSetInterestingHome = async (rawArgs: Args) => {
 
   const store = useSessionStore();
 
-  store.setInterestHome(features);
+  store.setInterest(features);
 
   return {
     ok: true,

@@ -40,7 +40,7 @@ function normalizeBoolean(input?: { customizing?: boolean; answer?: string; labe
 
 type Args = z.infer<typeof ArgsSchema>;
 
-export const handleCustomizing = (rawArgs: Args) => {
+export const handleGetCustomizing = (rawArgs: Args) => {
 
    const pre = validateSession(rawArgs);
     if (!pre.ok) return pre;

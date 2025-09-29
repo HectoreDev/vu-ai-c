@@ -1,17 +1,34 @@
 export type InterestRate = "fha_30" | "conventional_30" | null;
 
-export type BudgetType = {
+export interface BudgetType {
   total_budget?: Range;
   down_payment?: number;
   interest_rate?: number;
   loan_duration?: number;
-};
+}
 
-export type FloorplanSpecs = {
+export interface FloorplanSpecs {
   sqft: Range;
   beds: Range;
   baths: Range;
   garage: Range;
-};
+}
 
-export type Range = { min: number; max: number };
+export interface Range {
+  min: number;
+  max: number;
+}
+
+export interface ISuccessResponse {
+  success: true;
+  text: string;
+  options?: any;
+}
+
+export interface IErrorResponse {
+  success: boolean;
+  error: "VALIDATION_ERROR" | "MISSING_SESSION" | "INTERNAL";
+  issues?: unknown;  
+}
+
+export type ToolResponse = ISuccessResponse | IErrorResponse;
