@@ -24,6 +24,9 @@ import {
   toolSearchComunities,
   toolStartSession,
 } from "../tools";
+import { useSessionStore } from "./../store/zustandStore";
+import { FunctionCall, Part } from "@google/genai";
+import { ResponseError, ResponseSuccess } from "./types/responseType";
 
 export class SimpleMcpServer {
   private tools: Map<string, Function> = new Map();
@@ -52,14 +55,41 @@ export class SimpleMcpServer {
     // this.tools.set("check_session", executeCheckSessionTool);
   }
 
-  async callTool(name: string, args: any) {
-    console.log(`Llamando a la tool: ${name} con argumentos:`, args);
-    const tool = this.tools.get(name);
-    if (!tool) {
-      throw new Error(`Tool ${name} not found`);
+
+    responseSuccess(data: any) {
+        return {
+            success: true,
+            data,
+            error: null
+        } as ResponseSuccess;
     }
-    return await tool(args);
-  }
+
+    responseError(message: string) {
+        return {
+            success: false,
+            error: message,
+            data: null
+        } as ResponseError;
+    }
+
+    async callTools(tools: Part[]) {
+        const results: any[] = [];
+        for (let index = 0; index < tools.length; index++) {
+            const { functionCall } = tools[index];
+            if (functionCall && functionCall.name) {
+                const { name, args } = functionCall;
+                const tool = this.tools.get(name);
+                if(tool) {
+                    const result =  await tool(args);
+                    results.push(result);
+                }
+            }
+        }
+
+        const store = useSessionStore.getState();
+        console.log("Resultados de las tools:", results, store);
+        return this.responseSuccess(results);
+    }
 
   listTools() {
     return Array.from(this.tools.keys());

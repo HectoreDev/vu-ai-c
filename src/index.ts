@@ -1,15 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import getNameRoutes from './routes/get-name.routes';
-import sessionRoutes from './routes/session.routes';
-import communityRoutes from './routes/community.routes';
-import lotsRoutes from './routes/lots.routes';
 import geminiRoutes from './routes/gemini.routes';
-import getLocationRoutes from './routes/get-location.routes';
-import siteplansRoutes from './routes/siteplans.routes';
-import getMinMaxPricesRoutes from './routes/get-min-max-prices.routes';
-import getAmenitiesFromPricesRoutes from './routes/get-amenities-from-prices.routes'; 
 
 dotenv.config();
 
@@ -65,14 +57,6 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(sessionRoutes);
-app.use(getNameRoutes);
-app.use(getLocationRoutes);
-app.use(getMinMaxPricesRoutes);
-app.use(getAmenitiesFromPricesRoutes); 
-app.use(communityRoutes);
-app.use(siteplansRoutes);
-app.use(lotsRoutes);
 app.use(geminiRoutes);
 
 app.get('/', (req, res) => {
