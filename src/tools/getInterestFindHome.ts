@@ -1,6 +1,6 @@
 // src/mcp/tools/interestedFindHome.ts
 import { z } from "zod";
-import { useSessionStore } from "./../store/zustandStore";
+import { useSessionStore } from "../store/zustandStore";
 import { validateSession } from "../utils/validateSession";
 
 const InterestAsArray = z
@@ -15,7 +15,7 @@ const ArgsSchema = z.object({
 
 type Args = z.infer<typeof ArgsSchema>;
 
-export const handleInterestedFindHome = async (rawArgs: Args) => {
+export const handleGetInterestFindHome = async (rawArgs: Args) => {
 
    const pre = validateSession(rawArgs);
     if (!pre.ok) return pre;
@@ -45,7 +45,7 @@ export const handleInterestedFindHome = async (rawArgs: Args) => {
 
   const store = useSessionStore.getState();
 
-  store.setHomeInterest(interest);
+  store.setHomeFindInteres(interest);
 
   return {
     ok: true,

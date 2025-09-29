@@ -1,6 +1,6 @@
 // src/mcp/tools/getInterestRate.ts
 import { z } from "zod";
-import { useSessionStore } from "./../store/zustandStore";
+import { useSessionStore } from "../store/zustandStore";
 import { InterestRate } from "../types/types";
 import { validateSession } from "../utils/validateSession";
 

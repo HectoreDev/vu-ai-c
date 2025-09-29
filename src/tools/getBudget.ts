@@ -10,7 +10,7 @@ import { validateSession } from "../utils/validateSession";
 
 type Args = z.infer<typeof ArgsFloorplanSpecsSchema>;
 
-export const handleSetBudget = async (rawArgs: Args) => {
+export const handleGetBudget = async (rawArgs: Args) => {
   const pre = validateSession(rawArgs);
   if (!pre.ok) return pre;
 

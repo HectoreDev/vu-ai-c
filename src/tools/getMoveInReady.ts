@@ -1,6 +1,6 @@
 // src/mcp/tools/moveInReady.ts
 import { z } from "zod";
-import { useSessionStore } from "./../store/zustandStore";
+import { useSessionStore } from "../store/zustandStore";
 import { validateSession } from "../utils/validateSession";
 
 const ArgsSchema = z.object({
@@ -38,7 +38,7 @@ function normalizeMoveInReady(input?: { moveInReady?: boolean; answer?: string; 
 
 type Args = z.infer<typeof ArgsSchema>;
 
-export const handleMoveInReady = async (rawArgs: Args) => {
+export const handleGetMoveInReady = async (rawArgs: Args) => {
 
    const pre = validateSession(rawArgs);
     if (!pre.ok) return pre;

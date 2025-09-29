@@ -173,7 +173,7 @@ const normalizeAndValidate = (input: z.infer<typeof ArgsSchema>) => {
 
 type Args = z.infer<typeof ArgsSchema>;
 
-export const handleSetFloorplanSpecs = async (rawArgs: Args) => {
+export const handleGetFloorplanSpecs = async (rawArgs: Args) => {
   // Session required
   const pre = z
     .object({ sessionId: z.string().trim().min(1).optional() })
