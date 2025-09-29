@@ -3,7 +3,7 @@ import { z } from "zod";
 import { useSessionStore } from "./../store/zustandStore";
 
 // ⚠️ Usa tu wrapper real (NO importa Algolia aquí)
-import { queryCommunities } from "../../search/community.search";
+// import { queryCommunities } from "../../search/community.search";
 import { parseNum } from "../utils/parseNum";
 import { validateSession } from "../utils/validateSession";
 // Se asume firma: queryCommunities({ markets: string[], budgetMin: number, budgetMax: number, limit?: number })
@@ -71,46 +71,46 @@ export const handleSearchCommunities = async (rawArgs: Args) => {
     };
   }
 
-  const LIMIT = 3;
-  const { hits } = await queryCommunities({
-    locations,
-    priceMin: min,
-    priceMax: max,
-    limit: LIMIT,
-  });
+  // const LIMIT = 3;
+  // const { hits } = await queryCommunities({
+  //   locations,
+  //   priceMin: min,
+  //   priceMax: max,
+  //   limit: LIMIT,
+  // });
 
-  const options: HitOption[] = (hits ?? [])
-    .map((h: any) => ({
-      value: h.communityUID,
-      name: h.name,
-      divisionUID: h.divisionUID,
-      communityUID: h.communityUID,
-      price_min:
-        typeof h.price_min === "number" ? h.price_min : parseNum(h.price_min),
-      price_max:
-        typeof h.price_max === "number" ? h.price_max : parseNum(h.price_max),
-    }))
-    .filter((h: any) => h.value);
+  // const options: HitOption[] = (hits ?? [])
+  //   .map((h: any) => ({
+  //     value: h.communityUID,
+  //     name: h.name,
+  //     divisionUID: h.divisionUID,
+  //     communityUID: h.communityUID,
+  //     price_min:
+  //       typeof h.price_min === "number" ? h.price_min : parseNum(h.price_min),
+  //     price_max:
+  //       typeof h.price_max === "number" ? h.price_max : parseNum(h.price_max),
+  //   }))
+  //   .filter((h: any) => h.value);
 
-  if (options.length === 0) {
-    return {
-      ok: true,
-      sessionId,
-      saved: undefined,
-      suggest: {
-        nextTool: "get_budget",
-        reason:
-          "No matches. Consider widening the budget or adding more locations.",
-      },
-      hits: options,
-      applied: { locations, budget_min: min, budget_max: max },
-    } as any;
-  }
+  // if (options.length === 0) {
+  //   return {
+  //     ok: true,
+  //     sessionId,
+  //     saved: undefined,
+  //     suggest: {
+  //       nextTool: "get_budget",
+  //       reason:
+  //         "No matches. Consider widening the budget or adding more locations.",
+  //     },
+  //     hits: options,
+  //     applied: { locations, budget_min: min, budget_max: max },
+  //   } as any;
+  // }
 
   return {
     ok: true,
     sessionId,
-    hits: options,
+    // hits: options,
     applied: { locations, budget_min: min, budget_max: max },
     suggest: {
       nextTool: "choose_community_render",

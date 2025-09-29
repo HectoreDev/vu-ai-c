@@ -7,7 +7,6 @@ import { useSessionStore } from "../store/zustandStore";
 import { SessionHelper } from "../store/helper";
 import type { SessionState } from "./types/gemini.types";
 import { FunctionCallingConfigMode } from "@google/genai";
-import { getName } from "../controllers/get-name.controller";
 
 export class GeminiService {
 
@@ -39,28 +38,23 @@ export class GeminiService {
 
 		console.log('text response', response1.candidates?.[0]?.content?.parts)
 
-		console.log('tool', response1?.candidates?.[0]?.content?.parts?.[0]?.functionCall )
-		const toolCall = response1?.candidates?.[0]?.content?.parts?.[0]?.functionCall;
-		
-		// const functionCalls = response1 && response1.functionCalls() ? response1.functionCalls() : [];
+		const toolsCall = response1 && response1.candidates?.[0]?.content?.parts ? response1.candidates?.[0]?.content?.parts : [];
 
-		if (toolCall) {
-			const { name, args } = toolCall
-			const mcpResult = await mcpServer.callTool(name ? name : 'getName', args);
-			console.log('Resultados de herramientas:', mcpResult[0]);
+		if (toolsCall.length) {
+			const mcpResult = await mcpServer.callTools(toolsCall);
+			console.log('Resultados de herramientas:', mcpResult);
 
-			const resultMCP = await model.sendMessage({
-				message: mcpResult,
-				config: {
-					systemInstruction: 'se te brindara un array de communities, tienes que seleccionar la mejor y describirla al usuario, si no hay ninguna que cumpla sus requisitos, haz preguntas adicionales para obtener más detalles sobre sus requisitos y gustos.'
-				}
-			});
+			// const resultMCP = await model.sendMessage({
+			// 	message: mcpResult,
+			// 	config: {
+			// 		systemInstruction: 'se te brindara un array de communities, tienes que seleccionar la mejor y describirla al usuario, si no hay ninguna que cumpla sus requisitos, haz preguntas adicionales para obtener más detalles sobre sus requisitos y gustos.'
+			// 	}
+			// });
 
-			console.log('Respuesta final con datos de MCP:', resultMCP);
+			// console.log('Respuesta final con datos de MCP:', resultMCP);
 
-
-			return { text: response1.candidates?.[0]?.content?.parts,
-				toolsUsed: [name]
+			return {
+				text: mcpResult,
 			};
 
 		} else {
