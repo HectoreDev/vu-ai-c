@@ -121,8 +121,10 @@ export const useSessionStore = create<SessionStore>()(
         setSessionId: (sessionId: string) =>
           set({ sessionId }, false, "setSessionId"),
 
-        setName: (name: string) => set({ name }, false, "setName"),
-
+        setName: (name: string) => {
+            set({ name }, false, "setName");
+            return get().name;
+        },
         setlocations: (locations: string[]) =>
           set({ locations }, false, "setlocations"),
 
