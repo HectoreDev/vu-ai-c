@@ -213,7 +213,7 @@ export const handleGetFloorplanSpecs = async (rawArgs: Args) => {
   // Persist in store (set null for missing, as requested)
   const store = useSessionStore();
 
-  store.setFloorplanSpecs(floorplanPatch);
+  store.setFloorplanSpecs(floorplanPatch.toString());
 
   return {
     ok: true,
