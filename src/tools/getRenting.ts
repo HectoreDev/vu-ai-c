@@ -6,8 +6,8 @@ import { validateSession } from "../utils/validateSession";
 const ArgsSchema = z.object({
   sessionId: z.string().trim().min(1, "sessionId is required."),
   renting: z.boolean().optional(),
-  answer:  z.string().optional(),
-  label:   z.string().optional(),
+  answer: z.string().optional(),
+  label: z.string().optional(),
 }).refine(d => d.renting !== undefined || !!d.answer || !!d.label, {
   message: "Provide either 'renting' boolean or a free-text 'answer/label'.",
   path: ["renting"],
@@ -22,19 +22,19 @@ const normalizeRenting = (
   if (!raw) return undefined;
 
   const YES = [
-    "yes","y","true","include","show","feature","rent","rentals","for rent"
+    "yes", "y", "true", "include", "show", "feature", "rent", "rentals", "for rent"
   ];
 
   const NO = [
-    "no","n","false","not now","not this time","exclude","don't include","do not include","skip","remove"
+    "no", "n", "false", "not now", "not this time", "exclude", "don't include", "do not include", "skip", "remove"
   ];
 
   if (YES.some(k => raw.includes(k))) return true;
-  if (NO.some(k => raw.includes(k)))  return false;
+  if (NO.some(k => raw.includes(k))) return false;
 
 
   if (/\b(yes|true|include|rent|renta|alquiler)/.test(raw)) return true;
-  if (/\b(no|false|exclude|skip|remove|no\s+incluir|no\s+ahora)/.test(raw))  return false;
+  if (/\b(no|false|exclude|skip|remove|no\s+incluir|no\s+ahora)/.test(raw)) return false;
 
   return undefined;
 };
@@ -43,8 +43,8 @@ type Args = z.infer<typeof ArgsSchema>;
 
 export const handleGetRenting = async (rawArgs: Args) => {
 
-   const pre = validateSession(rawArgs);
-    if (!pre.ok) return pre;
+  const pre = validateSession(rawArgs);
+  if (!pre.ok) return pre;
 
   const parsed = ArgsSchema.safeParse(rawArgs);
   if (!parsed.success) {
@@ -71,7 +71,7 @@ export const handleGetRenting = async (rawArgs: Args) => {
 
   const store = useSessionStore();
 
-  store.setRenting(normalized);
+  store.setRenting(normalized.toString());
 
   return {
     ok: true,

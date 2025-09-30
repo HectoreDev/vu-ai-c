@@ -58,7 +58,6 @@ const toolsAmenities = {
   }
 }
 
-// ...existing code...
 export const generalTools = {
   tools: [toolsName, toolsLocation, toolsBudget, toolsAmenities],
   listTools: [toolsName.name, toolsLocation.name, toolsBudget.name, toolsAmenities.name]

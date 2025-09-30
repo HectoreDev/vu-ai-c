@@ -42,8 +42,8 @@ type Args = z.infer<typeof ArgsSchema>;
 
 export const handleGetCustomizing = (rawArgs: Args) => {
 
-   const pre = validateSession(rawArgs);
-    if (!pre.ok) return pre;
+  const pre = validateSession(rawArgs);
+  if (!pre.ok) return pre;
 
   const parsed = ArgsSchema.safeParse(rawArgs);
   if (!parsed.success) {
@@ -54,7 +54,7 @@ export const handleGetCustomizing = (rawArgs: Args) => {
       issues: parsed.error.issues,
       message: "Invalid customizing arguments.",
     };
-    }
+  }
 
   const { sessionId, customizing, answer, label } = parsed.data;
   const normalized = normalizeBoolean({ customizing, answer, label });
@@ -70,7 +70,7 @@ export const handleGetCustomizing = (rawArgs: Args) => {
 
   const store = useSessionStore();
 
-  store.setCustomizing(normalized);
+  store.setCustomizing(normalized.toString());
 
   return {
     ok: true,

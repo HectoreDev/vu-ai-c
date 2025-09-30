@@ -1,7 +1,7 @@
 import { Chat, GoogleGenAI } from "@google/genai";
 import dotenv from 'dotenv';
-// import { generalTools } from "../tools/generalTools";
-import { generalTools } from "../tools/agent.tools";
+import { generalTools } from "../tools/generalTools";
+import { tools } from "../tools/agent.tools";
 
 dotenv.config();
 const API_KEY = process.env.GEMINI_API_KEY || "";
@@ -25,10 +25,10 @@ export const model = ai.chats.create({
             }
         ],
     },
-        history: [ // Initial history for the chat session
-            {
-                role: "user",
-                parts: [{ text: "Iniciando chat para buscar casa" }],
-            }
-        ],
+    history: [ // Initial history for the chat session
+        {
+            role: "user",
+            parts: [{ text: "Iniciando chat para buscar casa" }],
+        }
+    ],
 }); 

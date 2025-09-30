@@ -1,5 +1,13 @@
 import { create } from 'zustand';
-
+import {
+    validateSessionId,
+    validateName,
+    validateLocations,
+    validatePriceRange,
+    validateAmenities,
+    ValidationResult
+} from '../schemas/store.schema';
+import { BudgetType, Range } from "../types/types";
 
 interface SessionStore {
     // Estados principales
@@ -10,7 +18,6 @@ interface SessionStore {
     priceMax?: number;
     amenities?: string;
 
-    step: number;
     // Estados adicionales
     communities?: string;
     community?: string;
@@ -24,22 +31,25 @@ interface SessionStore {
     markets: string[];
     budgetProduct: string | null;
     budgetType: string | null;
-    budget: number | undefined;
+    budget: BudgetType | null;
     customizing: string | null;
     moveInReady: string | null;
     renting: string | null;
-    floorplanSpecs: string | undefined;
+    floorplanSpecs: string | null;
     homeInterest: string[];
+    interestRate?: string;
 
-    // Acciones básicas
-    setSessionId: (sessionId: string) => void;
-    setName: (name: string) => void;
-    setlocations: (locations: string[]) => void;
-    setPriceRange: (priceMin: number, priceMax: number) => void;
+    // Estado para errores de validación
+    validationErrors: Record<string, string[]>;
+
+    // Acciones básicas con validación
+    setSessionId: (sessionId: string) => ValidationResult<{ sessionId: string }>;
+    setName: (name: string) => ValidationResult<{ name: string }>;
+    setlocations: (locations: string[]) => ValidationResult<{ locations: string[] }>;
+    setPriceRange: (priceMin: number, priceMax: number) => ValidationResult<{ priceMin: number; priceMax: number }>;
     setPriceMin: (priceMin: number) => void;
     setPriceMax: (priceMax: number) => void;
-    setAmenities: (amenities: string) => void;
-    setStep: (step: number) => void;
+    setAmenities: (amenities: string) => ValidationResult<{ amenities: string }>;
     setCommunities: (communities: string) => void;
     setCommunity: (community: string) => void;
     setLastToolUsed: (tool: string) => void;
@@ -49,6 +59,7 @@ interface SessionStore {
     setWelcome: (welcome: string) => void;
     setNameSpecs: (nameSpecs: string) => void;
     setInterest: (interest: string[]) => void;
+    setInterestRate: (interestRate: string) => void;
     addInterest: (interest: string) => void;
     removeInterest: (interest: string) => void;
     setMarkets: (markets: string[]) => void;
@@ -56,7 +67,7 @@ interface SessionStore {
     removeMarket: (market: string) => void;
     setBudgetProduct: (budgetProduct: string) => void;
     setBudgetType: (budgetType: string) => void;
-    setBudget: (budget: number) => void;
+    setBudget: (budget: BudgetType) => void;
     setCustomizing: (customizing: string) => void;
     setMoveInReady: (moveInReady: string) => void;
     setRenting: (renting: string) => void;
@@ -70,6 +81,8 @@ interface SessionStore {
     updateSessionData: (data: Partial<SessionStore>) => void;
     isSessionActive: () => boolean;
     getSessionSummary: () => string;
+    clearValidationErrors: (field?: string) => void;
+    getValidationErrors: (field?: string) => string[];
 }
 
 // Estado inicial
@@ -77,7 +90,6 @@ export const initialState = {
     sessionId: undefined,
     name: undefined,
     locations: undefined,
-    step: 0,
     priceMin: undefined,
     priceMax: undefined,
     amenities: undefined,
@@ -93,39 +105,119 @@ export const initialState = {
     markets: [],
     budgetProduct: null,
     budgetType: null,
-    budget: undefined,
+    budget: null,
     customizing: null,
     moveInReady: null,
     renting: null,
-    floorplanSpecs: undefined,
+    floorplanSpecs: null,
     homeInterest: [],
+    interestRate: undefined,
+
+    validationErrors: {},
 };
 
 
-// Crear el store sin devtools ni persistencia
+
 export const useSessionStore = create<SessionStore>()((set, get) => ({
-    // Estado inicial
+
     ...initialState,
 
-    // Acciones básicas
+    // Acciones básicas con validación
     setSessionId: (sessionId: string) => {
-        set({ sessionId });
-        return get().sessionId
+        const validation = validateSessionId(sessionId);
+
+        if (validation.success) {
+            set((state) => ({
+                sessionId: validation.data.sessionId,
+                validationErrors: {
+                    ...state.validationErrors,
+                    sessionId: []
+                }
+            }));
+        } else {
+            // Store actual validation errors
+            const errorMessages = validation.error ? [validation.error] : ['Error de validación'];
+            set((state) => ({
+                validationErrors: {
+                    ...state.validationErrors,
+                    sessionId: errorMessages
+                }
+            }));
+        }
+        return validation;
     },
 
     setName: (name: string) => {
-        set({ name });
-        return get().name;
+        const validation = validateName(name);
+
+        if (validation.success) {
+            set((state) => ({
+                name: validation.data.name,
+                validationErrors: {
+                    ...state.validationErrors,
+                    name: []
+                }
+            }));
+        } else {
+            // Store actual validation errors
+            const errorMessages = validation.error ? [validation.error] : ['Error de validación'];
+            set((state) => ({
+                validationErrors: {
+                    ...state.validationErrors,
+                    name: errorMessages
+                }
+            }));
+        }
+        return validation;
     },
 
     setlocations: (locations: string[]) => {
-        set({ locations });
-        return get().locations;
+        const validation = validateLocations(locations);
+
+        if (validation.success) {
+            set((state) => ({
+                locations: validation.data.locations,
+                validationErrors: {
+                    ...state.validationErrors,
+                    locations: []
+                }
+            }));
+        } else {
+            // Store actual validation errors
+            const errorMessages = validation.error ? [validation.error] : ['Error de validación'];
+            set((state) => ({
+                validationErrors: {
+                    ...state.validationErrors,
+                    locations: errorMessages
+                }
+            }));
+        }
+        return validation;
     },
 
     setPriceRange: (priceMin: number, priceMax: number) => {
-        set({ priceMin, priceMax });
-        return get().priceMin, get().priceMax;
+        const validation = validatePriceRange(priceMin, priceMax);
+
+        if (validation.success) {
+            set((state) => ({
+                priceMin: validation.data.priceMin,
+                priceMax: validation.data.priceMax,
+                validationErrors: {
+                    ...state.validationErrors,
+                    priceRange: []
+                }
+            }));
+        } else {
+            // Store actual validation errors
+            const errorMessages = validation.error ? [validation.error] : ['Error de validación'];
+            set((state) => ({
+                validationErrors: {
+                    ...state.validationErrors,
+                    priceRange: errorMessages
+                }
+            }));
+        }
+        return validation;
     },
 
     setPriceMin: (priceMin: number) => {
@@ -139,49 +231,60 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
     },
 
     setAmenities: (amenities: string) => {
-        set({ amenities });
-        return get().amenities;
-    },
+        const validation = validateAmenities(amenities);
 
-    setStep: (step: number) => {
-        set({ step });
-        return get().step;
+        if (validation.success) {
+            set((state) => ({
+                amenities: validation.data.amenities,
+                validationErrors: {
+                    ...state.validationErrors,
+                    amenities: []
+                }
+            }));
+        } else {
+            // Store actual validation errors
+            const errorMessages = validation.error ? [validation.error] : ['Error de validación'];
+            set((state) => ({
+                validationErrors: {
+                    ...state.validationErrors,
+                    amenities: errorMessages
+                }
+            }));
+        }
+        return validation;
     },
 
     setCommunities: (communities: string) => {
         set({ communities });
-        return get().communities;
     },
 
     setCommunity: (community: string) => {
         set({ community });
-        return get().community;
     },
 
     setLastToolUsed: (lastToolUsed: string) => {
         set({ lastToolUsed });
-        return get().lastToolUsed;
     },
 
     setMcpSessionId: (mcpSessionId: string) => {
         set({ mcpSessionId });
-        return get().mcpSessionId;
     },
 
     // Acciones para nuevos campos
     setWelcome: (welcome: string) => {
         set({ welcome });
-        return get().welcome;
     },
 
     setNameSpecs: (nameSpecs: string) => {
         set({ nameSpecs });
-        return get().nameSpecs;
     },
 
     setInterest: (interest: string[]) => {
         set({ interest });
-        return get().interest;
+    },
+
+    setInterestRate: (interestRate: string) => {
+        set({ interestRate });
     },
 
     addInterest: (newInterest: string) => {
@@ -190,19 +293,16 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
                 ? state.interest
                 : [...state.interest, newInterest]
         }));
-        return get().interest;
     },
 
     removeInterest: (interestToRemove: string) => {
         set((state) => ({
             interest: state.interest.filter(i => i !== interestToRemove)
         }));
-        return get().interest;
     },
 
     setMarkets: (markets: string[]) => {
         set({ markets });
-        return get().markets;
     },
 
     addMarket: (newMarket: string) => {
@@ -211,54 +311,44 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
                 ? state.markets
                 : [...state.markets, newMarket]
         }));
-        return get().markets;
     },
 
     removeMarket: (marketToRemove: string) => {
         set((state) => ({
             markets: state.markets.filter(m => m !== marketToRemove)
         }));
-        return get().markets;
     },
 
     setBudgetProduct: (budgetProduct: string) => {
         set({ budgetProduct });
-        return get().budgetProduct;
     },
 
     setBudgetType: (budgetType: string) => {
         set({ budgetType });
-        return get().budgetType;
     },
 
-    setBudget: (budget: number) => {
+    setBudget: (budget: BudgetType) => {
         set({ budget });
-        return get().budget;
     },
 
     setCustomizing: (customizing: string) => {
         set({ customizing });
-        return get().customizing;
     },
 
     setMoveInReady: (moveInReady: string) => {
         set({ moveInReady });
-        return get().moveInReady;
     },
 
     setRenting: (renting: string) => {
         set({ renting });
-        return get().renting;
     },
 
     setFloorplanSpecs: (floorplanSpecs: string) => {
         set({ floorplanSpecs });
-        return get().floorplanSpecs;
     },
 
     setHomeInterest: (homeInterest: string[]) => {
         set({ homeInterest });
-        return get().homeInterest;
     },
 
     addHomeInterest: (newHomeInterest: string) => {
@@ -267,14 +357,12 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
                 ? state.homeInterest
                 : [...state.homeInterest, newHomeInterest]
         }));
-        return get().homeInterest;
     },
 
     removeHomeInterest: (homeInterestToRemove: string) => {
         set((state) => ({
             homeInterest: state.homeInterest.filter(h => h !== homeInterestToRemove)
         }));
-        return get().homeInterest;
     },
 
     // Acciones de utilidad
@@ -304,7 +392,32 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
 
         return summary.length > 0 ? summary.join(' | ') : 'Sin datos de sesión';
     },
+
+    // Métodos de utilidad para validación
+    clearValidationErrors: (field?: string) => {
+        if (field) {
+            set((state) => ({
+                validationErrors: {
+                    ...state.validationErrors,
+                    [field]: []
+                }
+            }));
+        } else {
+            set({ validationErrors: {} });
+        }
+    },
+
+    getValidationErrors: (field?: string) => {
+        const state = get();
+        if (field) {
+            return state.validationErrors[field] || [];
+        } else {
+            return Object.values(state.validationErrors).flat();
+        }
+    },
+
 }));
+
 
 useSessionStore.subscribe((state) => {
     console.log('state', state);
@@ -319,7 +432,6 @@ export const usePriceRange = () => useSessionStore((state) => ({
     priceMax: state.priceMax
 }));
 export const useAmenities = () => useSessionStore((state) => state.amenities);
-export const useStep = () => useSessionStore((state) => state.step);
 export const useMcpSessionId = () => useSessionStore((state) => state.mcpSessionId);
 
 // Hooks para nuevos campos
@@ -346,7 +458,6 @@ export const useSessionActions = () => useSessionStore((state) => ({
     setPriceMin: state.setPriceMin,
     setPriceMax: state.setPriceMax,
     setAmenities: state.setAmenities,
-    setStep: state.setStep,
     setCommunities: state.setCommunities,
     setCommunity: state.setCommunity,
     setLastToolUsed: state.setLastToolUsed,
@@ -382,6 +493,27 @@ export const useSessionUtils = () => useSessionStore((state) => ({
     isSessionActive: state.isSessionActive,
     getSessionSummary: state.getSessionSummary,
 }));
+
+// Hooks para validación
+export const useValidationErrors = (field?: string) => useSessionStore((state) => {
+    if (field) {
+        return state.validationErrors[field] || [];
+    }
+    return Object.values(state.validationErrors).flat();
+});
+
+export const useValidationActions = () => useSessionStore((state) => ({
+    clearValidationErrors: state.clearValidationErrors,
+    getValidationErrors: state.getValidationErrors,
+}));
+
+// Hook para verificar si un campo tiene errores
+export const useHasValidationErrors = (field?: string) => useSessionStore((state) => {
+    if (field) {
+        return (state.validationErrors[field] || []).length > 0;
+    }
+    return Object.values(state.validationErrors).some(errors => errors.length > 0);
+});
 
 // Tipo para exportar la interfaz del store
 export type { SessionStore };

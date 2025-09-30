@@ -7,15 +7,15 @@ import { validateSession } from "../utils/validateSession";
 
 const ArgsSchema = z.object({
   sessionId: z.string().trim().min(1, "sessionId is required."),
-  product: z.string().optional(), 
-  label: z.string().optional(),   
-  answer: z.string().optional(),  
-  none: z.boolean().optional(),  
+  product: z.string().optional(),
+  label: z.string().optional(),
+  answer: z.string().optional(),
+  none: z.boolean().optional(),
 })
-.refine((d) => !!(d.product || d.label || d.answer || d.none === true), {
-  message: "Provide at least one selector: product, label, answer, or none:true.",
-  path: ["product"],
-});
+  .refine((d) => !!(d.product || d.label || d.answer || d.none === true), {
+    message: "Provide at least one selector: product, label, answer, or none:true.",
+    path: ["product"],
+  });
 
 
 function normalizeProduct(input?: {
@@ -59,10 +59,10 @@ function normalizeProduct(input?: {
 
 type Args = z.infer<typeof ArgsSchema>;
 
-export const handleGetInterestRate =  async (rawArgs: Args) => {
- 
-   const pre = validateSession(rawArgs);
-    if (!pre.ok) return pre;
+export const handleGetInterestRate = async (rawArgs: Args) => {
+
+  const pre = validateSession(rawArgs);
+  if (!pre.ok) return pre;
 
   const parsed = ArgsSchema.safeParse(rawArgs);
   if (!parsed.success) {
@@ -81,7 +81,7 @@ export const handleGetInterestRate =  async (rawArgs: Args) => {
 
   const store = useSessionStore();
 
-   store.setInterestRate(normalized);
+  store.setInterestRate(normalized || "");
 
   return {
     ok: true,

@@ -17,8 +17,8 @@ type Args = z.infer<typeof ArgsSchema>;
 
 export const handleGetInterestFindHome = async (rawArgs: Args) => {
 
-   const pre = validateSession(rawArgs);
-    if (!pre.ok) return pre;
+  const pre = validateSession(rawArgs);
+  if (!pre.ok) return pre;
 
   const parsed = ArgsSchema.safeParse(rawArgs);
 
@@ -45,7 +45,7 @@ export const handleGetInterestFindHome = async (rawArgs: Args) => {
 
   const store = useSessionStore.getState();
 
-  store.setHomeFindInteres(interest);
+  store.setHomeInterest(interest);
 
   return {
     ok: true,

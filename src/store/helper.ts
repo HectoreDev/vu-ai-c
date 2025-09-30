@@ -1,3 +1,4 @@
+import { BudgetType } from '../types/types';
 import { useSessionStore, SessionStore } from './zustandStore';
 
 // Tipos helper para el store
@@ -6,19 +7,46 @@ export type SessionData = Pick<SessionStore,
 >;
 
 export type SessionFlow = Pick<SessionStore,
-    'step' | 'lastToolUsed' | 'communities' | 'community'
+    'lastToolUsed' | 'communities' | 'community'
 >;
+
+// Interfaz local para SessionState sin step
+interface LocalSessionState {
+    name?: string;
+    locations?: string[];
+    priceMin?: number;
+    priceMax?: number;
+    amenities?: string;
+    communities?: string;
+    community?: string;
+    lastToolUsed?: string;
+    sessionId?: string;
+    mcpSessionId?: string;
+
+    // Nuevos campos del flujo extendido
+    welcome?: string | null;
+    nameSpecs?: string | null;
+    interest?: string[];
+    markets?: string[];
+    budgetProduct?: string | null;
+    budgetType?: string | null;
+    budget: BudgetType | null;
+    customizing: string | null;
+    moveInReady?: string | null;
+    renting?: string | null;
+    floorplanSpecs: string | null;
+    homeInterest: string[];
+}
 
 // Funciones helper para conversiones y validaciones
 export class SessionHelper {
     /**
      * Convierte el estado del store a formato SessionState compatible
      */
-    static toSessionState(): import('../mcp-llm/types/gemini.types').SessionState {
+    static toSessionState(): LocalSessionState {
         const state = useSessionStore.getState();
 
         return {
-            step: state.step,
             name: state.name,
             locations: state.locations,
             priceMin: state.priceMin,
@@ -49,11 +77,10 @@ export class SessionHelper {
     /**
      * Actualiza el store desde un objeto SessionState
      */
-    static fromSessionState(sessionState: import('../mcp-llm/types/gemini.types').SessionState): void {
+    static fromSessionState(sessionState: LocalSessionState): void {
         const store = useSessionStore.getState();
 
         store.updateSessionData({
-            step: sessionState.step,
             name: sessionState.name,
             locations: sessionState.locations,
             priceMin: sessionState.priceMin,
@@ -148,8 +175,6 @@ export class SessionHelper {
         if (mcpSessionId) {
             store.setMcpSessionId(mcpSessionId);
         }
-
-        store.setStep(0);
     }
 
     /**
@@ -157,7 +182,6 @@ export class SessionHelper {
      */
     static getFullSummary(): {
         isActive: boolean;
-        currentStep: number;
         completedData: string[];
         missingData: string[];
         nextAction: string;
@@ -217,7 +241,6 @@ export class SessionHelper {
 
         return {
             isActive: state.isSessionActive(),
-            currentStep: state.step,
             completedData,
             missingData,
             nextAction: nextActions[nextStep] || 'Acción desconocida'
@@ -243,7 +266,7 @@ export class SessionHelper {
             renting: string | null;
         };
         homeSpecs: {
-            floorplan: string | undefined;
+            floorplan: string | null;
             interests: string[];
         };
     } {
@@ -257,7 +280,7 @@ export class SessionHelper {
             budget: {
                 product: state.budgetProduct,
                 type: state.budgetType,
-                amount: state.budget,
+                amount: state.budget?.total_budget?.min,
             },
             preferences: {
                 customizing: state.customizing,

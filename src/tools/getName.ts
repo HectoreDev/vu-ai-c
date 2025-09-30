@@ -3,18 +3,15 @@
 import { z } from "zod";
 import { useSessionStore } from "../store/zustandStore";
 import { dataFakeCommunities } from "../db/db.testhouse";
-import { ArgsName } from "../utils/validations";
+//import { ArgsName } from "../utils/validations";
 import { ToolResponse } from "../types/types";
 import { createSessionId } from "../utils/createSessionId";
+import { validateName } from "../schemas/store.schema";
 
-type Args = z.infer<typeof ArgsName>;
+//type Args = z.infer<typeof ArgsName>;
 
-export const handleGetName = async (args: Args): Promise<ToolResponse> => {
-  const parsed = ArgsName.safeParse(args);
-  if (!parsed.success) {
-    throw new Error();
-  }
-console.log('AQUIII', args);
+export const handleGetName = async (args: string): Promise<ToolResponse> => {
+  const parsed = validateName(args);
 
   let { sessionId, name } = parsed.data;
 

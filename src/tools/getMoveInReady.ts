@@ -20,11 +20,11 @@ function normalizeMoveInReady(input?: { moveInReady?: boolean; answer?: string; 
   if (!raw) return undefined;
 
   const YES = [
-    "yes","y","true","include","show","feature","quick move-in","quick move in","ready now",
-    "inventory home","spec home","include qmi","yes, include"
+    "yes", "y", "true", "include", "show", "feature", "quick move-in", "quick move in", "ready now",
+    "inventory home", "spec home", "include qmi", "yes, include"
   ];
   const NO = [
-    "no","n","false","not now","not this time","exclude","don't include","do not include","skip","remove"
+    "no", "n", "false", "not now", "not this time", "exclude", "don't include", "do not include", "skip", "remove"
   ];
 
   if (YES.some(k => raw.includes(k))) return true;
@@ -40,8 +40,8 @@ type Args = z.infer<typeof ArgsSchema>;
 
 export const handleGetMoveInReady = async (rawArgs: Args) => {
 
-   const pre = validateSession(rawArgs);
-    if (!pre.ok) return pre;
+  const pre = validateSession(rawArgs);
+  if (!pre.ok) return pre;
 
   const parsed = ArgsSchema.safeParse(rawArgs);
   if (!parsed.success) {
@@ -68,7 +68,7 @@ export const handleGetMoveInReady = async (rawArgs: Args) => {
 
   const store = useSessionStore();
 
- store.setMoveInReady(normalized);
+  store.setMoveInReady(normalized.toString());
 
   return {
     ok: true,
