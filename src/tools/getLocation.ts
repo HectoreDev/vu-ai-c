@@ -1,15 +1,14 @@
 import { z } from "zod";
 import { useSessionStore } from "../store/zustandStore";
 import { toArray } from "../utils/toArray";
-import { locationsSchema, validateLocations } from "../schemas/store.schema";
+import { locationsSchema, validateLocation, validateLocations } from "../schemas/store.schema";
 import { ToolResponse } from "../types/types";
 
 type Args = z.infer<typeof locationsSchema>;
 
-export const handleGetLocation = async (
-  rawArgs: Args
-): Promise<ToolResponse> => {
-  const parsed = validateLocations(rawArgs.locations);
+export const handleGetLocation = async (args: Args): Promise<ToolResponse> => {
+
+  const parsed = validateLocations(args.locations);
 
   const { locations } = parsed.data;
   const locs = toArray(locations);

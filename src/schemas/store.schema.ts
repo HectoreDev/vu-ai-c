@@ -30,6 +30,12 @@ export const locationsSchema = z.object({
 });
 
 // z.union([z.array(z.string()), z.string()]) este puede unir estrings si el arg no lo crea
+export const locationSchema = z.object({
+    location: z.string()
+        .trim()
+        .min(1, { message: 'La ubicación debe tener al menos 1 caracter' })
+        .max(50, { message: 'La ubicación no puede exceder 50 caracteres' })
+});
 
 export const priceRangeSchema = z.object({
     priceMin: z.number()
@@ -108,6 +114,16 @@ export const validateName = (name: string): ValidationResult<{ name: string }> =
 export const validateLocations = (locations: string[]): ValidationResult<{ locations: string[] }> => {
     try {
         const data = locationsSchema.parse({ locations });
+        return createSuccessResponse(data);
+    } catch (error) {
+        return createErrorResponse(error as Error);
+    }
+}
+
+export const validateLocation = (location: string): ValidationResult<{ location: string }> => {
+    try {
+        const data = locationSchema.parse({ location });
+        console.log("validateLocation data", data);
         return createSuccessResponse(data);
     } catch (error) {
         return createErrorResponse(error as Error);

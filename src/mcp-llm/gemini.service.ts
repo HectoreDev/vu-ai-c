@@ -12,35 +12,36 @@ export class GeminiService {
 
 	async chatWithTools(message: string, sessionId?: number) {
 
-		const contextPrompt = 'hola, estoy buscando una casa en austin o phoenix, mi nombre es jose, tengo un presupues de 2000 mil dolares, y me gustaría que tuviera alberca y parques para mascotas';
+		const contextPrompt = 'hola, estoy buscando una casa en austin o phoenix, mi nombre es jose, tengo un presupues de 2000 dolares, y me gustaría que tuviera alberca y parques para mascotas';
 
 		console.log('Generando respuesta contextual con Gemini...2');
 		// @ts-ignore
 		const response1 = await model.sendMessage({
-      message: contextPrompt,
-      config: {
-        tools: [
-          {
+			message: contextPrompt,
+			config: {
+				tools: [
+					{
 						// @ts-ignore
-            functionDeclarations: generalTools.tools
-          },
-        ],
-        toolConfig: {
-          functionCallingConfig: {
-            // Force the model to call the specified function
-            mode: FunctionCallingConfigMode.ANY,
-            // Specify the exact tool name to force
-            allowedFunctionNames: generalTools.listTools
-          }
-        }
-      }
-    });
+						functionDeclarations: generalTools.tools
+					},
+				],
+				toolConfig: {
+					functionCallingConfig: {
+						// Force the model to call the specified function
+						mode: FunctionCallingConfigMode.ANY,
+						// Specify the exact tool name to force
+						allowedFunctionNames: generalTools.listTools
+					}
+				}
+			}
+		});
 
 		console.log('text response', response1.candidates?.[0]?.content?.parts)
 
-		const toolsCall = response1 && response1.candidates?.[0]?.content?.parts ? response1.candidates?.[0]?.content?.parts : [];
+		const toolsCall = response1.candidates?.[0]?.content?.parts || [];
+		console.log('toolsCall', toolsCall.length);
 
-		if (toolsCall.length) {
+		if (toolsCall.length > 0) {
 			const mcpResult = await mcpServer.callTools(toolsCall);
 			console.log('Resultados de herramientas:', mcpResult);
 
