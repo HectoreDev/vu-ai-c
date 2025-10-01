@@ -57,6 +57,62 @@ export const amenitiesSchema = z.object({
 });
 
 
+export const customizingSchema = z.object({
+    customizing: z.boolean()
+        .refine(data => typeof data === 'boolean', {
+            message: 'El customizing debe ser booleano'
+        })
+});
+
+export const floorplanSpecsSchema = z.object({
+    floorplanSpecs: z.string()
+        .trim()
+        .min(1, { message: 'Las especificaciones del plano no pueden estar vacías' })
+        .max(500, { message: 'Las especificaciones del plano no pueden exceder 500 caracteres' })
+});
+
+export const interestRateSchema = z.object({
+    interestRate: z.string()
+        .trim()
+        .min(1, { message: 'La tasa de interés no puede estar vacía' })
+        .max(500, { message: 'La tasa de interés no puede exceder 500 caracteres' })
+});
+
+export const interestedFindHomeSchema = z.object({
+    interestedFindHome: z.string()
+        .trim()
+        .min(1, { message: 'El interés no puede estar vacío' })
+        .max(500, { message: 'El interés no puede exceder 500 caracteres' })
+});
+
+export const interestingHomeSchema = z.object({
+    interestingHome: z.string()
+        .trim()
+        .min(1, { message: 'El interés no puede estar vacío' })
+        .max(500, { message: 'El interés no puede exceder 500 caracteres' })
+});
+
+export const moveInReadySchema = z.object({
+    moveInReady: z.string()
+        .trim()
+        .min(1, { message: 'El moveInReady no puede estar vacío' })
+        .max(500, { message: 'El moveInReady no puede exceder 500 caracteres' })
+});
+
+export const rentingSchema = z.object({
+    renting: z.string()
+        .trim()
+        .min(1, { message: 'El renting no puede estar vacío' })
+        .max(500, { message: 'El renting no puede exceder 500 caracteres' })
+});
+
+export const searchCommunitiesSchema = z.object({
+    searchCommunities: z.string()
+        .trim()
+        .min(1, { message: 'El searchCommunities no puede estar vacío' })
+        .max(500, { message: 'El searchCommunities no puede exceder 500 caracteres' })
+});
+
 export type ValidationResult<T> = ResponseSuccess | ResponseError;
 
 const createErrorResponse = (error: Error): ResponseError => {
@@ -146,3 +202,77 @@ export const validateAmenities = (amenities: string): ValidationResult<{ ameniti
         return createErrorResponse(error as Error);
     }
 };
+
+export const validateCustomizing = (customizing: boolean): ValidationResult<{ customizing: boolean }> => {
+    try {
+        const data = customizingSchema.parse({ customizing });
+        return createSuccessResponse(data);
+    } catch (error) {
+        return createErrorResponse(error as Error);
+    }
+};
+
+export const validateFloorplanSpecs = (floorplanSpecs: string): ValidationResult<{ floorplanSpecs: string }> => {
+    try {
+        const data = floorplanSpecsSchema.parse({ floorplanSpecs });
+        return createSuccessResponse(data);
+    } catch (error) {
+        return createErrorResponse(error as Error);
+    }
+};
+
+
+export const validateInterestRate = (interestRate: string): ValidationResult<{ interestRate: string }> => {
+    try {
+        const data = interestRateSchema.parse({ interestRate });
+        return createSuccessResponse(data);
+    } catch (error) {
+        return createErrorResponse(error as Error);
+    }
+};
+
+export const validateInterestedFindHome = (interestedFindHome: string): ValidationResult<{ interestedFindHome: string }> => {
+    try {
+        const data = interestedFindHomeSchema.parse({ interestedFindHome });
+        return createSuccessResponse(data);
+    } catch (error) {
+        return createErrorResponse(error as Error);
+    }
+};
+
+export const validateInterestingHome = (interestingHome: string): ValidationResult<{ interestingHome: string }> => {
+    try {
+        const data = interestingHomeSchema.parse({ interestingHome });
+        return createSuccessResponse(data);
+    } catch (error) {
+        return createErrorResponse(error as Error);
+    }
+};
+
+export const validateMoveInReady = (moveInReady: string): ValidationResult<{ moveInReady: string }> => {
+    try {
+        const data = moveInReadySchema.parse({ moveInReady });
+        return createSuccessResponse(data);
+    } catch (error) {
+        return createErrorResponse(error as Error);
+    }
+};
+
+export const validateRenting = (renting: string): ValidationResult<{ renting: string }> => {
+    try {
+        const data = rentingSchema.parse({ renting });
+        return createSuccessResponse(data);
+    } catch (error) {
+        return createErrorResponse(error as Error);
+    }
+};
+
+export const validateSearchCommunities = (searchCommunities: string): ValidationResult<{ searchCommunities: string }> => {
+    try {
+        const data = searchCommunitiesSchema.parse({ searchCommunities });
+        return createSuccessResponse(data);
+    } catch (error) {
+        return createErrorResponse(error as Error);
+    }
+};
+
