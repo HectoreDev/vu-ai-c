@@ -30,6 +30,7 @@ export const locationsSchema = z.object({
 });
 
 // z.union([z.array(z.string()), z.string()]) este puede unir estrings si el arg no lo crea
+
 export const locationSchema = z.object({
     location: z.string()
         .trim()
@@ -40,7 +41,7 @@ export const locationSchema = z.object({
 export const priceRangeSchema = z.object({
     priceMin: z.number()
         .positive({ message: 'El precio mínimo debe ser positivo' })
-        .max(30000000, { message: 'El precio mínimo no puede exceder $3,000,000' }),
+        .max(3000000, { message: 'El precio mínimo no puede exceder $300,000' }),
     priceMax: z.number()
         .positive({ message: 'El precio máximo debe ser positivo' })
         .max(35000000, { message: 'El precio máximo no puede exceder $3,500,000' })

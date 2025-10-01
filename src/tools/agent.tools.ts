@@ -1,6 +1,5 @@
 import { FunctionDeclaration, Type } from "@google/genai";
 
-
 const toolSchema: Record<string, FunctionDeclaration> = {
   getName: {
     name: "getName",
@@ -20,7 +19,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   getLocation: {
     name: "getLocation",
     description:
-      "Sí el usuario ha añadido una ciudad o estado, obten la información del lugar o lugares y añadelas en el array",
+      "Sí el usuario ha añadido una ciudad o estado, obten la información del lugar o lugares y añadelas en el array, Comma/semicolon separated list of features",
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -36,38 +35,23 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   getBudget: {
     name: "getBudget",
     description:
-      "Persist budget info (partial allowed): price_min/price_max or single price; down_payment (1-100); interest_rate (2.08-10); loan_duration (11-60). If sessionId is missing, returns ok:false and suggests asking for the user's name.",
+      "Establece el presupuesto del usuario SOLO con priceMin y priceMax. Si el usuario proporciona un precio único, úsalo para ambos campos. Reglas: priceMin [300000, 3000000] y priceMax ≥ priceMin. no aceptes numeros con sufijos k/m (p. ej., '550k', '1.2m'). Si falta sessionId, la tool debe devolver ok:false sugiriendo pedir el nombre para iniciar sesión.",
     parameters: {
       type: Type.OBJECT,
       properties: {
         sessionId: { type: Type.STRING },
-
-        price: {
+        priceMin: {
           type: Type.STRING,
-          description: "Single price → applies to min & max",
+          description:
+            "Precio mínimo del rango. Si el usuario dio un solo precio, repítelo aquí y en priceMax. Debe estar entre 300000 y 3000000.",
         },
-        price_min: { type: Type.STRING },
-        price_max: { type: Type.STRING },
-
-        down_payment: { type: Type.STRING, description: "1–100 (%)" },
-        interest_rate: { type: Type.STRING, description: "2.08–10 (%)" },
-        loan_duration: {
+        priceMax: {
           type: Type.STRING,
-          description: "11–60 (years)",
-        },
-
-        budget: {
-          type: Type.OBJECT,
-          properties: {
-            price: { type: Type.STRING },
-            price_min: { type: Type.STRING },
-            price_max: { type: Type.STRING },
-            down_payment: { type: Type.STRING },
-            interest_rate: { type: Type.STRING },
-            loan_duration: { type: Type.STRING },
-          },
+          description:
+            "Precio máximo del rango. Debe ser mayor o igual a priceMin.",
         },
       },
+      required: ["priceMin", "priceMax"],
     },
   },
   getAmenities: {
@@ -97,7 +81,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
           description:
             "Required. If missing, the tool responds with a suggestion to capture the user's name.",
         },
-        interest: {
+        interests: {
           type: Type.ARRAY,
           items: { type: Type.STRING },
           description: "Array of interest tags.",
@@ -108,7 +92,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   getInterestRate: {
     name: "getInterestRate",
     description:
-      "Persist the selected financing product: 'fha_30', 'conventional_30', or null if declined. Accepts 'product' (canonical) or 'label'/'answer' strings. If 'sessionId' is missing, returns ok:false and suggests asking the user's name.",
+      "Persist the selected financing product: 'fha_30', 'conventional_30', or null if declined. Accepts 'interestRateType' strings. If 'sessionId' is missing, returns ok:false and suggests asking the user's name.",
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -117,24 +101,10 @@ const toolSchema: Record<string, FunctionDeclaration> = {
           description:
             "Required. If missing, the tool will suggest asking the user's name to start a session.",
         },
-        product: {
+        interestRateType: {
           type: Type.STRING,
           description:
-            "Canonical value: 'fha_30' | 'conventional_30' | 'null' (to explicitly clear).",
-        },
-        label: {
-          type: Type.STRING,
-          description:
-            "Human label, e.g., 'FHA 30-Year Fixed Rate' or 'Conventional 30-Year Fixed Rate'.",
-        },
-        answer: {
-          type: Type.STRING,
-          description: "Free text like 'FHA', 'Conventional', 'no', 'skip'.",
-        },
-        none: {
-          type: Type.BOOLEAN,
-          description:
-            "If true, the user declined choosing a product (store null).",
+            "Free text like 'FHA', 'Conventional', 'no', 'skip', value: 'fha_30' | 'conventional_30' | 'null' (to explicitly clear),",
         },
       },
     },
@@ -142,7 +112,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   getCustomizing: {
     name: "getCustomizing",
     description:
-      "Persist whether the user is interested in customizable homes. Accepts {customizing:boolean} or {answer|label} free-text. Requires sessionId. If missing, returns ok:false and suggests asking for the user's name.",
+      "Persist whether the user is interested in customizable homes. Accepts {customizing:boolean} or {answer|label} free-text return boolean. Requires sessionId. If missing, returns ok:false and suggests asking for the user's name.",
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -153,16 +123,8 @@ const toolSchema: Record<string, FunctionDeclaration> = {
         },
         customizing: {
           type: Type.BOOLEAN,
-          description: "true if interested, false otherwise.",
-        },
-        answer: {
-          type: Type.STRING,
-          description: "Free text like 'yes', 'no', 'not today'.",
-        },
-        label: {
-          type: Type.STRING,
           description:
-            "UI label text the user clicked, e.g., 'Yes, interested in customizing'.",
+            "true if interested, false otherwise, Free text like 'yes', 'no', 'not today'.",
         },
       },
     },
@@ -170,7 +132,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   getMoveInReady: {
     name: "getMoveInReady",
     description:
-      "Persist whether to include homes ready for quick move-in. Accepts {moveInReady:boolean} or text via {answer|label}. Requires sessionId.",
+      "Persist whether to include homes ready for quick move-in. Accepts {moveInReady:boolean} or text return boolean. Requires sessionId.",
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -181,15 +143,8 @@ const toolSchema: Record<string, FunctionDeclaration> = {
         },
         moveInReady: {
           type: Type.BOOLEAN,
-          description: "true to include quick move-ins, false to exclude.",
-        },
-        answer: {
-          type: Type.STRING,
-          description: "Free text like 'yes, include', 'no, not now'.",
-        },
-        label: {
-          type: Type.STRING,
-          description: "UI label clicked by the user.",
+          description:
+            "true to include quick move-ins, false to exclude and Free text like 'yes, include', 'no, not now'.",
         },
       },
     },
@@ -197,7 +152,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   getRenting: {
     name: "getRenting",
     description:
-      "Persist whether to include homes available for rent. Accepts {renting:boolean} or text via {answer|label}. Requires sessionId.",
+      "Persist whether to include homes available for rent. Accepts {renting:boolean} or text return boolean. Requires sessionId.",
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -208,16 +163,8 @@ const toolSchema: Record<string, FunctionDeclaration> = {
         },
         renting: {
           type: Type.BOOLEAN,
-          description: "true to include rentals, false to exclude.",
-        },
-        answer: {
-          type: Type.STRING,
           description:
-            "Free text like 'yes, include rentals' or 'no, not now'.",
-        },
-        label: {
-          type: Type.STRING,
-          description: "UI label clicked by the user.",
+            "true to include rentals, false to exclude, Free text like 'yes, include rentals' or 'no, not now'..",
         },
       },
     },
@@ -302,12 +249,8 @@ const toolSchema: Record<string, FunctionDeclaration> = {
         homeInterest: {
           type: Type.ARRAY,
           items: { type: Type.STRING },
-          description: "Alias for features.",
-        },
-
-        features_text: {
-          type: Type.STRING,
-          description: "Comma/semicolon separated list of features.",
+          description:
+            "Alias for features, Comma/semicolon separated list of features",
         },
       },
     },
@@ -334,5 +277,7 @@ export type ToolTypes = keyof typeof toolSchema;
 
 export const tools = Object.values(toolSchema);
 
-export const toolsNames = Object.keys(toolSchema)
+export const toolsNames = Object.keys(toolSchema);
+
+
 
