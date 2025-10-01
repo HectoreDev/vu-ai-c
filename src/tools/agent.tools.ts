@@ -27,7 +27,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
         locations: {
           type: Type.ARRAY,
           items: { type: Type.STRING },
-          description: "Añade locaciones en el formato array",
+          description: "Añade locaciones las locations en un array",
         },
       },
       required: ["locations"],

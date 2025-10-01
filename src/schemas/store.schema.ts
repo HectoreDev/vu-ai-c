@@ -29,6 +29,7 @@ export const locationsSchema = z.object({
         .max(5, { message: 'No puede exceder 5 ubicaciones' })
 });
 
+// z.union([z.array(z.string()), z.string()]) este puede unir estrings si el arg no lo crea
 export const locationSchema = z.object({
     location: z.string()
         .trim()

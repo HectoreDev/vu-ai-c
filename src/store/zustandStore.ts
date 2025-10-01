@@ -25,11 +25,11 @@ interface SessionStore {
     mcpSessionId?: string;
 
     // Nuevos campos del flujo extendido
-    welcome: string | null;
-    nameSpecs: string | null;
+    welcome: string | null;//eliminar
+    nameSpecs: string | null;//eliminar
     interest: string[];
-    markets: string[];
-    budgetProduct: string | null;
+    markets: string[];//eliminar
+    budgetProduct: string | null;//eliminar
     budgetType: string | null;
     budget: BudgetType | null;
     customizing: string | null;
