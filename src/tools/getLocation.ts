@@ -1,45 +1,17 @@
 import { z } from "zod";
 import { useSessionStore } from "../store/zustandStore";
 import { toArray } from "../utils/toArray";
-import { validateSession } from "../utils/validateSession";
+import { locationsSchema, validateLocations } from "../schemas/store.schema";
+import { ToolResponse } from "../types/types";
 
-const ArgsSchema = z
-  .object({
-    sessionId: z.string().trim().min(1, "sessionId is required."),
-    locations: z.union([z.array(z.string()), z.string()]),
-  })
-  .refine(
-    (d) => {
-      const hasLoc =
-        typeof d.locations === "string"
-          ? d.locations.trim().length > 0
-          : Array.isArray(d.locations) && d.locations.length > 0;
+type Args = z.infer<typeof locationsSchema>;
 
-      return hasLoc;
-    },
-    { message: "Provide at least one location.", path: ["locations"] }
-  );
+export const handleGetLocation = async (
+  rawArgs: Args
+): Promise<ToolResponse> => {
+  const parsed = validateLocations(rawArgs.locations);
 
-type Args = z.infer<typeof ArgsSchema>;
-
-export const handleGetLocation= async (rawArgs: Args) => {
-  const pre = validateSession(rawArgs);
-  // console.log('PREEEE', pre);
-  
-  if (!pre.ok) return pre;
-
-  const parsed = ArgsSchema.safeParse(rawArgs);
-  if (!parsed.success) {
-    return {
-      ok: false,
-      error: "VALIDATION_ERROR",
-      sessionId: pre.sessionId,
-      issues: parsed.error.issues,
-      message: "Invalid get_location arguments.",
-    };
-  }
-
-  const { locations, sessionId } = parsed.data;
+  const { locations } = parsed.data;
   const locs = toArray(locations);
 
   const store = useSessionStore.getState();
@@ -47,12 +19,12 @@ export const handleGetLocation= async (rawArgs: Args) => {
   store.setlocations(locs);
 
   return {
-    ok: true,
-    sessionId,
-    saved: { locs },
-    // suggest: {
-    //   nextTool: "budget_product_render",
-    //   reason: "Locations saved; proceed to financing product selection.",
-    // },
+    success: true,
+    text: JSON.stringify(locs),
+    options: {
+      saved: {
+        locs,
+      },
+    },
   };
 };

@@ -2,18 +2,25 @@
 
 import { z } from "zod";
 import { useSessionStore } from "../store/zustandStore";
-import { dataFakeCommunities } from "../db/db.testhouse";
-//import { ArgsName } from "../utils/validations";
 import { ToolResponse } from "../types/types";
 import { createSessionId } from "../utils/createSessionId";
-import { validateName } from "../schemas/store.schema";
+import {
+  nameSchema,
+  sessionIdSchema,
+  validateName,
+} from "../schemas/store.schema";
 
-//type Args = z.infer<typeof ArgsName>;
+export const argsSchema = sessionIdSchema.merge(nameSchema);
 
-export const handleGetName = async (args: string): Promise<ToolResponse> => {
-  const parsed = validateName(args);
+type Args = z.infer<typeof argsSchema>;
 
-  let { sessionId, name } = parsed.data;
+export const handleGetName = async (args: Args): Promise<ToolResponse> => {
+  
+  let { sessionId } = args;
+
+  const parsed = validateName(args.name);
+
+  const { name } = parsed.data;
 
   const store = useSessionStore.getState();
 
