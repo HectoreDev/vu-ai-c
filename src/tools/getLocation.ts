@@ -1,13 +1,19 @@
 import { z } from "zod";
 import { useSessionStore } from "../store/zustandStore";
 import { toArray } from "../utils/toArray";
-import { locationsSchema, validateLocation, validateLocations } from "../schemas/store.schema";
+import {
+  locationsSchema,
+  validateLocation,
+  validateLocations,
+  ValidationResult,
+} from "../schemas/store.schema";
 import { ToolResponse } from "../types/types";
 
 type Args = z.infer<typeof locationsSchema>;
 
-export const handleGetLocation = async (args: Args): Promise<ToolResponse> => {
-
+export const handleGetLocation = async (
+  args: Args
+): Promise<ValidationResult<Args>> => {
   const parsed = validateLocations(args.locations);
 
   const { locations } = parsed.data;
@@ -19,11 +25,12 @@ export const handleGetLocation = async (args: Args): Promise<ToolResponse> => {
 
   return {
     success: true,
-    text: JSON.stringify(locs),
-    options: {
-      saved: {
-        locs,
-      },
+    code: 200,
+    data: {
+      locs,
     },
+    error: null,
+    history: [],
+    message: `User select locations ${locs}`,
   };
 };

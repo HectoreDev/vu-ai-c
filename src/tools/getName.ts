@@ -2,19 +2,19 @@
 
 import { z } from "zod";
 import { useSessionStore } from "../store/zustandStore";
-import { ToolResponse } from "../types/types";
 import { createSessionId } from "../utils/createSessionId";
 import {
   nameSchema,
   sessionIdSchema,
   validateName,
+  ValidationResult,
 } from "../schemas/store.schema";
 
 export const argsSchema = sessionIdSchema.merge(nameSchema);
 
 type Args = z.infer<typeof argsSchema>;
 
-export const handleGetName = async (args: Args): Promise<ToolResponse> => {
+export const handleGetName = async (args: Args): Promise<ValidationResult<Args>> => {
   
   let { sessionId } = args;
 
@@ -31,14 +31,14 @@ export const handleGetName = async (args: Args): Promise<ToolResponse> => {
 
   store.setName(name);
 
-  return {
+return {
     success: true,
-    text: name,
-    options: {
-      saved: {
-        name,
-        sessionId,
-      },
+    code: 200,
+    data: {
+      name
     },
+    error: null,
+    history: [],
+    message: `User name ${name}`,
   };
 };
