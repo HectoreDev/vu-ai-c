@@ -56,40 +56,43 @@ export class SimpleMcpServer {
   }
 
 
-    responseSuccess(data: any) {
-        return {
-            success: true,
-            data,
-            error: null
-        } as ResponseSuccess;
-    }
+  responseSuccess(data: any) {
+    return {
+      success: true,
+      data,
+      error: null
+    } as ResponseSuccess;
+  }
 
-    responseError(message: string) {
-        return {
-            success: false,
-            error: message,
-            data: null
-        } as ResponseError;
-    }
+  responseError(message: string) {
+    return {
+      success: false,
+      error: message,
+      data: null
+    } as ResponseError;
+  }
 
-    async callTools(tools: Part[]) {
-        const results: any[] = [];
-        for (let index = 0; index < tools.length; index++) {
-            const { functionCall } = tools[index];
-            if (functionCall && functionCall.name) {
-                const { name, args } = functionCall;
-                const tool = this.tools.get(name);
-                if(tool) {
-                    const result =  await tool(args);
-                    results.push(result);
-                }
-            }
+  async callTools(tools: Part[]) {
+    const results: any[] = [];
+    for (let index = 0; index < tools.length; index++) {
+      const { functionCall } = tools[index];
+      console.log('functionCall', functionCall);
+      if (functionCall && functionCall.name) {
+        const { name, args } = functionCall;
+        const tool = this.tools.get(name);
+        console.log('tool', tool);
+        if (tool) {
+          const result = await tool(args);
+          console.log('result', result);
+          results.push(result);
         }
-
-        const store = useSessionStore.getState();
-        console.log("Resultados de las tools:", results, store);
-        return this.responseSuccess(results);
+      }
     }
+
+    const store = useSessionStore.getState();
+    console.log("Resultados de las tools:", results, store);
+    return this.responseSuccess(results);
+  }
 
   listTools() {
     return Array.from(this.tools.keys());

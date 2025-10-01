@@ -2,8 +2,9 @@ import { z } from "zod";
 import { useSessionStore } from "../store/zustandStore";
 import { toArray } from "../utils/toArray";
 import { validateSession } from "../utils/validateSession";
+import { validateLocation, validateLocations } from "../schemas/store.schema";
 
-const ArgsSchema = z
+/* const ArgsSchema = z
   .object({
     sessionId: z.string().trim().min(1, "sessionId is required."),
     locations: z.union([z.array(z.string()), z.string()]),
@@ -20,25 +21,25 @@ const ArgsSchema = z
     { message: "Provide at least one location.", path: ["locations"] }
   );
 
-type Args = z.infer<typeof ArgsSchema>;
+type Args = z.infer<typeof ArgsSchema>; */
 
-export const handleGetLocation= async (rawArgs: Args) => {
-  const pre = validateSession(rawArgs);
-  // console.log('PREEEE', pre);
-  
-  if (!pre.ok) return pre;
+export const handleGetLocation = async (data: { location: string }) => {
+  //const pre = validateSession(data);
+  //console.log("pre", pre);
+  //const parsed = validateLocations(data.locations);
 
-  const parsed = ArgsSchema.safeParse(rawArgs);
-  if (!parsed.success) {
-    return {
-      ok: false,
-      error: "VALIDATION_ERROR",
-      sessionId: pre.sessionId,
-      issues: parsed.error.issues,
-      message: "Invalid get_location arguments.",
-    };
-  }
+  const parsed = validateLocation(data.location);
 
+  /*  if (!parsed.success) {
+     return {
+       ok: false,
+       error: "VALIDATION_ERROR",
+       sessionId: pre.sessionId,
+       issues: parsed.error.issues,
+       message: "Invalid get_location arguments.",
+     };
+   }
+  */
   const { locations, sessionId } = parsed.data;
   const locs = toArray(locations);
 
@@ -49,10 +50,6 @@ export const handleGetLocation= async (rawArgs: Args) => {
   return {
     ok: true,
     sessionId,
-    saved: { locs },
-    // suggest: {
-    //   nextTool: "budget_product_render",
-    //   reason: "Locations saved; proceed to financing product selection.",
-    // },
+    saved: { locs }
   };
 };
