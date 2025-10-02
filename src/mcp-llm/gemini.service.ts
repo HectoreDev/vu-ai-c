@@ -12,14 +12,14 @@ export class GeminiService {
 
 	async chatWithTools(message: string, sessionId?: number) {
 
-		const contextPrompt = 'hola, estoy buscando una casa en austin o phoenix, mi nombre es jose, tengo un presupues de 200000 dolares. Me gustaría que tuviera alberca y parques para mascotas';
+		// const contextPrompt = 'hola, estoy buscando una casa en austin o phoenix, mi nombre es jose, tengo un presupues de 200000 dolares. Me gustaría que tuviera alberca y parques para mascotas';
 
 		// const contextPrompt = 'hola, me podrías dar una receta para hacer un pastel de chocolate?';
 
 		console.log('Generando respuesta contextual con Gemini...2');
 
 		const response1 = await model.sendMessage({
-			message: contextPrompt,
+			message: message,
 			config: {
 				systemInstruction: 'Eres un asistente útil que ayuda a los usuarios a encontrar casas basándote en sus necesidades y preferencias. Utiliza las herramientas proporcionadas para obtener información específica como el nombre del usuario, la ubicación, el presupuesto y las amenidades deseadas.',
 				tools: [
