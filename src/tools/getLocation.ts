@@ -13,24 +13,23 @@ type Args = z.infer<typeof locationsSchema>;
 
 export const handleGetLocation = async (
   args: Args
-): Promise<ValidationResult<Args>> => {
-  const parsed = validateLocations(args.locations);
+) => {
+  // const parsed = validateLocations(args.locations);
 
-  const { locations } = parsed.data;
-  const locs = toArray(locations);
+  // const { locations } = parsed.data;
+  // const locs = toArray(locations);
+  console.log('args', args);
+
+  // @ts-ignore
+  const locs = args.location;
 
   const store = useSessionStore.getState();
 
   store.setlocations(locs);
 
   return {
-    success: true,
-    code: 200,
-    data: {
-      locs,
-    },
-    error: null,
-    history: [],
-    message: `User select locations ${locs}`,
+    message: locs ? "" : "Pregunta al usuario por la ubicación u obicaciones donde quiera encontrar casa.",
+    success: locs ? true : false,
+    locations: locs
   };
 };

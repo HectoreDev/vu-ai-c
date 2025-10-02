@@ -55,45 +55,46 @@ const collectFeatures = (data: z.infer<typeof ArgsSchema>): string[] => {
 type Args = z.infer<typeof ArgsSchema>;
 
 export const handleGetInterestedHome = async (rawArgs: Args) => {
-  const pre = validateSession(rawArgs);
-  if (!pre.ok) return pre;
+  // const pre = validateSession(rawArgs);
+  // if (!pre.ok) return pre;
 
-  const parsed = ArgsSchema.safeParse(rawArgs);
-  if (!parsed.success) {
-    return {
-      ok: false,
-      error: "VALIDATION_ERROR",
-      sessionId: pre.sessionId,
-      issues: parsed.error.issues,
-      message: "Invalid set_interesting_home arguments.",
-    };
-  }
+  // const parsed = ArgsSchema.safeParse(rawArgs);
+  // if (!parsed.success) {
+  //   return {
+  //     ok: false,
+  //     error: "VALIDATION_ERROR",
+  //     sessionId: pre.sessionId,
+  //     issues: parsed.error.issues,
+  //     message: "Invalid set_interesting_home arguments.",
+  //   };
+  // }
 
-  const { sessionId } = parsed.data;
-  const features = collectFeatures(parsed.data);
+  // const { sessionId } = parsed.data;
+  // const features = collectFeatures(parsed.data);
 
-  if (!features.length) {
-    return {
-      ok: false,
-      error: "NO_FEATURES",
-      sessionId,
-      message:
-        "No valid features were provided. Please ask the user for short must-have phrases.",
-    };
-  }
+  // if (!features.length) {
+  //   return {
+  //     ok: false,
+  //     error: "NO_FEATURES",
+  //     sessionId,
+  //     message:
+  //       "No valid features were provided. Please ask the user for short must-have phrases.",
+  //   };
+  // }
 
-  const store = useSessionStore();
+  // const store = useSessionStore();
 
-  store.setInterest(features);
+  // store.setInterest(features);
+
+  // @ts-ignore
+  console.log('amenities', rawArgs.amenities);
 
   return {
-    ok: true,
-    sessionId,
-    saved: { homeInterest: features },
-
-    // suggest: {
-    //   nextTool: "search_communities",
-    //   reason: "Must-have features saved; proceed to find matching communities.",
-    // },
+    // @ts-ignore
+    message: rawArgs.amenities ? "" : "Pregunta al usuario por sus amenities.",
+    // @ts-ignore
+    success: rawArgs.amenities ? true : false,
+    // @ts-ignore
+    amenities: rawArgs.amenities
   };
 };

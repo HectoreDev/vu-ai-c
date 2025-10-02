@@ -420,7 +420,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
 
 
 useSessionStore.subscribe((state) => {
-    console.log('state', state);
+    // console.log('state', state);
 });
 
 // Hooks de utilidad para acceso rápido a partes específicas del estado

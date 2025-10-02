@@ -27,6 +27,7 @@ import {
 import { useSessionStore } from "./../store/zustandStore";
 import { FunctionCall, Part } from "@google/genai";
 import { ResponseError, ResponseSuccess } from "./types/responseType";
+import { dataFakeCommunities } from "../db/db.testhouse";
 
 export class SimpleMcpServer {
   private tools: Map<string, Function> = new Map();
@@ -39,22 +40,11 @@ export class SimpleMcpServer {
     this.tools.set("getFloorplanSpecs", toolGetFloorplanSpecs);
     this.tools.set("getInterestRate", toolGetInterestRate);
     this.tools.set("getInterestedFindHome", toolGetInterestedFindHome);
-    this.tools.set("getInterestingHome", toolGetInterestingHome);
+    this.tools.set("getAmenities", toolGetInterestingHome);
     this.tools.set("getMoveInReady", toolGetMoveInReady);
     this.tools.set("getRenting", toolGetRenting);
     this.tools.set("getSearchCommunities", toolSearchComunities);
-    // this.tools.set("getBudget", executeGetMinMaxPricesTool);
-    // this.tools.set("getAmenities", executeGetAmenitiesFromPricesTool);
-    // this.tools.set("interesedFindHome", executeGetNameTool);
-    // this.tools.set("get_amenities", executeGetAmenitiesFromPricesTool);
-    // this.tools.set("start_session", executeSessionTool);
-    // this.tools.set("get_communities", executeGetCommunitiesTool);
-    // this.tools.set("get_community_info", executeGetCommunityInfoTool);
-    // this.tools.set("get_siteplans", executeSiteplansTool);
-    // this.tools.set("get_floorplans", executeGetFloorplansTool);
-    // this.tools.set("check_session", executeCheckSessionTool);
   }
-
 
   responseSuccess(data: any) {
     return {
@@ -89,9 +79,41 @@ export class SimpleMcpServer {
       }
     }
 
-    const store = useSessionStore.getState();
-    console.log("Resultados de las tools:", results, store);
-    return this.responseSuccess(results);
+    console.log('results', results);
+    const incompleteData = results.some(result => !result.success);
+    console.log('incompleteData', incompleteData);
+    if (incompleteData) {
+      let text = 'Faltan datos: ';
+      results.forEach(result => {
+        if (!result.success) {
+          text += `${result.message} `;
+        }
+      });
+      return {
+        message: [ { text } ],
+        systemInstruction: 'Al usuario le faltan los siguientes datos:' + text + '. Responde al usuario de manera amigable y hazle preguntas adicionales para obtener más detalles sobre sus requisitos y gustos.'
+      };
+    } else {
+
+      const listOfHouse: { type: 'text', text: string }[] = dataFakeCommunities.map((lot:any) => {
+
+        const specs = JSON.stringify(lot.amenities);
+
+        return {
+          type: "text",
+          text: `Encontramos en las siguiente comunidades ${lot._origin.community.name}, con el UID ${lot._origin.community.uid}, en la ciudad de ${lot._origin.division.name}, con las siguientes amenidades: ${specs}`,
+        }
+      })
+
+      return {
+        message: listOfHouse,
+        systemInstruction: 'Con la información proporcionada, sugiere al usuario la mejor opción de casa acorde a sus necesidades y preferencias.'
+      };
+    }
+
+    // const store = useSessionStore.getState();
+    // console.log("Resultados de las tools:", results, store);
+    // return this.responseSuccess(results);
   }
 
   listTools() {

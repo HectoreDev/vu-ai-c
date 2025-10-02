@@ -33,24 +33,8 @@ export const chatWithGemini = async (req : Request, res : Response) : Promise < 
         }
 
         const result = await geminiService.chatWithTools(message, sessionId);
-        console.log("result-gemini-chat-with-tools", result);
 
-        /*   let data: IFData = {
-            location: result.location,
-            priceMin: result.priceMin,
-            priceMax: result.priceMax,
-            amenities: result.amenities,
-            communities: result.communities,
-            floorplans: result.floorplans,
-            siteplans: result.siteplans,
-        }; */
-
-        // const parseRes = parseResponse(result.text);
-
-        // console.log('RES', parseRes);
-
-
-        res.json({success: true, response: 'respuesta generada'});
+        res.json({success: true, response: result.text});
     } catch (error) {
         const errMsg = error instanceof Error ? error.message : String(error);
         res.status(500).json({success: false, error: errMsg});
