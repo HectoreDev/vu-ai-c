@@ -8,10 +8,11 @@ export interface BudgetType {
 }
 
 export interface FloorplanSpecs {
-  sqft: Range;
-  beds: Range;
-  baths: Range;
-  garage: Range;
+  sqft?: Range;
+  bed?: Range;
+  bath?: Range;
+  garage?: Range;
+  level?: Range;
 }
 
 export interface Range {

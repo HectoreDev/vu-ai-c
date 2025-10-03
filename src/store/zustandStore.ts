@@ -7,7 +7,7 @@ import {
     validateAmenities,
     ValidationResult
 } from '../schemas/store.schema';
-import { BudgetType, Range } from "../types/types";
+import { BudgetType, FloorplanSpecs, Range } from "../types/types";
 
 interface SessionStore {
     // Estados principales
@@ -35,7 +35,7 @@ interface SessionStore {
     customizing: string | null;
     moveInReady: string | null;
     renting: string | null;
-    floorplanSpecs: string | null;
+    floorplanSpecs:  FloorplanSpecs;
     homeInterest: string[];
     interestRate?: string;
 
@@ -71,7 +71,7 @@ interface SessionStore {
     setCustomizing: (customizing: string) => void;
     setMoveInReady: (moveInReady: string) => void;
     setRenting: (renting: string) => void;
-    setFloorplanSpecs: (floorplanSpecs: string) => void;
+    setFloorplanSpecs: (floorplanSpecs: FloorplanSpecs) => void;
     setHomeInterest: (homeInterest: string[]) => void;
     addHomeInterest: (homeInterest: string) => void;
     removeHomeInterest: (homeInterest: string) => void;
@@ -109,7 +109,7 @@ export const initialState = {
     customizing: null,
     moveInReady: null,
     renting: null,
-    floorplanSpecs: null,
+    floorplanSpecs: {},
     homeInterest: [],
     interestRate: undefined,
 
@@ -343,7 +343,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
         set({ renting });
     },
 
-    setFloorplanSpecs: (floorplanSpecs: string) => {
+    setFloorplanSpecs: (floorplanSpecs: FloorplanSpecs) => {
         set({ floorplanSpecs });
     },
 
