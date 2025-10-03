@@ -7,7 +7,6 @@ import {
   validateLocations,
   ValidationResult,
 } from "../schemas/store.schema";
-import { ToolResponse } from "../types/types";
 
 type Args = z.infer<typeof locationsSchema>;
 

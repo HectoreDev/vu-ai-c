@@ -59,7 +59,7 @@ function normalizeProduct(input?: {
 
 type Args = z.infer<typeof ArgsSchema>;
 
-export const handleGetInterestRate = async (rawArgs: Args) => {
+export const getInterestRateType = async (rawArgs: Args) => {
 
   const pre = validateSession(rawArgs);
   if (!pre.ok) return pre;

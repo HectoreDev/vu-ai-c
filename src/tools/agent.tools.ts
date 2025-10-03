@@ -1,16 +1,20 @@
 import { FunctionDeclaration, Type } from "@google/genai";
+import { prompts, propertiesPrompts } from "../prompts/prompts";
 
 const toolSchema: Record<string, FunctionDeclaration> = {
   getName: {
     name: "getName",
-    description:
-      "Obten el nombre del usuario si lo ha agregado y solo regresa el nombre",
+    description: prompts.namePrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
+        sessionId: {
+          type: Type.STRING,
+          description: propertiesPrompts.sessionIdDescription,
+        },
         name: {
           type: Type.STRING,
-          description: "Retorna el nombre que ha brindado el usuario",
+          description: propertiesPrompts.nameDescription,
         },
       },
       required: ["name"],
@@ -18,15 +22,18 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   },
   getLocation: {
     name: "getLocation",
-    description:
-      "Sí el usuario ha añadido una ciudad o estado, obten la información del lugar o lugares y añadelas en el array, Comma/semicolon separated list of features",
+    description: prompts.locationPrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
+        sessionId: {
+          type: Type.STRING,
+          description: propertiesPrompts.sessionIdDescription,
+        },
         locations: {
           type: Type.ARRAY,
           items: { type: Type.STRING },
-          description: "Añade locaciones las locations en un array",
+          description: propertiesPrompts.locationDescription,
         },
       },
       required: ["locations"],
@@ -34,21 +41,21 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   },
   getBudget: {
     name: "getBudget",
-    description:
-      "Establece el presupuesto del usuario SOLO con priceMin y priceMax. Si el usuario proporciona un precio único, úsalo para ambos campos. Reglas: priceMin [300000, 3000000] y priceMax ≥ priceMin. no aceptes numeros con sufijos k/m (p. ej., '550k', '1.2m'). Si falta sessionId, la tool debe devolver ok:false sugiriendo pedir el nombre para iniciar sesión.",
+    description: prompts.budgetPrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
-        sessionId: { type: Type.STRING },
+        sessionId: {
+          type: Type.STRING,
+          description: propertiesPrompts.sessionIdDescription,
+        },
         priceMin: {
           type: Type.STRING,
-          description:
-            "Precio mínimo del rango. Si el usuario dio un solo precio, repítelo aquí y en priceMax. Debe estar entre 300000 y 3000000.",
+          description: propertiesPrompts.priceMinDescription,
         },
         priceMax: {
           type: Type.STRING,
-          description:
-            "Precio máximo del rango. Debe ser mayor o igual a priceMin.",
+          description: propertiesPrompts.priceMaxDescription,
         },
       },
       required: ["priceMin", "priceMax"],
@@ -56,14 +63,17 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   },
   getAmenities: {
     name: "getAmenities",
-    description:
-      "If user search a house, ask for amenities it's a must, if you detect some amenities, add a list of this.",
+    description: prompts.amenitiesPrompt,
     parameters: {
       type: Type.OBJECT,
-      description: "Return budget for the house",
       properties: {
+        sessionId: {
+          type: Type.STRING,
+          description: propertiesPrompts.sessionIdDescription,
+        },
         amenities: {
           type: Type.STRING,
+          description: propertiesPrompts.amenitiesDescription,
         },
       },
       required: ["amenities"],
@@ -71,186 +81,209 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   },
   getInterestFindHome: {
     name: "getInterestFindHome",
-    description:
-      "Persist the user's motivations for finding a home. Accepts 'interest' or 'interests' (array or string). If 'sessionId' is missing, returns ok:false and suggests asking for the user's name to start a session.",
+    description: prompts.interestFindHomePrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
         sessionId: {
           type: Type.STRING,
-          description:
-            "Required. If missing, the tool responds with a suggestion to capture the user's name.",
+          description: propertiesPrompts.sessionIdDescription,
         },
         interests: {
           type: Type.ARRAY,
           items: { type: Type.STRING },
-          description: "Array of interest tags.",
+          description: propertiesPrompts.interestsDescription,
         },
       },
     },
   },
-  getInterestRate: {
-    name: "getInterestRate",
-    description:
-      "Persist the selected financing product: 'fha_30', 'conventional_30', or null if declined. Accepts 'interestRateType' strings. If 'sessionId' is missing, returns ok:false and suggests asking the user's name.",
+  getInterestRateType: {
+    name: "getInterestRateType",
+    description: prompts.interestRateTypePrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
         sessionId: {
           type: Type.STRING,
-          description:
-            "Required. If missing, the tool will suggest asking the user's name to start a session.",
+          description: propertiesPrompts.sessionIdDescription,
         },
         interestRateType: {
           type: Type.STRING,
-          description:
-            "Free text like 'FHA', 'Conventional', 'no', 'skip', value: 'fha_30' | 'conventional_30' | 'null' (to explicitly clear),",
+          description: propertiesPrompts.interestRateType,
         },
       },
     },
   },
   getCustomizing: {
     name: "getCustomizing",
-    description:
-      "Persist whether the user is interested in customizable homes. Accepts {customizing:boolean} or {answer|label} free-text return boolean. Requires sessionId. If missing, returns ok:false and suggests asking for the user's name.",
+    description: prompts.customizingPrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
         sessionId: {
           type: Type.STRING,
-          description:
-            "Required. If missing, the tool will suggest asking for the user's name.",
+          description: propertiesPrompts.sessionIdDescription,
         },
         customizing: {
           type: Type.BOOLEAN,
-          description:
-            "true if interested, false otherwise, Free text like 'yes', 'no', 'not today'.",
+          description: propertiesPrompts.customizingDescription,
         },
       },
     },
   },
   getMoveInReady: {
     name: "getMoveInReady",
-    description:
-      "Persist whether to include homes ready for quick move-in. Accepts {moveInReady:boolean} or text return boolean. Requires sessionId.",
+    description: prompts.moveInReadyPrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
         sessionId: {
           type: Type.STRING,
-          description:
-            "Required. If missing, the tool will suggest asking for the user's name.",
+          description: propertiesPrompts.sessionIdDescription,
         },
         moveInReady: {
           type: Type.BOOLEAN,
-          description:
-            "true to include quick move-ins, false to exclude and Free text like 'yes, include', 'no, not now'.",
+          description: propertiesPrompts.moveInReadyDescription,
         },
       },
     },
   },
   getRenting: {
     name: "getRenting",
-    description:
-      "Persist whether to include homes available for rent. Accepts {renting:boolean} or text return boolean. Requires sessionId.",
+    description: prompts.rentingPrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
         sessionId: {
           type: Type.STRING,
-          description:
-            "Required. If missing, the tool will suggest asking for the user's name.",
+          description: propertiesPrompts.sessionIdDescription,
         },
         renting: {
           type: Type.BOOLEAN,
-          description:
-            "true to include rentals, false to exclude, Free text like 'yes, include rentals' or 'no, not now'..",
+          description: propertiesPrompts.rentingDescription,
         },
       },
     },
   },
-  getFloorplanSpecs: {
-    name: "getFloorplanSpecs",
-    description:
-      "Persist floorplan specs with partial input. Omitted dimensions are stored as null. Requires sessionId.",
+  getFloorplanBed: {
+    name: "getFloorplanBed",
+    description: prompts.floorplanBedPrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
         sessionId: {
           type: Type.STRING,
-          description: "Required session id.",
+          description: propertiesPrompts.sessionIdDescription,
         },
-
-        sqft: {
+        bed_min: {
           type: Type.STRING,
-          description: "Single value → min & max for square_footage",
+          description: propertiesPrompts.bedMinDescription,
         },
-        sqft_min: { type: Type.STRING },
-        sqft_max: { type: Type.STRING },
-
-        bed: {
+        bed_max: {
           type: Type.STRING,
-          description: "Single value → min & max for bedroom_count",
+          description: propertiesPrompts.bedMaxDescription,
         },
-        bedrooms: { type: Type.STRING },
-        bed_min: { type: Type.STRING },
-        bed_max: { type: Type.STRING },
-
-        bath: {
+      },
+    },
+  },
+  getFloorplanBath: {
+    name: "getFloorplanBath",
+    description: prompts.floorplanbathPrompt,
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        sessionId: {
           type: Type.STRING,
-          description: "Single value → min & max for bathroom_count",
+          description: propertiesPrompts.sessionIdDescription,
         },
-        baths: { type: Type.STRING },
-        bath_min: { type: Type.STRING },
-        bath_max: { type: Type.STRING },
-
-        garage: {
+        bath_min: {
           type: Type.STRING,
-          description: "Single value → min & max for garage_size",
+          description: propertiesPrompts.bathMinDescription,
         },
-        garages: { type: Type.STRING },
-        garage_min: { type: Type.STRING },
-        garage_max: { type: Type.STRING },
-
-        floorplanSpecs: {
-          type: Type.OBJECT,
-          properties: {
-            sqft: { type: Type.STRING },
-            sqft_min: { type: Type.STRING },
-            sqft_max: { type: Type.STRING },
-            bed: { type: Type.STRING },
-            bedrooms: { type: Type.STRING },
-            bed_min: { type: Type.STRING },
-            bed_max: { type: Type.STRING },
-            bath: { type: Type.STRING },
-            baths: { type: Type.STRING },
-            bath_min: { type: Type.STRING },
-            bath_max: { type: Type.STRING },
-            garage: { type: Type.STRING },
-            garages: { type: Type.STRING },
-            garage_min: { type: Type.STRING },
-            garage_max: { type: Type.STRING },
-          },
+        bath_max: {
+          type: Type.STRING,
+          description: propertiesPrompts.bathMaxDescription,
+        },
+      },
+    },
+  },
+  getFloorplanSqft: {
+    name: "getFloorplanSqft",
+    description: prompts.floorplanSqftPrompt,
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        sessionId: {
+          type: Type.STRING,
+          description: propertiesPrompts.sessionIdDescription,
+        },
+        sqft_min: {
+          type: Type.STRING,
+          description: propertiesPrompts.sqftMinDescription,
+        },
+        sqft_max: {
+          type: Type.STRING,
+          description: propertiesPrompts.sqftMaxDescription,
+        },
+      },
+    },
+  },
+  getFloorplanGarage: {
+    name: "getFloorplanGarage",
+    description: prompts.floorplanGaragePrompt,
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        sessionId: {
+          type: Type.STRING,
+          description: propertiesPrompts.sessionIdDescription,
+        },
+        sqft_min: {
+          type: Type.STRING,
+          description: propertiesPrompts.garageMinDescription,
+        },
+        sqft_max: {
+          type: Type.STRING,
+          description: propertiesPrompts.garageMaxDescription,
+        },
+      },
+    },
+  },
+  getFloorplanLevel: {
+    name: "getFloorplanLevel",
+    description: prompts.floorplanGaragePrompt,
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        sessionId: {
+          type: Type.STRING,
+          description: propertiesPrompts.sessionIdDescription,
+        },
+        level_min: {
+          type: Type.STRING,
+          description: propertiesPrompts.levelMinDescription,
+        },
+        level_max: {
+          type: Type.STRING,
+          description: propertiesPrompts.levelMaxDescription,
         },
       },
     },
   },
   getInterestedHome: {
     name: "getInterestedHome",
-    description:
-      "Persist the user's must-have home features (free-form, no fixed catalog). Accepts features via multiple aliases. Requires sessionId.",
+    description: prompts.interestedHomePrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
         sessionId: {
           type: Type.STRING,
-          description: "Required session id.",
+          description: propertiesPrompts.sessionIdDescription,
         },
         homeInterest: {
           type: Type.ARRAY,
           items: { type: Type.STRING },
-          description:
-            "Alias for features, Comma/semicolon separated list of features",
+          description: propertiesPrompts.homeInterestDescription,
         },
       },
     },
@@ -278,6 +311,3 @@ export type ToolTypes = keyof typeof toolSchema;
 export const tools = Object.values(toolSchema);
 
 export const toolsNames = Object.keys(toolSchema);
-
-
-
