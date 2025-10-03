@@ -18,6 +18,9 @@ export class GeminiService {
 
 		console.log('Generando respuesta contextual con Gemini...2');
 
+		// notes:
+		// Añadir al prompt que no puede salir del tema de buscar casa y no le de otras sugerencias.
+
 		const response1 = await model.sendMessage({
 			message: message,
 			config: {

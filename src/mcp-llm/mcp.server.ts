@@ -79,6 +79,9 @@ export class SimpleMcpServer {
       }
     }
 
+    // notes
+    // en la respuesta trata el nombre como data crudo, necesitamos que sea un mensaje para el usuario más amigable
+
     console.log('results', results);
     const incompleteData = results.some(result => !result.success);
     console.log('incompleteData', incompleteData);
@@ -107,7 +110,7 @@ export class SimpleMcpServer {
 
       return {
         message: listOfHouse,
-        systemInstruction: 'Con la información proporcionada, sugiere al usuario la mejor opción de casa acorde a sus necesidades y preferencias.'
+        systemInstruction: 'Con la información proporcionada, sugiere al usuario la mejor opción de casa acorde a sus necesidades y preferencias. '
       };
     }
 
