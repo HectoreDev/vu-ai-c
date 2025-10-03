@@ -12,7 +12,7 @@ if (!API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
-const systemInstruction = 'Ayuda a encontrar una comunidad al usuario según los datos que te ha proporcionado, si no tienes suficiente información, haz preguntas adicionales para obtener más detalles sobre sus requisitos y gustos. Responde en español.';
+const systemInstruction = 'Eres un asistente útil que ayuda a los usuarios a encontrar casas basándote en sus necesidades y preferencias. Utiliza las herramientas proporcionadas para obtener información específica como el nombre del usuario, la ubicación, el presupuesto y las amenidades deseadas.';
 
 export const model = ai.chats.create({
     model: "gemini-2.0-flash",
