@@ -15,7 +15,11 @@ import {
   toolGetName,
   toolGetBudget,
   toolGetCustomizing,
-  toolGetFloorplanSpecs,
+  toolGetFloorplanBath,
+  toolGetFloorplanBed,
+  toolGetFloorplanGarage,
+  toolGetFloorplanLevel,
+  toolGetFloorplanSqft,
   toolGetInterestRate,
   toolGetInterestedFindHome,
   toolGetInterestingHome,
@@ -36,7 +40,11 @@ export class SimpleMcpServer {
     this.tools.set("getLocation", toolGetLocation);
     this.tools.set("getBudget", toolGetBudget);
     this.tools.set("getCustomizing", toolGetCustomizing);
-    this.tools.set("getFloorplanSpecs", toolGetFloorplanSpecs);
+    this.tools.set("getFloorplanBed", toolGetFloorplanBed);
+    this.tools.set("getFloorplanBath", toolGetFloorplanBath);
+    this.tools.set("getFloorplanGarage", toolGetFloorplanGarage);
+    this.tools.set("getFloorplanLevel", toolGetFloorplanLevel);
+    this.tools.set("getFloorplanSqft", toolGetFloorplanSqft);
     this.tools.set("getInterestRate", toolGetInterestRate);
     this.tools.set("getInterestedFindHome", toolGetInterestedFindHome);
     this.tools.set("getInterestingHome", toolGetInterestingHome);
@@ -55,12 +63,11 @@ export class SimpleMcpServer {
     // this.tools.set("check_session", executeCheckSessionTool);
   }
 
-
   responseSuccess(data: any) {
     return {
       success: true,
       data,
-      error: null
+      error: null,
     } as ResponseSuccess;
   }
 
@@ -68,7 +75,7 @@ export class SimpleMcpServer {
     return {
       success: false,
       error: message,
-      data: null
+      data: null,
     } as ResponseError;
   }
 
@@ -76,14 +83,14 @@ export class SimpleMcpServer {
     const results: any[] = [];
     for (let index = 0; index < tools.length; index++) {
       const { functionCall } = tools[index];
-      console.log('functionCall', functionCall);
+      console.log("functionCall", functionCall);
       if (functionCall && functionCall.name) {
         const { name, args } = functionCall;
         const tool = this.tools.get(name);
-        console.log('tool', tool);
+        console.log("tool", tool);
         if (tool) {
           const result = await tool(args);
-          console.log('result', result);
+          console.log("result", result);
           results.push(result);
         }
       }
