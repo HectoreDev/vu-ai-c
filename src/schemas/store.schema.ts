@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { ResponseError, ResponseSuccess } from '../mcp-llm/types/responseType';
+import { SessionStore } from '../store/zustandStore';
 
 
 export const sessionIdSchema = z.object({
@@ -138,21 +139,23 @@ const createErrorResponse = (error: Error): ResponseError => {
     };
 };
 
-const createSuccessResponse = (data: any): ResponseSuccess => {
+const createSuccessResponse = (data: Partial<SessionStore>, message: string): ResponseSuccess => {
+
+
     return {
         success: true,
         data,
         error: null,
-        message: null,
+        message,
         history: [],
         code: 200
     };
 };
 
-export const validateSessionId = (sessionId: string): ValidationResult<{ sessionId: string }> => {
+export const validateSessionId = (sessionId: string, message: string): ValidationResult<{ sessionId: string }> => {
     try {
         const data = sessionIdSchema.parse({ sessionId });
-        return createSuccessResponse(data);
+        return createSuccessResponse(data, message);
     } catch (error) {
         return createErrorResponse(error as Error);
     }
@@ -181,6 +184,7 @@ export const validateLocation = (location: string): ValidationResult<{ location:
     try {
         const data = locationSchema.parse({ location });
         console.log("validateLocation data", data);
+        
         return createSuccessResponse(data);
     } catch (error) {
         return createErrorResponse(error as Error);
@@ -235,8 +239,11 @@ export const validateInterestRate = (interestRate: string): ValidationResult<{ i
 
 export const validateInterestedFindHome = (interestedFindHome: string): ValidationResult<{ interestedFindHome: string }> => {
     try {
+        // validar como arreglo
         const data = interestedFindHomeSchema.parse({ interestedFindHome });
-        return createSuccessResponse(data);
+        return createSuccessResponse({
+            interest: data.interestedFindHome
+        });
     } catch (error) {
         return createErrorResponse(error as Error);
     }
@@ -244,8 +251,11 @@ export const validateInterestedFindHome = (interestedFindHome: string): Validati
 
 export const validateInterestingHome = (interestingHome: string): ValidationResult<{ interestingHome: string }> => {
     try {
+        // validar 
         const data = interestingHomeSchema.parse({ interestingHome });
-        return createSuccessResponse(data);
+        return createSuccessResponse({
+            homeInterest: data.interestingHome
+        });
     } catch (error) {
         return createErrorResponse(error as Error);
     }
