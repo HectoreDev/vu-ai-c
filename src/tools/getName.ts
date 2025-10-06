@@ -31,9 +31,6 @@ export const handleGetName = async (args: Args): Promise<ValidationResult<Args>>
 
   store.setName(name);
 
-  return {
-    message: name ? "" : "Pregunta al usuario por su nombre.",
-    success: name ? true : false,
-    name: name
-  };
+  return parsed;
+};
 };
