@@ -18,9 +18,9 @@ export const handleGetName = async (args: Args): Promise<ValidationResult<Args>>
 
   let { sessionId } = args;
 
-  const parsed = validateName(args.name, "Mensaje");
+  const response = validateName(args.name, `User name ${args.name}`);
 
-  const { name } = parsed.data;
+  const { name } = response.data;
 
   const store = useSessionStore.getState();
 
@@ -31,5 +31,5 @@ export const handleGetName = async (args: Args): Promise<ValidationResult<Args>>
 
   store.setName(name);
 
-  return parsed;
+  return response;
 };

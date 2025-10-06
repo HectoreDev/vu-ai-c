@@ -1,31 +1,22 @@
 // src/mcp/tools/setInterestingHome.ts
 import { z } from "zod";
 import { useSessionStore } from "./../store/zustandStore";
-import { ValidationResult } from "../schemas/store.schema";
+import { interestingHomeSchema, validateInterestingHome, ValidationResult } from "../schemas/store.schema";
 
 const asStringOrArray = z.union([z.string(), z.array(z.string())]);
 
-// type Args = z.infer<typeof ArgsSchema>;
+type Args = z.infer<typeof interestingHomeSchema>;
 
 export const handleGetInterestedHome = async (
-  args: any
-): Promise<ValidationResult<any>> => {
-  const parsed = args;
+  args: Args
+): Promise<ValidationResult<Args>> => {
+  const response = validateInterestingHome(args.interestingHome,` User select home interest ${args.interestingHome.toString()}`);
 
   const store = useSessionStore();
 
-  const { homeInterest } = parsed;
+  const { homeInterest } = response.data;
 
   store.setHomeInterest(homeInterest);
 
-  return {
-    success: true,
-    code: 200,
-    data: {
-      homeInterest,
-    },
-    error: null,
-    history: [],
-    message: `User select home interest ${homeInterest.toString()}`,
-  };
+  return response;
 };

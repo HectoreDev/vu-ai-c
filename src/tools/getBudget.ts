@@ -10,21 +10,15 @@ type Args = z.infer<typeof priceRangeSchema>;
 
 export const handleGetBudget = async (
   args: Args
-) => {
-  // const parsed = validatePriceRange(args.priceMin, args.priceMax);
+) : Promise<ValidationResult<Args>> => {
+  const response = validatePriceRange(args.priceMin, args.priceMax, `User Select range to price ${args.priceMin} - ${args.priceMax}`);
 
-  // const store = useSessionStore();
+  const store = useSessionStore();
 
-  // const { priceMin, priceMax } = parsed.data;
+  const { priceMin, priceMax } = response.data;
   
-  // store.setPriceMin(priceMin);
-  // store.setPriceMax(priceMax);
+  store.setPriceMin(priceMin);
+  store.setPriceMax(priceMax);
 
-  console.log('price', args);
-
-  return {
-    message: args.priceMax ? "" : "Pregunta al usuario por su presupuesto.",
-    success: args.priceMax ? true : false,
-    budget: args.priceMax
-  };
+  return response;
 };

@@ -1,31 +1,27 @@
-
 import { z } from "zod";
 import { useSessionStore } from "./../store/zustandStore";
 import { validateSession } from "../utils/validateSession";
-import { ValidationResult } from "../schemas/store.schema";
+import {
+  rentingSchema,
+  validateRenting,
+  ValidationResult,
+} from "../schemas/store.schema";
 
+type Args = z.infer<typeof rentingSchema>;
 
-// type Args = z.infer<typeof ArgsSchema>;
+export const handleGetRenting = async (
+  args: Args
+): Promise<ValidationResult<Args>> => {
+  const response = validateRenting(
+    args.renting,
+    `User select interest to rent house boolean ${args.renting}`
+  );
 
-export const handleGetRenting = async (args: any): Promise<ValidationResult<any>>  => {
-
- const parsed = args
-  // validateBoolean(args);
-
- const { renting } = parsed.data;
+  const { renting } = response.data;
 
   const store = useSessionStore();
 
   store.setRenting(renting);
 
-  return {
-success: true,
-    code: 200,
-    data: {
-      renting
-    },
-    error: null,
-    history: [],
-    message: `User select interest to rent house boolean ${renting}`,
-  };
+  return response;
 };

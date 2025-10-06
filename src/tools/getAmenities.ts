@@ -9,23 +9,14 @@ export const handleGetAmenities = async (
   args: Args
 ): Promise<ValidationResult<Args>> => {
 
-  const parsed = validateAmenities(args.amenities, "Mensaje")
+  const response = validateAmenities(args.amenities, `User select amenities ${args.amenities}`)
 
-  const { amenities } = parsed.data;
+  const { amenities } = response.data;
 
   const store = useSessionStore.getState();
 
   store.setAmenities(amenities);
 
-  return {
-    success: true,
-    code: 200,
-    data: {
-      amenities,
-    },
-    error: null,
-    history: [],
-    message: `User select amenities ${amenities}`,
-  }
+  return response;
 
 }
