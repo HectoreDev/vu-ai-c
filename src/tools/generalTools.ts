@@ -13,6 +13,40 @@ const toolsName = {
   },
 };
 
+const toolsBudget = {
+  name: "getBudget",
+  description: "Sí el usuario ha mencionado un presupuesto para la casa, obten el presupuesto y solo regresa el presupuesto en números. El usuario podría dar un mínimo, un máximo o ambos. Sí solo da un número, ese tomara el mínimo y el máximo.",
+  parameters: {
+    type: 'object',
+    description: "Retorna el presupuesto en números",
+    properties: {
+      priceMin: {
+        type: 'string',
+      },
+      priceMax: {
+        type: 'string',
+      },
+    },
+    required: ['priceMin', 'priceMax']
+  }
+}
+
+const toolsAmenities = {
+  name: "getAmenities",
+  description: "Sí el usuario busca una casa, pregunta por las amenidades que son imprescindibles, si detectas algunas amenidades, añadelas en una lista.",
+  parameters: {
+    type: 'object',
+    description: "Añade las amenidades en un array",
+    properties: {
+      amenities: {
+        type: 'array',
+        items: { type: 'string' },
+      },
+    },
+    required: ['amenities']
+  }
+}
+
 const toolsLocation = {
   name: "getLocation",
   description: "Sí el usuario ha añadido una ciudad o estado, obten la información del lugar",
@@ -20,45 +54,16 @@ const toolsLocation = {
     type: "object",
     properties: {
       location: {
-        type: "string",
-        description: "Añade locación",
+        type: 'array',
+        items: { type: 'string' },
+        description: "Añade locación o las locaciones en un array",
       },
     },
     required: ["location"],
   },
 };
 
-const toolsBudget = {
-  name: "getBudget",
-  description: "This tool help to user to find a house, if user add a budget for house, get this information.",
-  parameters: {
-    type: 'object',
-    description: "Return budget for the house",
-    properties: {
-      budget: {
-        type: 'string',
-      },
-    },
-    required: ['budget']
-  }
-}
-
-const toolsAmenities = {
-  name: "getAmenities",
-  description: "If user search a house, ask for amenities it's a must, if you detect some amenities, add a list of this.",
-  parameters: {
-    type: 'object',
-    description: "Return budget for the house",
-    properties: {
-      amenities: {
-        type: 'string',
-      },
-    },
-    required: ['amenities']
-  }
-}
-
 export const generalTools = {
-  tools: [toolsName, toolsLocation, toolsBudget, toolsAmenities],
-  listTools: [toolsName.name, toolsLocation.name, toolsBudget.name, toolsAmenities.name]
+  tools: [toolsName, toolsBudget, toolsAmenities, toolsLocation],
+  listTools: [toolsName.name, toolsBudget.name, toolsAmenities.name, toolsLocation.name]
 };

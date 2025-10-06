@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { success, z } from "zod";
 import { useSessionStore } from "./../store/zustandStore";
 import {
   priceRangeSchema,
@@ -10,25 +10,21 @@ type Args = z.infer<typeof priceRangeSchema>;
 
 export const handleGetBudget = async (
   args: Args
-): Promise<ValidationResult<Args>> => {
-  const parsed = validatePriceRange(args.priceMin, args.priceMax);
+) => {
+  // const parsed = validatePriceRange(args.priceMin, args.priceMax);
 
-  const store = useSessionStore();
+  // const store = useSessionStore();
 
-  const { priceMin, priceMax } = parsed.data;
+  // const { priceMin, priceMax } = parsed.data;
   
-  store.setPriceMin(priceMin);
-  store.setPriceMax(priceMax);
+  // store.setPriceMin(priceMin);
+  // store.setPriceMax(priceMax);
+
+  console.log('price', args);
 
   return {
-    success: true,
-    code: 200,
-    data: {
-      priceMin,
-      priceMax
-    },
-    error: null,
-    history: [],
-    message: `Price min ${priceMin}, price max ${priceMax}`,
+    message: args.priceMax ? "" : "Pregunta al usuario por su presupuesto.",
+    success: args.priceMax ? true : false,
+    budget: args.priceMax
   };
 };

@@ -14,7 +14,7 @@ export const argsSchema = sessionIdSchema.merge(nameSchema);
 
 type Args = z.infer<typeof argsSchema>;
 
-export const handleGetName = async (args: Args): Promise<ValidationResult<Args>> => {
+export const handleGetName = async (args: Args) => {
   
   let { sessionId } = args;
 
@@ -31,14 +31,9 @@ export const handleGetName = async (args: Args): Promise<ValidationResult<Args>>
 
   store.setName(name);
 
-return {
-    success: true,
-    code: 200,
-    data: {
-      name
-    },
-    error: null,
-    history: [],
-    message: `User name ${name}`,
+  return {
+    message: name ? "" : "Pregunta al usuario por su nombre.",
+    success: name ? true : false,
+    name: name
   };
 };
