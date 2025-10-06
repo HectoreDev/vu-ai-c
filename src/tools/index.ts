@@ -14,6 +14,7 @@ import { handleGetFloorplanBath } from "./getFloorplanBath";
 import { handleGetFloorplanSqft } from "./getFloorplanSqft";
 import { handleGetFloorplanGarage } from "./getFloorplanGarage";
 import { handleGetFloorplanLevel } from "./getFloorplanLevel";
+import { handleGetAmenities } from "./getAmenities";
 
 export const toolStartSession = handleStartSession;
 export const toolGetInterestedFindHome = handleGetInterestFindHome;
@@ -31,3 +32,4 @@ export const toolGetFloorplanLevel = handleGetFloorplanLevel;
 export const toolGetInterestingHome = handleGetInterestedHome;
 export const toolSearchComunities = handleSearchCommunities;
 export const toolGetMoveInReady = handleGetMoveInReady;
+export const toolGetAmenities = handleGetAmenities;
