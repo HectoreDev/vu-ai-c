@@ -4,7 +4,7 @@ import { prompts, propertiesPrompts } from "../prompts/prompts";
 const toolSchema: Record<string, FunctionDeclaration> = {
   getName: {
     name: "getName",
-    description: prompts.namePrompt,
+    description: prompts.getNamePrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -22,7 +22,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   },
   getLocation: {
     name: "getLocation",
-    description: prompts.locationPrompt,
+    description: prompts.getLocationPrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -41,7 +41,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   },
   getBudget: {
     name: "getBudget",
-    description: prompts.budgetPrompt,
+    description: prompts.getBudgetPrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -63,7 +63,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   },
   getAmenities: {
     name: "getAmenities",
-    description: prompts.amenitiesPrompt,
+    description: prompts.getAmenitiesPrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -81,7 +81,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   },
   getInterestFindHome: {
     name: "getInterestFindHome",
-    description: prompts.interestFindHomePrompt,
+    description: prompts.getInterestFindHomePrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -99,7 +99,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   },
   getInterestRateType: {
     name: "getInterestRateType",
-    description: prompts.interestRateTypePrompt,
+    description: prompts.getInterestRateTypePrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -116,7 +116,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   },
   getCustomizing: {
     name: "getCustomizing",
-    description: prompts.customizingPrompt,
+    description: prompts.getCustomizingPrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -133,7 +133,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   },
   getMoveInReady: {
     name: "getMoveInReady",
-    description: prompts.moveInReadyPrompt,
+    description: prompts.getMoveInReadyPrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -150,7 +150,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   },
   getRenting: {
     name: "getRenting",
-    description: prompts.rentingPrompt,
+    description: prompts.getRentingPrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -167,7 +167,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   },
   getFloorplanBed: {
     name: "getFloorplanBed",
-    description: prompts.floorplanBedPrompt,
+    description: prompts.getFloorplanBedPrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -188,7 +188,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   },
   getFloorplanBath: {
     name: "getFloorplanBath",
-    description: prompts.floorplanbathPrompt,
+    description: prompts.getFloorplanBathPrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -209,7 +209,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   },
   getFloorplanSqft: {
     name: "getFloorplanSqft",
-    description: prompts.floorplanSqftPrompt,
+    description: prompts.getFloorplanSqftPrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -230,7 +230,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   },
   getFloorplanGarage: {
     name: "getFloorplanGarage",
-    description: prompts.floorplanGaragePrompt,
+    description: prompts.getFloorplanGaragePrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -251,7 +251,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   },
   getFloorplanLevel: {
     name: "getFloorplanLevel",
-    description: prompts.floorplanGaragePrompt,
+    description: prompts.getFloorplanLevelPrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -272,7 +272,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   },
   getInterestedHome: {
     name: "getInterestedHome",
-    description: prompts.interestedHomePrompt,
+    description: prompts.getInterestedHomePrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
