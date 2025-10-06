@@ -2,30 +2,21 @@
 import { z } from "zod";
 import { useSessionStore } from "../store/zustandStore";
 import { validateSession } from "../utils/validateSession";
-import { ValidationResult } from "../schemas/store.schema";
+import { interestedFindHomeSchema, validateInterestedFindHome, ValidationResult } from "../schemas/store.schema";
 
 
 
-// type Args = z.infer<typeof ArgsSchema>;
+type Args = z.infer<typeof interestedFindHomeSchema>;
 
-export const handleGetInterestFindHome = async (args: any): Promise<ValidationResult<any>> => {
+export const handleGetInterestFindHome = async (args: Args): Promise<ValidationResult<Args>> => {
 
- const parsed = args
+ const response = validateInterestedFindHome(args.interestedFindHome, `User select interest to find home, ${args.interestedFindHome.toString()}`); 
 
-  const {  interests } = parsed.data;
+  const { interests } = response.data;
 
   const store = useSessionStore.getState();
 
   store.setInterest(interests);
 
-  return {
-    success: true,
-    code: 200,
-    data: {
-      interests
-    },
-    error: null,
-    history: [],
-    message: `User select interest to find home, ${interests.toString()}`,
-  };
+  return response
 };

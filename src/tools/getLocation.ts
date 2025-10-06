@@ -11,23 +11,13 @@ import {
 type Args = z.infer<typeof locationsSchema>;
 
 export const handleGetLocation = async (args: Args): Promise<ValidationResult<Args>> => {
-  const parsed = validateLocations(args.locations, "Mensaje");
+  const response = validateLocations(args.locations, `User select locations ${args.locations}`);
 
-  const { locations } = parsed.data;
-  const locs = toArray(locations);
+  const { locations } = response.data;
 
   const store = useSessionStore.getState();
 
-  store.setlocations(locs);
+  store.setlocations(locations);
 
-  return {
-    success: true,
-    code: 200,
-    data: {
-      locs,
-    },
-    error: null,
-    history: [],
-    message: `User select locations ${locs}`,
-  };
+  return response;
 };
