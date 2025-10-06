@@ -16,7 +16,7 @@ export const handleGetFloorplanSqft = async (
   const store = useSessionStore.getState();
 
   const floorplanSpecs = {
-    ...store.floorplanSpecs,
+    //...store.floorplanSpecs,
     sqft: {
       min: sqft_min,
       max: sqft_max,
@@ -25,7 +25,7 @@ export const handleGetFloorplanSqft = async (
 
   const missing = floorplanSpecsMissing(floorplanSpecs);
 
-  store.setFloorplanSpecs(floorplanSpecs);
+  //store.setFloorplanSpecs(floorplanSpecs);
 
   return {
     success: true,
@@ -37,9 +37,8 @@ export const handleGetFloorplanSqft = async (
     error: null,
     history: [],
     message: `User select number sqft ${sqft_min}, ${sqft_max} 
-    ${
-      missing.length > 0 &&
+    ${missing.length > 0 &&
       `estos son los floorplanSpecs que faltan preguntarlos ${missing.toString()}`
-    }`,
+      }`,
   };
 };

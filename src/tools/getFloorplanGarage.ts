@@ -16,7 +16,7 @@ export const handleGetFloorplanGarage = async (
   const store = useSessionStore.getState();
 
   const floorplanSpecs = {
-    ...store.floorplanSpecs,
+    //...store.floorplanSpecs,
     garage: {
       min: garage_min,
       max: garage_max,
@@ -25,7 +25,7 @@ export const handleGetFloorplanGarage = async (
 
   const missing = floorplanSpecsMissing(floorplanSpecs)
 
-  store.setFloorplanSpecs(floorplanSpecs);
+  //store.setFloorplanSpecs(floorplanSpecs);
 
   return {
     success: true,

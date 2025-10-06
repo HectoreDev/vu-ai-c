@@ -16,7 +16,7 @@ export const handleGetFloorplanBath = async (
   const store = useSessionStore.getState();
 
   const floorplanSpecs = {
-    ...store.floorplanSpecs,
+    // ...store.floorplanSpecs,
     bath: {
       min: bath_min,
       max: bath_max,
@@ -25,7 +25,7 @@ export const handleGetFloorplanBath = async (
 
   const missing = floorplanSpecsMissing(floorplanSpecs);
 
-  store.setFloorplanSpecs(floorplanSpecs);
+  //store.setFloorplanSpecs(floorplanSpecs);
 
   return {
     success: true,
@@ -37,9 +37,8 @@ export const handleGetFloorplanBath = async (
     error: null,
     history: [],
     message: `User select number baths ${bath_min}, ${bath_max} 
-    ${
-      missing.length > 0 &&
+    ${missing.length > 0 &&
       `estos son los floorplanSpecs que faltan preguntarlos ${missing.toString()}`
-    }`,
+      }`,
   };
 };

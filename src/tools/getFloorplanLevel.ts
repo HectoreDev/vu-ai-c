@@ -16,7 +16,7 @@ export const handleGetFloorplanLevel = async (
   const store = useSessionStore.getState();
 
   const floorplanSpecs = {
-    ...store.floorplanSpecs,
+    //...store.floorplanSpecs,
     level: {
       min: level_min,
       max: level_max,
@@ -25,7 +25,7 @@ export const handleGetFloorplanLevel = async (
 
   const missing = floorplanSpecsMissing(floorplanSpecs)
 
-  store.setFloorplanSpecs(floorplanSpecs);
+  // store.setFloorplanSpecs(floorplanSpecs);
 
   return {
     success: true,
