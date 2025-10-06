@@ -33,4 +33,3 @@ export const handleGetName = async (args: Args): Promise<ValidationResult<Args>>
 
   return parsed;
 };
-};
