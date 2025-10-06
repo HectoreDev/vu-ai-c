@@ -16,7 +16,7 @@ export const handleGetFloorplanBed = async (
   const store = useSessionStore.getState();
 
   const floorplanSpecs = {
-    ...store.floorplanSpecs,
+    //...store.floorplanSpecs,
     bed: {
       min: bed_min,
       max: bed_max,
@@ -25,7 +25,7 @@ export const handleGetFloorplanBed = async (
 
   const missing = floorplanSpecsMissing(floorplanSpecs)
 
-  store.setFloorplanSpecs(floorplanSpecs);
+  //store.setFloorplanSpecs(floorplanSpecs);
 
   return {
     success: true,

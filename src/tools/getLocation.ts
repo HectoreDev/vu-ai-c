@@ -10,8 +10,8 @@ import {
 
 type Args = z.infer<typeof locationsSchema>;
 
-export const handleGetLocation = async (args: Args) : Promise<ValidationResult<Args>>  => {
-  const parsed = validateLocations(args.locations);
+export const handleGetLocation = async (args: Args): Promise<ValidationResult<Args>> => {
+  const parsed = validateLocations(args.locations, "Mensaje");
 
   const { locations } = parsed.data;
   const locs = toArray(locations);

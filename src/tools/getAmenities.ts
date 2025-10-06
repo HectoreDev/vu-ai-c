@@ -7,9 +7,9 @@ type Args = z.infer<typeof amenitiesSchema>
 
 export const handleGetAmenities = async (
   args: Args
-) : Promise<ValidationResult<Args>> => {
+): Promise<ValidationResult<Args>> => {
 
-  const parsed = validateAmenities(args.amenities)
+  const parsed = validateAmenities(args.amenities, "Mensaje")
 
   const { amenities } = parsed.data;
 

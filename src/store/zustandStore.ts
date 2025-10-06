@@ -23,19 +23,16 @@ interface SessionStore {
     community?: string;
     lastToolUsed?: string;
     mcpSessionId?: string;
+    location?: string;
 
-    // Nuevos campos del flujo extendido
-    welcome: string | null;//eliminar
-    nameSpecs: string | null;//eliminar
+    // Nuevos campos del flujo extendido 
     interest: string[];
-    markets: string[];//eliminar
-    budgetProduct: string | null;//eliminar
+
     budgetType: string | null;
     budget: BudgetType | null;
-    customizing: string | null;
-    moveInReady: string | null;
+    customizing: boolean | null;
+    moveInReady: boolean | null;
     renting: string | null;
-    floorplanSpecs:  FloorplanSpecs;
     homeInterest: string[];
     interestRate?: string;
 
@@ -55,23 +52,16 @@ interface SessionStore {
     setLastToolUsed: (tool: string) => void;
     setMcpSessionId: (mcpSessionId: string) => void;
 
-    // Acciones para nuevos campos
-    setWelcome: (welcome: string) => void;
-    setNameSpecs: (nameSpecs: string) => void;
+    // Acciones para nuevos campos 
     setInterest: (interest: string[]) => void;
     setInterestRate: (interestRate: string) => void;
     addInterest: (interest: string) => void;
     removeInterest: (interest: string) => void;
-    setMarkets: (markets: string[]) => void;
-    addMarket: (market: string) => void;
-    removeMarket: (market: string) => void;
-    setBudgetProduct: (budgetProduct: string) => void;
     setBudgetType: (budgetType: string) => void;
     setBudget: (budget: BudgetType) => void;
-    setCustomizing: (customizing: string) => void;
-    setMoveInReady: (moveInReady: string) => void;
+    setCustomizing: (customizing: boolean) => void;
+    setMoveInReady: (moveInReady: boolean) => void;
     setRenting: (renting: string) => void;
-    setFloorplanSpecs: (floorplanSpecs: FloorplanSpecs) => void;
     setHomeInterest: (homeInterest: string[]) => void;
     addHomeInterest: (homeInterest: string) => void;
     removeHomeInterest: (homeInterest: string) => void;
@@ -98,18 +88,14 @@ export const initialState = {
     lastToolUsed: undefined,
     mcpSessionId: undefined,
 
-    // Nuevos campos del flujo extendido
-    welcome: null,
-    nameSpecs: null,
+    // Nuevos campos del flujo extendido 
     interest: [],
-    markets: [],
     budgetProduct: null,
     budgetType: null,
     budget: null,
     customizing: null,
     moveInReady: null,
     renting: null,
-    floorplanSpecs: {},
     homeInterest: [],
     interestRate: undefined,
 
@@ -124,7 +110,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
 
     // Acciones básicas con validación
     setSessionId: (sessionId: string) => {
-        const validation = validateSessionId(sessionId);
+        const validation = validateSessionId(sessionId, "SessionId");
 
         if (validation.success) {
             set((state) => ({
@@ -148,7 +134,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
     },
 
     setName: (name: string) => {
-        const validation = validateName(name);
+        const validation = validateName(name, "Name");
 
         if (validation.success) {
             set((state) => ({
@@ -172,7 +158,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
     },
 
     setlocations: (locations: string[]) => {
-        const validation = validateLocations(locations);
+        const validation = validateLocations(locations, "Locations");
 
         if (validation.success) {
             set((state) => ({
@@ -196,7 +182,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
     },
 
     setPriceRange: (priceMin: number, priceMax: number) => {
-        const validation = validatePriceRange(priceMin, priceMax);
+        const validation = validatePriceRange(priceMin, priceMax, "PriceRange");
 
         if (validation.success) {
             set((state) => ({
@@ -231,7 +217,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
     },
 
     setAmenities: (amenities: string) => {
-        const validation = validateAmenities(amenities);
+        const validation = validateAmenities(amenities, "Amenities");
 
         if (validation.success) {
             set((state) => ({
@@ -255,6 +241,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
     },
 
     setCommunities: (communities: string) => {
+        // const validation = validateCommunities(communities, "Communities");
         set({ communities });
     },
 
@@ -270,14 +257,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
         set({ mcpSessionId });
     },
 
-    // Acciones para nuevos campos
-    setWelcome: (welcome: string) => {
-        set({ welcome });
-    },
-
-    setNameSpecs: (nameSpecs: string) => {
-        set({ nameSpecs });
-    },
+    // Acciones para nuevos campos 
 
     setInterest: (interest: string[]) => {
         set({ interest });
@@ -301,28 +281,6 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
         }));
     },
 
-    setMarkets: (markets: string[]) => {
-        set({ markets });
-    },
-
-    addMarket: (newMarket: string) => {
-        set((state) => ({
-            markets: state.markets.includes(newMarket)
-                ? state.markets
-                : [...state.markets, newMarket]
-        }));
-    },
-
-    removeMarket: (marketToRemove: string) => {
-        set((state) => ({
-            markets: state.markets.filter(m => m !== marketToRemove)
-        }));
-    },
-
-    setBudgetProduct: (budgetProduct: string) => {
-        set({ budgetProduct });
-    },
-
     setBudgetType: (budgetType: string) => {
         set({ budgetType });
     },
@@ -331,20 +289,16 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
         set({ budget });
     },
 
-    setCustomizing: (customizing: string) => {
+    setCustomizing: (customizing: boolean) => {
         set({ customizing });
     },
 
-    setMoveInReady: (moveInReady: string) => {
+    setMoveInReady: (moveInReady: boolean) => {
         set({ moveInReady });
     },
 
     setRenting: (renting: string) => {
         set({ renting });
-    },
-
-    setFloorplanSpecs: (floorplanSpecs: FloorplanSpecs) => {
-        set({ floorplanSpecs });
     },
 
     setHomeInterest: (homeInterest: string[]) => {
@@ -434,18 +388,13 @@ export const usePriceRange = () => useSessionStore((state) => ({
 export const useAmenities = () => useSessionStore((state) => state.amenities);
 export const useMcpSessionId = () => useSessionStore((state) => state.mcpSessionId);
 
-// Hooks para nuevos campos
-export const useWelcome = () => useSessionStore((state) => state.welcome);
-export const useNameSpecs = () => useSessionStore((state) => state.nameSpecs);
+// Hooks para nuevos campos 
 export const useInterest = () => useSessionStore((state) => state.interest);
-export const useMarkets = () => useSessionStore((state) => state.markets);
-export const useBudgetProduct = () => useSessionStore((state) => state.budgetProduct);
 export const useBudgetType = () => useSessionStore((state) => state.budgetType);
 export const useBudget = () => useSessionStore((state) => state.budget);
 export const useCustomizing = () => useSessionStore((state) => state.customizing);
 export const useMoveInReady = () => useSessionStore((state) => state.moveInReady);
 export const useRenting = () => useSessionStore((state) => state.renting);
-export const useFloorplanSpecs = () => useSessionStore((state) => state.floorplanSpecs);
 export const useHomeInterest = () => useSessionStore((state) => state.homeInterest);
 
 // Hook para obtener todas las acciones
@@ -463,22 +412,15 @@ export const useSessionActions = () => useSessionStore((state) => ({
     setLastToolUsed: state.setLastToolUsed,
     setMcpSessionId: state.setMcpSessionId,
 
-    // Acciones para nuevos campos
-    setWelcome: state.setWelcome,
-    setNameSpecs: state.setNameSpecs,
+    // Acciones para nuevos campos 
     setInterest: state.setInterest,
     addInterest: state.addInterest,
     removeInterest: state.removeInterest,
-    setMarkets: state.setMarkets,
-    addMarket: state.addMarket,
-    removeMarket: state.removeMarket,
-    setBudgetProduct: state.setBudgetProduct,
     setBudgetType: state.setBudgetType,
     setBudget: state.setBudget,
     setCustomizing: state.setCustomizing,
     setMoveInReady: state.setMoveInReady,
     setRenting: state.setRenting,
-    setFloorplanSpecs: state.setFloorplanSpecs,
     setHomeInterest: state.setHomeInterest,
     addHomeInterest: state.addHomeInterest,
     removeHomeInterest: state.removeHomeInterest,
