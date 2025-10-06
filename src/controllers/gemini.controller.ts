@@ -25,16 +25,16 @@ interface IFData {
 
 export const chatWithGemini = async (req : Request, res : Response) : Promise < void > => {
     try {
-        const {message, sessionId} = req.body;
+        const {text, history, sessionId} = req.body;
 
-        if (!message) {
+        if (!text) {
             res.status(400).json({success: false, error: "Mensaje requerido"});
             return;
         }
 
-        const result = await geminiService.chatWithTools(message, sessionId);
+        const result = await geminiService.chatWithTools(text, history, sessionId);
 
-        res.json({success: true, response: result.text});
+        res.json({success: true, response: result});
     } catch (error) {
         const errMsg = error instanceof Error ? error.message : String(error);
         res.status(500).json({success: false, error: errMsg});

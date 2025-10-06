@@ -8,18 +8,14 @@ import { SessionHelper } from "../store/helper";
 import type { SessionState } from "./types/gemini.types";
 import { FunctionCallingConfigMode } from "@google/genai";
 
+interface IFHistory  {
+	role: 'user' | 'model';
+	text: string;
+}
+
 export class GeminiService {
 
-	async chatWithTools(message: string, sessionId?: number) {
-
-		// const contextPrompt = 'hola, estoy buscando una casa en austin o phoenix, mi nombre es jose, tengo un presupues de 200000 dolares. Me gustaría que tuviera alberca y parques para mascotas';
-
-		// const contextPrompt = 'hola, me podrías dar una receta para hacer un pastel de chocolate?';
-
-		console.log('Generando respuesta contextual con Gemini...2');
-
-		// notes:
-		// Añadir al prompt que no puede salir del tema de buscar casa y no le de otras sugerencias.
+	async chatWithTools(message:string, history: IFHistory[], sessionId?: number) {
 
 		const response1 = await model.sendMessage({
 			message: message,
@@ -42,6 +38,10 @@ export class GeminiService {
 			}
 		});
 
+		history.push({
+			role: 'user', text: message
+		});
+
 		console.log('text response', response1.candidates?.[0]?.content?.parts);
 		console.log('functionCalls', response1.functionCalls);
 
@@ -59,22 +59,26 @@ export class GeminiService {
 				}
 			});
 
+			history.push({
+				role: 'model', text: resultMCP.candidates?.[0]?.content?.parts?.map(part => part.text).join('') || ''
+			});
+
 			console.log('Respuesta final con datos de MCP:', resultMCP.candidates?.[0]?.content?.parts);
 
 			return {
-				text: resultMCP.candidates?.[0]?.content?.parts,
+				history,
 			};
 
 		} else {
+
+			history.push({
+				role: 'model', text: response1.candidates?.[0]?.content?.parts?.map(part => part.text).join('') || ''
+			});
+
 			return {
-				text: response1.candidates?.[0]?.content?.parts,
+				history,
 			};
 		}
-
-		// return {
-		// 	text: '',
-		// 	toolsUsed: []
-		// };
 
 	}
 
