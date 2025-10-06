@@ -14,7 +14,7 @@ export const argsSchema = sessionIdSchema.merge(nameSchema);
 
 type Args = z.infer<typeof argsSchema>;
 
-export const handleGetName = async (args: Args) => {
+export const handleGetName = async (args: Args): Promise<ValidationResult<Args>> => {
 
   let { sessionId } = args;
 
