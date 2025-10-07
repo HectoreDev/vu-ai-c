@@ -36,6 +36,27 @@ interface SessionStore {
     homeInterest: string[];
     interestRate?: string;
 
+    floorplanBed: {
+        min: number;
+        max: number;
+    };
+    floorplanBath: {
+        min: number;
+        max: number;
+    };
+    floorplanGarage: {
+        min: number;
+        max: number;
+    };
+    floorplanLevel: {
+        min: number;
+        max: number;
+    };
+    floorplanSqft: {
+        min: number;
+        max: number;
+    };
+
     // Estado para errores de validación
     validationErrors: Record<string, string[]>;
 
@@ -51,6 +72,7 @@ interface SessionStore {
     setCommunity: (community: string) => void;
     setLastToolUsed: (tool: string) => void;
     setMcpSessionId: (mcpSessionId: string) => void;
+    setLocation: (location: string) => void;
 
     // Acciones para nuevos campos 
     setInterest: (interest: string[]) => void;
@@ -65,6 +87,11 @@ interface SessionStore {
     setHomeInterest: (homeInterest: string[]) => void;
     addHomeInterest: (homeInterest: string) => void;
     removeHomeInterest: (homeInterest: string) => void;
+    setFloorplanBed: (floorplanBed: { min: number, max: number }) => void;
+    setFloorplanBath: (floorplanBath: { min: number, max: number }) => void;
+    setFloorplanGarage: (floorplanGarage: { min: number, max: number }) => void;
+    setFloorplanLevel: (floorplanLevel: { min: number, max: number }) => void;
+    setFloorplanSqft: (floorplanSqft: { min: number, max: number }) => void;
 
     // Acciones de utilidad
     reset: () => void;
@@ -77,20 +104,23 @@ interface SessionStore {
 
 // Estado inicial
 export const initialState = {
+    // Estados principales
     sessionId: undefined,
     name: undefined,
     locations: undefined,
     priceMin: undefined,
     priceMax: undefined,
     amenities: undefined,
+
+    // Estados adicionales
     communities: undefined,
     community: undefined,
     lastToolUsed: undefined,
     mcpSessionId: undefined,
+    location: undefined,
 
     // Nuevos campos del flujo extendido 
     interest: [],
-    budgetProduct: null,
     budgetType: null,
     budget: null,
     customizing: null,
@@ -99,6 +129,29 @@ export const initialState = {
     homeInterest: [],
     interestRate: undefined,
 
+    // Floorplan specs
+    floorplanBed: {
+        min: 0,
+        max: 0,
+    },
+    floorplanBath: {
+        min: 0,
+        max: 0,
+    },
+    floorplanGarage: {
+        min: 0,
+        max: 0,
+    },
+    floorplanLevel: {
+        min: 0,
+        max: 0,
+    },
+    floorplanSqft: {
+        min: 0,
+        max: 0,
+    },
+
+    // Estado para errores de validación
     validationErrors: {},
 };
 
@@ -257,6 +310,10 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
         set({ mcpSessionId });
     },
 
+    setLocation: (location: string) => {
+        set({ location });
+    },
+
     // Acciones para nuevos campos 
 
     setInterest: (interest: string[]) => {
@@ -319,6 +376,26 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
         }));
     },
 
+    setFloorplanBed: (floorplanBed: { min: number, max: number }) => {
+        set({ floorplanBed });
+    },
+
+    setFloorplanBath: (floorplanBath: { min: number, max: number }) => {
+        set({ floorplanBath });
+    },
+
+    setFloorplanGarage: (floorplanGarage: { min: number, max: number }) => {
+        set({ floorplanGarage });
+    },
+
+    setFloorplanLevel: (floorplanLevel: { min: number, max: number }) => {
+        set({ floorplanLevel });
+    },
+
+    setFloorplanSqft: (floorplanSqft: { min: number, max: number }) => {
+        set({ floorplanSqft });
+    },
+
     // Acciones de utilidad
     reset: () =>
         set(initialState),
@@ -374,7 +451,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
 
 
 useSessionStore.subscribe((state) => {
-    // console.log('state', state);
+    console.log('state', state);
 });
 
 // Hooks de utilidad para acceso rápido a partes específicas del estado
@@ -396,6 +473,11 @@ export const useCustomizing = () => useSessionStore((state) => state.customizing
 export const useMoveInReady = () => useSessionStore((state) => state.moveInReady);
 export const useRenting = () => useSessionStore((state) => state.renting);
 export const useHomeInterest = () => useSessionStore((state) => state.homeInterest);
+export const useFloorplanBed = () => useSessionStore((state) => state.floorplanBed);
+export const useFloorplanBath = () => useSessionStore((state) => state.floorplanBath);
+export const useFloorplanGarage = () => useSessionStore((state) => state.floorplanGarage);
+export const useFloorplanLevel = () => useSessionStore((state) => state.floorplanLevel);
+export const useFloorplanSqft = () => useSessionStore((state) => state.floorplanSqft);
 
 // Hook para obtener todas las acciones
 export const useSessionActions = () => useSessionStore((state) => ({
@@ -411,6 +493,7 @@ export const useSessionActions = () => useSessionStore((state) => ({
     setCommunity: state.setCommunity,
     setLastToolUsed: state.setLastToolUsed,
     setMcpSessionId: state.setMcpSessionId,
+    setLocation: state.setLocation,
 
     // Acciones para nuevos campos 
     setInterest: state.setInterest,
@@ -424,6 +507,11 @@ export const useSessionActions = () => useSessionStore((state) => ({
     setHomeInterest: state.setHomeInterest,
     addHomeInterest: state.addHomeInterest,
     removeHomeInterest: state.removeHomeInterest,
+    setFloorplanBed: state.setFloorplanBed,
+    setFloorplanBath: state.setFloorplanBath,
+    setFloorplanGarage: state.setFloorplanGarage,
+    setFloorplanLevel: state.setFloorplanLevel,
+    setFloorplanSqft: state.setFloorplanSqft,
 
     // Acciones de utilidad
     reset: state.reset,

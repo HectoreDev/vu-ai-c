@@ -11,31 +11,53 @@ export type SessionFlow = Pick<SessionStore,
 >;
 
 // Interfaz local para SessionState sin step
-interface LocalSessionState {
+export interface LocalSessionState {
+    // Estados principales
+    sessionId?: string;
     name?: string;
     locations?: string[];
     priceMin?: number;
     priceMax?: number;
     amenities?: string;
+
+    // Estados adicionales
     communities?: string;
     community?: string;
     lastToolUsed?: string;
-    sessionId?: string;
     mcpSessionId?: string;
+    location?: string;
 
     // Nuevos campos del flujo extendido
-    welcome?: string | null;
-    nameSpecs?: string | null;
-    interest?: string[];
-    markets?: string[];
-    budgetProduct?: string | null;
-    budgetType?: string | null;
+    interest: string[];
+    budgetType: string | null;
     budget: BudgetType | null;
-    customizing: string | null;
-    moveInReady?: string | null;
-    renting?: string | null;
-    floorplanSpecs: string | null;
+    customizing: boolean | null;
+    moveInReady: boolean | null;
+    renting: string | null;
     homeInterest: string[];
+    interestRate?: string;
+
+    // Floorplan specs
+    floorplanBed: {
+        min: number;
+        max: number;
+    };
+    floorplanBath: {
+        min: number;
+        max: number;
+    };
+    floorplanGarage: {
+        min: number;
+        max: number;
+    };
+    floorplanLevel: {
+        min: number;
+        max: number;
+    };
+    floorplanSqft: {
+        min: number;
+        max: number;
+    };
 }
 
 // Funciones helper para conversiones y validaciones
@@ -47,30 +69,37 @@ export class SessionHelper {
         const state = useSessionStore.getState();
 
         return {
+            // Estados principales
+            sessionId: state.sessionId,
             name: state.name,
             locations: state.locations,
             priceMin: state.priceMin,
             priceMax: state.priceMax,
             amenities: state.amenities,
+
+            // Estados adicionales
             communities: state.communities,
             community: state.community,
             lastToolUsed: state.lastToolUsed,
-            sessionId: state.sessionId,
             mcpSessionId: state.mcpSessionId,
+            location: state.location,
 
-            // Nuevos campos del flujo extendido
-            welcome: state.welcome,
-            nameSpecs: state.nameSpecs,
+            // Nuevos campos del flujo extendido 
             interest: state.interest,
-            markets: state.markets,
-            budgetProduct: state.budgetProduct,
             budgetType: state.budgetType,
             budget: state.budget,
             customizing: state.customizing,
             moveInReady: state.moveInReady,
             renting: state.renting,
-            floorplanSpecs: state.floorplanSpecs,
             homeInterest: state.homeInterest,
+            interestRate: state.interestRate,
+
+            // Floorplan specs
+            floorplanBed: state.floorplanBed,
+            floorplanBath: state.floorplanBath,
+            floorplanGarage: state.floorplanGarage,
+            floorplanLevel: state.floorplanLevel,
+            floorplanSqft: state.floorplanSqft,
         };
     }
 
@@ -81,30 +110,37 @@ export class SessionHelper {
         const store = useSessionStore.getState();
 
         store.updateSessionData({
+            // Estados principales
+            sessionId: sessionState.sessionId,
             name: sessionState.name,
             locations: sessionState.locations,
             priceMin: sessionState.priceMin,
             priceMax: sessionState.priceMax,
             amenities: sessionState.amenities,
+
+            // Estados adicionales
             communities: sessionState.communities,
             community: sessionState.community,
             lastToolUsed: sessionState.lastToolUsed,
-            sessionId: sessionState.sessionId,
             mcpSessionId: sessionState.mcpSessionId,
+            location: sessionState.location,
 
-            // Nuevos campos del flujo extendido
-            welcome: sessionState.welcome,
-            nameSpecs: sessionState.nameSpecs,
+            // Nuevos campos del flujo extendido  
             interest: sessionState.interest,
-            markets: sessionState.markets,
-            budgetProduct: sessionState.budgetProduct,
             budgetType: sessionState.budgetType,
             budget: sessionState.budget,
             customizing: sessionState.customizing,
             moveInReady: sessionState.moveInReady,
             renting: sessionState.renting,
-            floorplanSpecs: sessionState.floorplanSpecs,
             homeInterest: sessionState.homeInterest,
+            interestRate: sessionState.interestRate,
+
+            // Floorplan specs
+            floorplanBed: sessionState.floorplanBed,
+            floorplanBath: sessionState.floorplanBath,
+            floorplanGarage: sessionState.floorplanGarage,
+            floorplanLevel: sessionState.floorplanLevel,
+            floorplanSqft: sessionState.floorplanSqft,
         });
     }
 
@@ -212,19 +248,32 @@ export class SessionHelper {
         if (state.communities) completedData.push('Comunidades encontradas');
         else missingData.push('Comunidades');
 
-        // Verificar nuevos campos del flujo extendido
-        if (state.welcome) completedData.push(`Bienvenida: ${state.welcome}`);
-        if (state.nameSpecs) completedData.push(`Especificaciones de nombre: ${state.nameSpecs}`);
+        // Verificar nuevos campos del flujo extendido 
         if (state.interest.length > 0) completedData.push(`Intereses: ${state.interest.join(', ')}`);
-        if (state.markets.length > 0) completedData.push(`Mercados: ${state.markets.join(', ')}`);
-        if (state.budgetProduct) completedData.push(`Producto presupuestario: ${state.budgetProduct}`);
         if (state.budgetType) completedData.push(`Tipo de presupuesto: ${state.budgetType}`);
-        if (state.budget) completedData.push(`Presupuesto: $${state.budget.toLocaleString()}`);
-        if (state.customizing) completedData.push(`Personalización: ${state.customizing}`);
-        if (state.moveInReady) completedData.push(`Listo para mudanza: ${state.moveInReady}`);
+        if (state.budget) completedData.push(`Presupuesto configurado`);
+        if (state.customizing !== null) completedData.push(`Personalización: ${state.customizing ? 'Sí' : 'No'}`);
+        if (state.moveInReady !== null) completedData.push(`Listo para mudanza: ${state.moveInReady ? 'Sí' : 'No'}`);
         if (state.renting) completedData.push(`Alquiler: ${state.renting}`);
-        if (state.floorplanSpecs) completedData.push(`Especificaciones de plano: ${state.floorplanSpecs}`);
         if (state.homeInterest.length > 0) completedData.push(`Interés en hogar: ${state.homeInterest.join(', ')}`);
+        if (state.interestRate) completedData.push(`Tasa de interés: ${state.interestRate}`);
+
+        // Verificar campos de floorplan
+        if (state.floorplanBed.min > 0 || state.floorplanBed.max > 0) {
+            completedData.push(`Habitaciones: ${state.floorplanBed.min}-${state.floorplanBed.max}`);
+        }
+        if (state.floorplanBath.min > 0 || state.floorplanBath.max > 0) {
+            completedData.push(`Baños: ${state.floorplanBath.min}-${state.floorplanBath.max}`);
+        }
+        if (state.floorplanGarage.min > 0 || state.floorplanGarage.max > 0) {
+            completedData.push(`Garajes: ${state.floorplanGarage.min}-${state.floorplanGarage.max}`);
+        }
+        if (state.floorplanLevel.min > 0 || state.floorplanLevel.max > 0) {
+            completedData.push(`Niveles: ${state.floorplanLevel.min}-${state.floorplanLevel.max}`);
+        }
+        if (state.floorplanSqft.min > 0 || state.floorplanSqft.max > 0) {
+            completedData.push(`Sqft: ${state.floorplanSqft.min}-${state.floorplanSqft.max}`);
+        }
 
         // Determinar siguiente acción
         const nextStep = this.getNextValidStep();
@@ -251,34 +300,44 @@ export class SessionHelper {
      * Obtiene un resumen de los nuevos campos del flujo extendido
      */
     static getExtendedFieldsSummary(): {
-        welcome: string | null;
-        nameSpecs: string | null;
         interests: string[];
-        markets: string[];
+        floorplanBed: {
+            min: number;
+            max: number;
+        };
+        floorplanBath: {
+            min: number;
+            max: number;
+        };
+        floorplanGarage: {
+            min: number;
+            max: number;
+        };
+        floorplanLevel: {
+            min: number;
+            max: number;
+        };
+        floorplanSqft: {
+            min: number;
+            max: number;
+        };
+        homeInterest: string[];
         budget: {
-            product: string | null;
             type: string | null;
             amount: number | undefined;
         };
         preferences: {
-            customizing: string | null;
-            moveInReady: string | null;
+            customizing: boolean | null;
+            moveInReady: boolean | null;
             renting: string | null;
         };
-        homeSpecs: {
-            floorplan: string | null;
-            interests: string[];
-        };
+        interestRate?: string;
     } {
         const state = useSessionStore.getState();
 
         return {
-            welcome: state.welcome,
-            nameSpecs: state.nameSpecs,
             interests: state.interest,
-            markets: state.markets,
             budget: {
-                product: state.budgetProduct,
                 type: state.budgetType,
                 amount: state.budget?.total_budget?.min,
             },
@@ -287,10 +346,13 @@ export class SessionHelper {
                 moveInReady: state.moveInReady,
                 renting: state.renting,
             },
-            homeSpecs: {
-                floorplan: state.floorplanSpecs,
-                interests: state.homeInterest,
-            },
+            floorplanBed: state.floorplanBed,
+            floorplanBath: state.floorplanBath,
+            floorplanGarage: state.floorplanGarage,
+            floorplanLevel: state.floorplanLevel,
+            floorplanSqft: state.floorplanSqft,
+            homeInterest: state.homeInterest,
+            interestRate: state.interestRate,
         };
     }
 
@@ -301,18 +363,34 @@ export class SessionHelper {
         const store = useSessionStore.getState();
 
         store.updateSessionData({
-            welcome: null,
-            nameSpecs: null,
             interest: [],
-            markets: [],
-            budgetProduct: null,
             budgetType: null,
-            budget: undefined,
+            budget: null,
             customizing: null,
             moveInReady: null,
             renting: null,
-            floorplanSpecs: undefined,
             homeInterest: [],
+            interestRate: undefined,
+            floorplanBed: {
+                min: 0,
+                max: 0,
+            },
+            floorplanBath: {
+                min: 0,
+                max: 0,
+            },
+            floorplanGarage: {
+                min: 0,
+                max: 0,
+            },
+            floorplanLevel: {
+                min: 0,
+                max: 0,
+            },
+            floorplanSqft: {
+                min: 0,
+                max: 0,
+            },
         });
     }
 
@@ -328,15 +406,24 @@ export class SessionHelper {
         const completedFields: string[] = [];
         const missingFields: string[] = [];
 
-        // Validar campos opcionales pero importantes
-        if (state.welcome) completedFields.push('welcome');
-        else missingFields.push('welcome');
-
+        // Validar campos opcionales pero importantes  
         if (state.interest.length > 0) completedFields.push('interest');
         else missingFields.push('interest');
 
-        if (state.markets.length > 0) completedFields.push('markets');
-        else missingFields.push('markets');
+        if (state.floorplanBed.min > 0 && state.floorplanBed.max > 0) completedFields.push('floorplanBed');
+        else missingFields.push('floorplanBed');
+
+        if (state.floorplanBath.min > 0 && state.floorplanBath.max > 0) completedFields.push('floorplanBath');
+        else missingFields.push('floorplanBath');
+
+        if (state.floorplanGarage.min > 0 && state.floorplanGarage.max > 0) completedFields.push('floorplanGarage');
+        else missingFields.push('floorplanGarage');
+
+        if (state.floorplanLevel.min > 0 && state.floorplanLevel.max > 0) completedFields.push('floorplanLevel');
+        else missingFields.push('floorplanLevel');
+
+        if (state.floorplanSqft.min > 0 && state.floorplanSqft.max > 0) completedFields.push('floorplanSqft');
+        else missingFields.push('floorplanSqft');
 
         if (state.budget) completedFields.push('budget');
         else missingFields.push('budget');
