@@ -72,6 +72,7 @@ interface SessionStore {
     setCommunity: (community: string) => void;
     setLastToolUsed: (tool: string) => void;
     setMcpSessionId: (mcpSessionId: string) => void;
+    setLocation: (location: string) => void;
 
     // Acciones para nuevos campos 
     setInterest: (interest: string[]) => void;
@@ -103,20 +104,23 @@ interface SessionStore {
 
 // Estado inicial
 export const initialState = {
+    // Estados principales
     sessionId: undefined,
     name: undefined,
     locations: undefined,
     priceMin: undefined,
     priceMax: undefined,
     amenities: undefined,
+
+    // Estados adicionales
     communities: undefined,
     community: undefined,
     lastToolUsed: undefined,
     mcpSessionId: undefined,
+    location: undefined,
 
     // Nuevos campos del flujo extendido 
     interest: [],
-    budgetProduct: null,
     budgetType: null,
     budget: null,
     customizing: null,
@@ -125,6 +129,7 @@ export const initialState = {
     homeInterest: [],
     interestRate: undefined,
 
+    // Floorplan specs
     floorplanBed: {
         min: 0,
         max: 0,
@@ -133,7 +138,6 @@ export const initialState = {
         min: 0,
         max: 0,
     },
-
     floorplanGarage: {
         min: 0,
         max: 0,
@@ -147,7 +151,7 @@ export const initialState = {
         max: 0,
     },
 
-
+    // Estado para errores de validación
     validationErrors: {},
 };
 
@@ -306,6 +310,10 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
         set({ mcpSessionId });
     },
 
+    setLocation: (location: string) => {
+        set({ location });
+    },
+
     // Acciones para nuevos campos 
 
     setInterest: (interest: string[]) => {
@@ -443,7 +451,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
 
 
 useSessionStore.subscribe((state) => {
-    // console.log('state', state);
+    console.log('state', state);
 });
 
 // Hooks de utilidad para acceso rápido a partes específicas del estado
@@ -485,6 +493,7 @@ export const useSessionActions = () => useSessionStore((state) => ({
     setCommunity: state.setCommunity,
     setLastToolUsed: state.setLastToolUsed,
     setMcpSessionId: state.setMcpSessionId,
+    setLocation: state.setLocation,
 
     // Acciones para nuevos campos 
     setInterest: state.setInterest,
