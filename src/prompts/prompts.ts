@@ -28,7 +28,7 @@ Si el usuario pide algo fuera de este ámbito (p. ej., recetas, programación, t
 - Identifica qué datos faltan.
   `,
   getNamePrompt: `Obten el nombre del usuario si lo ha agregado y solo regresa el nombre`,
-  getLocationPrompt: `Sí el usuario ha añadido una ciudad o estado, obten la información del lugar o lugares y añadelas en el array, Comma/semicolon separar en un array. ${sessionIdSuggest}`,
+  getLocationsPrompt: `Sí el usuario ha añadido una ciudad o estado, obten la información del lugar o lugares y añadelas en el array, Comma/semicolon separar en un array el locations. ${sessionIdSuggest}`,
   getBudgetPrompt: `Establece el presupuesto del usuario SOLO con priceMin y priceMax. Si el usuario proporciona un precio único, úsalo para ambos campos. Reglas: priceMin [300000, 3000000] y priceMax ≥ priceMin. no aceptes numeros con sufijos k/m (p. ej., '550k', '1.2m'). ${sessionIdSuggest}`,
   getAmenitiesPrompt: `Si el usuario busca una casa, es imprescindible preguntar por las amenidades, si detecta algunas amenidad, agregue una lista de ellas como array ${sessionIdSuggest}`,
   getInterestFindHomePrompt: `Conserva las motivaciones del usuario para buscar una vivienda. Acepta "interests" (array o string).${sessionIdSuggest}`,
@@ -47,7 +47,7 @@ Si el usuario pide algo fuera de este ámbito (p. ej., recetas, programación, t
 
 export const propertiesPrompts = {
   nameDescription: `Retorna el nombre que ha brindado el usuario`,
-  locationDescription: `Añade locaciones las locations en un array`,
+  locationsDescription: `Añade las locations en un array`,
   priceMinDescription: `Precio mínimo del rango. Si el usuario dio un solo precio, repítelo aquí y en priceMax. Debe estar entre 300000 y 3000000.`,
   priceMaxDescription: `Precio máximo del rango. Debe ser mayor o igual a priceMin.`,
   amenitiesDescription: `tiene que venir en un array las amenidades`,

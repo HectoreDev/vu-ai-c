@@ -2,6 +2,7 @@ import { Chat, GoogleGenAI } from "@google/genai";
 import dotenv from 'dotenv';
 import { generalTools } from "../tools/generalTools";
 import { tools } from "../tools/agent.tools";
+import { prompts } from "../prompts/prompts";
 
 dotenv.config();
 const API_KEY = process.env.GEMINI_API_KEY || "";
@@ -17,11 +18,10 @@ const systemInstruction = 'Eres un asistente útil que ayuda a los usuarios a en
 export const model = ai.chats.create({
     model: "gemini-2.0-flash",
     config: {
-        systemInstruction: `${systemInstruction}`,
+        systemInstruction: prompts.systemInstructions,
         tools: [
             {
-                // @ts-ignore
-                functionDeclarations: generalTools.tools
+                functionDeclarations: tools
             }
         ],
     },
