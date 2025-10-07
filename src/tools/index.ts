@@ -1,7 +1,7 @@
 import { handleStartSession } from "./start_session";
 import { handleGetInterestFindHome } from "./getInterestFindHome";
 import { handleGetName } from "./getName";
-import { handleGetLocation } from "./getLocation";
+import { handleGetLocations } from "./getLocations";
 import { getInterestRateType } from "./getInterestRateType";
 import { handleGetBudget } from "./getBudget";
 import { handleGetCustomizing } from "./getCustomizing";
@@ -19,7 +19,7 @@ import { handleGetAmenities } from "./getAmenities";
 export const toolStartSession = handleStartSession;
 export const toolGetInterestedFindHome = handleGetInterestFindHome; //
 export const toolGetName = handleGetName; //
-export const toolGetLocation = handleGetLocation;  //
+export const toolGetLocations = handleGetLocations;  //
 export const toolGetInterestRate = getInterestRateType;  //
 export const toolGetBudget = handleGetBudget; // 
 export const toolGetCustomizing = handleGetCustomizing; //

@@ -20,9 +20,9 @@ const toolSchema: Record<string, FunctionDeclaration> = {
       required: ["name"],
     },
   },
-  getLocation: {
-    name: "getLocation",
-    description: prompts.getLocationPrompt,
+  getLocations: {
+    name: "getLocations",
+    description: prompts.getLocationsPrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -33,7 +33,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
         locations: {
           type: Type.ARRAY,
           items: { type: Type.STRING },
-          description: propertiesPrompts.locationDescription,
+          description: propertiesPrompts.locationsDescription,
         },
       },
       required: ["locations"],

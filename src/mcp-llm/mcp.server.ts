@@ -11,7 +11,7 @@ import {
   executeGetAmenitiesFromPricesTool,
 } from "./mcp.tools";
 import {
-  toolGetLocation,
+  toolGetLocations,
   toolGetName,
   toolGetBudget,
   toolGetCustomizing,
@@ -38,7 +38,7 @@ export class SimpleMcpServer {
 
   constructor() {
     this.tools.set("getName", toolGetName);
-    this.tools.set("getLocation", toolGetLocation);
+    this.tools.set("getLocations", toolGetLocations);
     this.tools.set("getBudget", toolGetBudget);
     this.tools.set("getCustomizing", toolGetCustomizing);
     this.tools.set("getFloorplanBed", toolGetFloorplanBed);
@@ -74,14 +74,14 @@ export class SimpleMcpServer {
     const results: any[] = [];
     for (let index = 0; index < tools.length; index++) {
       const { functionCall } = tools[index];
-      console.log("functionCall", functionCall);
+      // console.log("functionCall", functionCall);
       if (functionCall && functionCall.name) {
         const { name, args } = functionCall;
         const tool = this.tools.get(name);
         console.log("tool", tool);
         if (tool) {
           const result = await tool(args);
-          console.log("result", result);
+          // console.log("result", result);
           results.push(result);
         }
       }

@@ -7,6 +7,8 @@ import { useSessionStore } from "../store/zustandStore";
 import { SessionHelper } from "../store/helper";
 import type { SessionState } from "./types/gemini.types";
 import { FunctionCallingConfigMode } from "@google/genai";
+import { prompts } from "../prompts/prompts";
+import { tools } from "../tools/agent.tools";
 
 interface IFHistory  {
 	role: 'user' | 'model';
@@ -20,11 +22,10 @@ export class GeminiService {
 		const response1 = await model.sendMessage({
 			message: message,
 			config: {
-				systemInstruction: 'Eres un asistente útil que ayuda a los usuarios a encontrar casas basándote en sus necesidades y preferencias. Utiliza las herramientas proporcionadas para obtener información específica como el nombre del usuario, la ubicación, el presupuesto y las amenidades deseadas. Sí el usuario se desvia del tema, recuérdale que estás aquí para ayudarle a encontrar una casa.',
+				systemInstruction: prompts.systemInstructions,
 				tools: [
 					{
-						// @ts-ignore
-						functionDeclarations: generalTools.tools
+						functionDeclarations: tools
 					},
 				],
 				toolConfig: {
@@ -42,15 +43,15 @@ export class GeminiService {
 			role: 'user', text: message
 		});
 
-		console.log('text response', response1.candidates?.[0]?.content?.parts);
-		console.log('functionCalls', response1.functionCalls);
+		// console.log('text response', response1.candidates?.[0]?.content?.parts);
+		// console.log('functionCalls', response1.functionCalls);
 
 		const toolsCall = response1.candidates?.[0]?.content?.parts || [];
-		console.log('toolsCall', toolsCall.length);
+		// console.log('toolsCall', toolsCall.length);
 
 		if (response1.functionCalls && response1.functionCalls.length > 0) {
 			const mcpResult = await mcpServer.callTools(toolsCall);
-			console.log('Resultados de herramientas:', mcpResult);
+			// console.log('Resultados de herramientas:', mcpResult);
 
 			const resultMCP = await model.sendMessage({
 				message: mcpResult.message,
@@ -63,7 +64,7 @@ export class GeminiService {
 				role: 'model', text: resultMCP.candidates?.[0]?.content?.parts?.map(part => part.text).join('') || ''
 			});
 
-			console.log('Respuesta final con datos de MCP:', resultMCP.candidates?.[0]?.content?.parts);
+			// console.log('Respuesta final con datos de MCP:', resultMCP.candidates?.[0]?.content?.parts);
 
 			return {
 				history,
