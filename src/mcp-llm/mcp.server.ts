@@ -94,37 +94,28 @@ export class SimpleMcpServer {
     const incompleteData = results.some(result => !result.success);
     console.log('incompleteData', incompleteData);
     if (incompleteData) {
-      let text = 'Faltan datos: ';
-      results.forEach(result => {
-        if (!result.success) {
-          text += `${result.message} `;
-        }
-      });
+      let text = 'El siguiente dato es requerido para continuar con la busqueda: ';
+      const missingData = results.find((result) => { result.success === false; });
+
+      text += missingData ? missingData.message : '';
+
       return {
         message: [ { text } ],
-        systemInstruction: 'Al usuario le faltan los siguientes datos:' + text + '. Responde al usuario de manera amigable y hazle preguntas adicionales para obtener más detalles sobre sus requisitos y gustos.'
+        systemInstruction: 'Al usuario le faltan el siguiente dato:' + text + '. Responde al usuario de manera amigable y hazle una pregunta sobre este dato faltante.'
       };
     } else {
 
-      const listOfHouse: { type: 'text', text: string }[] = dataFakeCommunities.map((lot:any) => {
-
-        const specs = JSON.stringify(lot.amenities);
-
-        return {
-          type: "text",
-          text: `Encontramos en las siguiente comunidades ${lot._origin.community.name}, con el UID ${lot._origin.community.uid}, en la ciudad de ${lot._origin.division.name}, con las siguientes amenidades: ${specs}`,
-        }
-      });
-
       return {
-        message: listOfHouse,
-        systemInstruction: 'Con la información proporcionada, sugiere al usuario la mejor opción de casa acorde a sus necesidades y preferencias. '
+        message: [
+          {
+            type: "text",
+            text: `No hemos encontrado resultados que necesitas de comunidades, pero puedes probar añadiendo una nueva locacion.`,
+          }
+        ],
+        systemInstruction: 'Con la información proporcionada, sugiere al usuario la mejor opción de casa acorde a sus necesidades y preferencias. En caso de que no encuentre casa, suguiere cambiar la locación y el presupuesto.'
       };
     }
 
-    // const store = useSessionStore.getState();
-    // console.log("Resultados de las tools:", results, store);
-    // return this.responseSuccess(results);
   }
 
   listTools() {
