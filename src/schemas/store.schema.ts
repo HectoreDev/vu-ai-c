@@ -115,40 +115,81 @@ export const searchCommunitiesSchema = z.object({
 });
 
 export const floorplanBedSchema = z.object({
-    floorplanBed: z.number()
-        .min(1, { message: 'El floorplanBed no puede estar vacío' })
-        .max(5, { message: 'El floorplanBed no puede exceder 5' })
+    bed_min: z.number()
+        .int({ message: 'El número mínimo de habitaciones debe ser un entero' })
+        .min(1, { message: 'El número mínimo de habitaciones debe ser al menos 1' })
+        .max(4, { message: 'El número mínimo de habitaciones no puede exceder 4' }),
+    bed_max: z.number()
+        .int({ message: 'El número máximo de habitaciones debe ser un entero' })
+        .min(1, { message: 'El número máximo de habitaciones debe ser al menos 1' })
+        .max(4, { message: 'El número máximo de habitaciones no puede exceder ' })
+}).refine(data => data.bed_max >= data.bed_min, {
+    message: 'El número máximo de habitaciones debe ser mayor o igual al número mínimo',
+    path: ['bed_max']
 });
 
 export const floorplanBathSchema = z.object({
-    floorplanBath: z.number()
-        .positive({ message: 'El floorplanBath debe ser positivo' })
-        .min(1, { message: 'El floorplanBath debe ser mayor a 0' })
-        .max(4, { message: 'El floorplanBath no puede exceder 4' })
+    bath_min: z.number()
+        .positive({ message: 'El número mínimo de baños debe ser positivo' })
+        .min(1, { message: 'El número mínimo de baños debe ser mayor a 0' })
+        .max(5, { message: 'El número mínimo de baños no puede exceder 5' })
         .refine(
             (val) => Number.isInteger(val * 2),
-            { message: 'El floorplanBath debe ser un número entero o un medio baño (ej: 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5)' }
+            { message: 'El número mínimo de baños debe ser un número entero o un medio baño (ej: 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5)' }
+        ),
+    bath_max: z.number()
+        .positive({ message: 'El número máximo de baños debe ser positivo' })
+        .min(1, { message: 'El número máximo de baños debe ser mayor a 0' })
+        .max(5, { message: 'El número máximo de baños no puede exceder 5' })
+        .refine(
+            (val) => Number.isInteger(val * 2),
+            { message: 'El número máximo de baños debe ser un número entero o un medio baño (ej: 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5)' }
         )
+}).refine(data => data.bath_max >= data.bath_min, {
+    message: 'El número máximo de baños debe ser mayor o igual al número mínimo',
+    path: ['bath_max']
 });
 
 export const floorplanLevelSchema = z.object({
-    floorplanLevel: z.number()
-        .min(1, { message: 'El floorplanLevel debe ser mayor a 0' })
-        .max(3, { message: 'El floorplanLevel no puede exceder 3' })
+    level_min: z.number()
+        .int({ message: 'El número mínimo de niveles debe ser un entero' })
+        .min(1, { message: 'El número mínimo de niveles debe ser al menos 1' })
+        .max(3, { message: 'El número mínimo de niveles no puede exceder 3' }),
+    level_max: z.number()
+        .int({ message: 'El número máximo de niveles debe ser un entero' })
+        .min(1, { message: 'El número máximo de niveles debe ser al menos 1' })
+        .max(3, { message: 'El número máximo de niveles no puede exceder 3' })
+}).refine(data => data.level_max >= data.level_min, {
+    message: 'El número máximo de niveles debe ser mayor o igual al número mínimo',
+    path: ['level_max']
 });
 
 export const floorplanSqftSchema = z.object({
-    floorplanSqft: z.string()
-        .trim()
-        .min(1, { message: 'El floorplanSqft no puede estar vacío' })
-        .max(500, { message: 'El floorplanSqft no puede exceder 500 caracteres' })
+    sqft_min: z.number()
+        .int({ message: 'El número mínimo de sqft debe ser un entero' })
+        .min(1, { message: 'El número mínimo de sqft debe ser al menos 1' })
+        .max(1000, { message: 'El número mínimo de sqft no puede exceder 1000' }),
+    sqft_max: z.number()
+        .int({ message: 'El número máximo de sqft debe ser un entero' })
+        .min(1, { message: 'El número máximo de sqft debe ser al menos 1' })
+        .max(1000, { message: 'El número máximo de sqft no puede exceder 1000' })
+}).refine(data => data.sqft_max >= data.sqft_min, {
+    message: 'El número máximo de niveles debe ser mayor o igual al número mínimo',
+    path: ['sqft_max']
 });
 
 export const floorplanGarageSchema = z.object({
-    floorplanGarage: z.string()
-        .trim()
-        .min(1, { message: 'El floorplanGarage no puede estar vacío' })
-        .max(500, { message: 'El floorplanGarage no puede exceder 500 caracteres' })
+    garage_min: z.number()
+        .int({ message: 'El número mínimo de garages debe ser un entero' })
+        .min(1, { message: 'El número mínimo de garages debe ser al menos 1' })
+        .max(3, { message: 'El número mínimo de garages no puede exceder 3' }),
+    garage_max: z.number()
+        .int({ message: 'El número máximo de garages debe ser un entero' })
+        .min(1, { message: 'El número máximo de garages debe ser al menos 1' })
+        .max(3, { message: 'El número máximo de garages no puede exceder 3' })
+}).refine(data => data.garage_max >= data.garage_min, {
+    message: 'El número máximo de garajes debe ser mayor o igual al número mínimo',
+    path: ['garage_max']
 });
 
 
@@ -306,4 +347,72 @@ export const validateRenting = (renting: string, message: string): ValidationRes
     }
 };
 
+export const validateFloorplanBed = (data: { bed_min: number, bed_max: number }, message: string): ValidationResult<{ bed_min: number; bed_max: number }> => {
+    try {
+        const validatedData = floorplanBedSchema.parse(data);
+        return createSuccessResponse({
+            floorplanBed: {
+                min: validatedData.bed_min,
+                max: validatedData.bed_max
+            }
+        }, message);
+    } catch (error) {
+        return createErrorResponse(error as Error);
+    }
+};
 
+export const validateFloorplanBath = (data: { min: number, max: number }, message: string): ValidationResult<{ bath_min: number; bath_max: number }> => {
+    try {
+        const validatedData = floorplanBathSchema.parse(data);
+        return createSuccessResponse({
+            floorplanBath: {
+                min: validatedData.bath_min,
+                max: validatedData.bath_max
+            }
+        }, message);
+    } catch (error) {
+        return createErrorResponse(error as Error);
+    }
+};
+
+export const validateFloorplanLevel = (data: { level_min: number, level_max: number }, message: string): ValidationResult<{ level_min: number; level_max: number }> => {
+    try {
+        const validatedData = floorplanLevelSchema.parse(data);
+        return createSuccessResponse({
+            floorplanLevel: {
+                min: validatedData.level_min,
+                max: validatedData.level_max
+            }
+        }, message);
+    } catch (error) {
+        return createErrorResponse(error as Error);
+    }
+};
+
+export const validateFloorplanSqft = (data: { sqft_min: number, sqft_max: number }, message: string): ValidationResult<{ sqft_min: number; sqft_max: number }> => {
+    try {
+        const validatedData = floorplanSqftSchema.parse(data);
+        return createSuccessResponse({
+            floorplanSqft: {
+                min: validatedData.sqft_min,
+                max: validatedData.sqft_max
+            }
+        }, message);
+    } catch (error) {
+        return createErrorResponse(error as Error);
+    }
+};
+
+export const validateFloorplanGarage = (data: { garage_min: number, garage_max: number }, message: string): ValidationResult<{ garage_min: number; garage_max: number }> => {
+    try {
+        const validatedData = floorplanGarageSchema.parse(data);
+        return createSuccessResponse({
+            floorplanGarage: {
+                min: validatedData.garage_min,
+                max: validatedData.garage_max
+            }
+        }, message);
+    } catch (error) {
+        return createErrorResponse(error as Error);
+    }
+};
