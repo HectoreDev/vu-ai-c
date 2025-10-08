@@ -472,7 +472,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
             return {
                 missing: 'name',
                 suggestion: 'Solicita al usuario su nombre',
-                nextTool: 'get-name'
+                nextTool: 'getName'
             };
         }
 
@@ -480,7 +480,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
             return {
                 missing: 'location',
                 suggestion: 'Solicita al usuario la ubicación de su preferencia',
-                nextTool: 'get-location'
+                nextTool: 'getLocations'
             };
         }
 
@@ -488,7 +488,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
             return {
                 missing: 'budget',
                 suggestion: 'Solicita al usuario su presupuesto o rango de precios',
-                nextTool: 'get-min-max-prices'
+                nextTool: 'getBudget'
             };
         }
 
@@ -498,7 +498,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
             return {
                 missing: null,
                 suggestion: 'Solicita al usuario las amenidades que desea',
-                nextTool: 'get-amenities-from-prices'
+                nextTool: 'getAmenities'
             };
         }
 
@@ -506,7 +506,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
             return {
                 missing: null,
                 suggestion: 'Solicita al usuario sus intereses para encontrar un hogar',
-                nextTool: 'get-interested-find-home'
+                nextTool: 'getInterestFindHome'
             };
         }
 
@@ -514,7 +514,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
             return {
                 missing: null,
                 suggestion: 'Solicita al usuario si está interesado en personalización',
-                nextTool: 'get-customizing'
+                nextTool: 'getCustomizing'
             };
         }
 
@@ -522,7 +522,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
             return {
                 missing: null,
                 suggestion: 'Solicita al usuario si necesita una casa lista para mudarse',
-                nextTool: 'get-move-in-ready'
+                nextTool: 'getMoveInReady'
             };
         }
 
@@ -530,7 +530,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
             return {
                 missing: null,
                 suggestion: 'Solicita al usuario el número de habitaciones deseado',
-                nextTool: 'get-floorplan-bed'
+                nextTool: 'getFloorplanBed'
             };
         }
 
@@ -538,7 +538,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
             return {
                 missing: null,
                 suggestion: 'Solicita al usuario el número de baños deseado',
-                nextTool: 'get-floorplan-bath'
+                nextTool: 'getFloorplanBath'
             };
         }
 
@@ -546,7 +546,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
             return {
                 missing: null,
                 suggestion: 'Solicita al usuario el número de garajes deseado',
-                nextTool: 'get-floorplan-garage'
+                nextTool: 'getFloorplanGarage'
             };
         }
 
@@ -554,7 +554,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
             return {
                 missing: null,
                 suggestion: 'Solicita al usuario el número de niveles deseado',
-                nextTool: 'get-floorplan-level'
+                nextTool: 'getFloorplanLevel'
             };
         }
 
@@ -562,7 +562,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
             return {
                 missing: null,
                 suggestion: 'Solicita al usuario los pies cuadrados (sqft) deseados',
-                nextTool: 'get-floorplan-sqft'
+                nextTool: 'getFloorplanSqft'
             };
         }
 
@@ -570,7 +570,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
             return {
                 missing: null,
                 suggestion: 'Solicita al usuario qué le interesa de un hogar',
-                nextTool: 'get-interesting-home'
+                nextTool: 'getInterestedHome'
             };
         }
 
@@ -578,7 +578,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
             return {
                 missing: null,
                 suggestion: 'Solicita al usuario la tasa de interés de su preferencia',
-                nextTool: 'get-interest-rate'
+                nextTool: 'getInterestRateType'
             };
         }
 
@@ -586,7 +586,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
             return {
                 missing: null,
                 suggestion: 'Busca comunidades basadas en las preferencias del usuario',
-                nextTool: 'get-communities'
+                nextTool: 'searchCommmunity'
             };
         }
 
@@ -594,7 +594,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
         return {
             missing: null,
             suggestion: 'Toda la información está completa. Puedes mostrar resultados o buscar información específica de comunidades',
-            nextTool: 'get-community-info'
+            nextTool: 'searchCommmunity'
         };
     },
 
