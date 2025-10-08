@@ -290,15 +290,13 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   },
   searchCommmunity: {
     name: "searchCommmunity",
-    description:
-      "Search communities using filters from the session (markets and budget). If missing, suggests collecting them.",
+    description: prompts.searchCommunityPrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
         sessionId: {
           type: Type.STRING,
-          description:
-            "Required session id used to read filters from the store.",
+          description:  propertiesPrompts.sessionIdDescription,
         },
       },
       required: ["sessionId"],

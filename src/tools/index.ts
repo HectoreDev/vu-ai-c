@@ -7,7 +7,7 @@ import { handleGetBudget } from "./getBudget";
 import { handleGetCustomizing } from "./getCustomizing";
 import { handleGetRenting } from "./getRenting";
 import { handleGetInterestedHome } from "./getInterestedHome";
-import { handleSearchCommunities } from "./search_community";
+import { handleSearchCommunities } from "./searchCommunity";
 import { handleGetMoveInReady } from "./getMoveInReady";
 import { handleGetFloorplanBed } from "./getFloorplanBed";
 import { handleGetFloorplanBath } from "./getFloorplanBath";
