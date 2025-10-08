@@ -37,8 +37,8 @@ export class GeminiService {
 			role: 'user', parts: [{ text: message }]
 		});
 
-		// console.log('text response', response1.candidates?.[0]?.content?.parts);
-		// console.log('functionCalls', response1.functionCalls);
+		console.log('text response', response1.candidates?.[0]?.content?.parts);
+		console.log('functionCalls', response1.functionCalls);
 
 		const toolsCall = response1.candidates?.[0]?.content?.parts || [];
 		// console.log('toolsCall', toolsCall.length);
@@ -74,7 +74,7 @@ export class GeminiService {
 
 			return {
 				history,
-				message: response1.candidates?.[0]?.content?.parts ? response1.candidates?.[0]?.content?.parts : [ { text: '' }  ],
+				message: response1.candidates?.[0]?.content?.parts,
 				sessionId: null
 			};
 		}

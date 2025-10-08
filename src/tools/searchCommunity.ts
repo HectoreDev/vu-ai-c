@@ -38,18 +38,17 @@ export const handleSearchCommunities = async (): Promise<ValidationResult<any>> 
 
   if(!sessionId || !locations){
    return {
-    success: false,
-    code: 400,
-    data: null,
-    history: [],
-    error: ``,
-    message: ``
-  }
+      success: false,
+      code: 400,
+      data: null,
+      history: [],
+      error: '',
+      message: ''
+    }
   }
 
   const response = await searchAlgolia({
-    location: locations[0],
-    sessionId,
+    location: locations,
     priceMin,
     priceMax
   });
@@ -57,10 +56,7 @@ export const handleSearchCommunities = async (): Promise<ValidationResult<any>> 
   return {
     success: true,
     code: 200,
-    data: {
-      ...response.metadata,
-      ...response.data
-    },
+    data: response.data,
     history: [],
     error: null,
     message: `Comunities search`,
