@@ -68,19 +68,22 @@ export class SimpleMcpServer {
 
         if (tool) {
           const result = await tool(args);
-          results.push(result);
+          if(name === 'getBudget') results.push(result);
         }
       }
     }
 
     const store = useSessionStore.getState();
 
-    // notes
-    // en la respuesta trata el nombre como data crudo, necesitamos que sea un mensaje para el usuario más amigable
+    const completeData = tools.findIndex((tool) => {
+      const { functionCall } = tool;
+      if (functionCall && functionCall.name === 'getBudget') {
+        return true;
+      }
+      return false;
+    });
 
-    const incompleteData = results.some(result => !result.success);
-
-    if (incompleteData) {
+    if (completeData === -1) {
       let text = 'El siguiente dato es requerido para continuar con la busqueda: ';
       const missingData = results.find((result) => { result.success === false; });
 
@@ -93,15 +96,13 @@ export class SimpleMcpServer {
       };
     } else {
 
+      console.log('results', results[0]);
+
       return {
         sessionId: store.sessionId,
-        message: [
-          {
-            type: "text",
-            text: `No hemos encontrado resultados que necesitas de comunidades, pero puedes probar añadiendo una nueva locacion.`,
-          }
-        ],
-        systemInstruction: 'Con la información proporcionada, sugiere al usuario la mejor opción de casa acorde a sus necesidades y preferencias. En caso de que no encuentre casa, suguiere cambiar la locación y el presupuesto.'
+        data: results[0].data,
+        message: results[0].data,
+        systemInstruction: 'Con la información proporcionada, sugiere al usuario la mejor opción de casa acorde a sus necesidades y preferencias.'
       };
     }
 
