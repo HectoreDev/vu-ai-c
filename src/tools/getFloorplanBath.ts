@@ -1,44 +1,28 @@
 import z from "zod";
-import { ValidationResult } from "../schemas/store.schema";
+import { floorplanBathSchema, validateFloorplanBath, ValidationResult } from "../schemas/store.schema";
 import { useSessionStore } from "../store/zustandStore";
-import { floorplanSpecsMissing } from "../utils/floorplanSpecsMissing";
 
-// type Args = z.infer<typeof >;
+type Args = z.infer<typeof floorplanBathSchema>;
+
 
 export const handleGetFloorplanBath = async (
-  args: any
-): Promise<ValidationResult<any>> => {
-  const parsed = args;
-  // validateRange(args.bath_min, args.bath_max);
+  args: Args
+): Promise<ValidationResult<Args>> => {
 
-  const { bath_min, bath_max } = parsed.data;
+  const response = validateFloorplanBath({
+    min: args.bath_min,
+    max: args.bath_max
+  }, `User select number baths ${args.bath_min}, ${args.bath_max}`);
+
+  const { bath_min, bath_max } = response.data;
 
   const store = useSessionStore.getState();
 
-  const floorplanSpecs = {
-    // ...store.floorplanSpecs,
-    bath: {
-      min: bath_min,
-      max: bath_max,
-    },
-  };
 
-  const missing = floorplanSpecsMissing(floorplanSpecs);
+  store.setFloorplanBath({
+    max: bath_max,
+    min: bath_min
+  });
 
-  //store.setFloorplanSpecs(floorplanSpecs);
-
-  return {
-    success: true,
-    code: 200,
-    data: {
-      bath_min,
-      bath_max,
-    },
-    error: null,
-    history: [],
-    message: `User select number baths ${bath_min}, ${bath_max} 
-    ${missing.length > 0 &&
-      `estos son los floorplanSpecs que faltan preguntarlos ${missing.toString()}`
-      }`,
-  };
+  return response;
 };
