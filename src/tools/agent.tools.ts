@@ -20,9 +20,9 @@ const toolSchema: Record<string, FunctionDeclaration> = {
       required: ["name"],
     },
   },
-  getLocation: {
-    name: "getLocation",
-    description: prompts.getLocationPrompt,
+  getLocations: {
+    name: "getLocations",
+    description: prompts.getLocationsPrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -33,7 +33,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
         locations: {
           type: Type.ARRAY,
           items: { type: Type.STRING },
-          description: propertiesPrompts.locationDescription,
+          description: propertiesPrompts.locationsDescription,
         },
       },
       required: ["locations"],
@@ -290,15 +290,13 @@ const toolSchema: Record<string, FunctionDeclaration> = {
   },
   searchCommmunity: {
     name: "searchCommmunity",
-    description:
-      "Search communities using filters from the session (markets and budget). If missing, suggests collecting them.",
+    description: prompts.searchCommunityPrompt,
     parameters: {
       type: Type.OBJECT,
       properties: {
         sessionId: {
           type: Type.STRING,
-          description:
-            "Required session id used to read filters from the store.",
+          description:  propertiesPrompts.sessionIdDescription,
         },
       },
       required: ["sessionId"],

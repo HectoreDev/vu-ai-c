@@ -1,5 +1,5 @@
-import { AlgoliaCommunityResult, AlgoliaSearchResult, IFAlgoliaSearchProps, makeLLMAlgoliaRequest } from "../tools/algoliaSearch";
-import { getDivisionByName } from "../tools/utilities";
+import { ResponseError, ResponseSuccess } from "../mcp-llm/types/responseType";
+import { AlgoliaCommunityResult } from "../tools/algoliaSearch";
 import { algoliasearch } from "algoliasearch";
 
 
@@ -7,51 +7,43 @@ const client = algoliasearch('5WEGK1QY4E', '41716df1c4ed609036405ed46647e5df');
 
 // Tipo para rangos numéricos
 export interface Range {
-    min?: number;
-    max?: number;
+	min?: number;
+	max?: number;
 }
 
 export interface AlgoliaSearchFilters {
-    // Campos básicos requeridos
-    sessionId: string;
-    location: string;
+	location: string[];
 
-    // Filtros de precio
-    priceMin?: number;
-    priceMax?: number;
+	// Filtros de precio
+	priceMin?: number;
+	priceMax?: number;
 
-    // Filtros adicionales
-    amenities?: string[];
-    communities?: string[];
-    status?: string;
-    sqft?: Range;
-    beds?: Range;
-    baths?: Range;
-    garage?: Range;
+	// Filtros adicionales
+	amenities?: string[];
+	communities?: string[];
+	status?: string;
+	sqft?: Range;
+	beds?: Range;
+	baths?: Range;
+	garage?: Range;
 
-    // Configuración de búsqueda
-    indexName?: string;
-    hitsPerPage?: number;
-    query?: string;
+	// Configuración de búsqueda
+	indexName?: string;
+	hitsPerPage?: number;
+	query?: string;
 
 
-    numericFilters?: string[];
+	numericFilters?: string[];
 
-    facetFilters?: string[];
+	facetFilters?: string[];
 }
 
 // Interfaz para la respuesta de la búsqueda general
-export interface AlgoliaGeneralResponse<T = AlgoliaCommunityResult[]> {
-    success: boolean;
-    data?: T;
-    error?: string;
-    metadata?: {
-        totalHits: number;
-        hitsPerPage: number;
-        query: string;
-        location: string;
-        appliedFilters: string[];
-    };
+export interface AlgoliaGeneralResponse {
+	success: boolean;
+	data: unknown;
+	error?: string;
+
 }
 
 /**
@@ -59,361 +51,113 @@ export interface AlgoliaGeneralResponse<T = AlgoliaCommunityResult[]> {
  * @param filters - Filtros de búsqueda configurables
  * @returns Respuesta con datos o error
  */
-export const searchAlgolia = async (filters: AlgoliaSearchFilters): Promise<AlgoliaGeneralResponse> => {
-    try {
-        // Validaciones básicas
-        if (!filters.location || !filters.sessionId) {
-            return {
-                success: false,
-                error: "sessionId y location son requeridos"
-            };
-        }
+export const searchAlgolia = async (filters: AlgoliaSearchFilters): Promise<ResponseSuccess | ResponseError> => {
+	try {
 
-        // Obtener información de la división/ubicación
-        const divisionObj = getDivisionByName(filters.location);
-        if (!divisionObj) {
-            return {
-                success: false,
-                error: `División no encontrada para la ubicación: ${filters.location}`
-            };
-        }
+		const location = filters.location;
 
-        // Construir filtros numéricos
-        const numericFilters: string[] = filters.numericFilters || [];
+		// Validaciones básicas
+		if (location.length === 0) {
 
-        if (filters.priceMin !== undefined) {
-            numericFilters.push(`PriceMin>=${filters.priceMin}`);
-        }
+			return {
+				success: false,
+				data: null,
+				error: "location es requerido",
+				code: 400,
+				history: [],
+				message: 'El filtro de ubicación es obligatorio para realizar la búsqueda.'
+			};
+		}
 
-        if (filters.priceMax !== undefined) {
-            numericFilters.push(`PriceMax<=${filters.priceMax}`);
-        }
+		const cities = [];
 
-        // Filtros de rango para características de la propiedad
-        if (filters.sqft) {
-            if (filters.sqft.min !== undefined) {
-                numericFilters.push(`sqft>=${filters.sqft.min}`);
-            }
-            if (filters.sqft.max !== undefined) {
-                numericFilters.push(`sqft<=${filters.sqft.max}`);
-            }
-        }
+		for (let i = 0; i < location.length; i++) {
+			const element = location[i];
+			cities.push(`_origin.division.name:${element}`);
+		}
 
-        if (filters.beds) {
-            if (filters.beds.min !== undefined) {
-                numericFilters.push(`beds>=${filters.beds.min}`);
-            }
-            if (filters.beds.max !== undefined) {
-                numericFilters.push(`beds<=${filters.beds.max}`);
-            }
-        }
+		const numericFilters: string[] = filters.numericFilters || [];
 
-        if (filters.baths) {
-            if (filters.baths.min !== undefined) {
-                numericFilters.push(`baths>=${filters.baths.min}`);
-            }
-            if (filters.baths.max !== undefined) {
-                numericFilters.push(`baths<=${filters.baths.max}`);
-            }
-        }
+		if (filters.priceMin !== undefined) {
+			numericFilters.push(`PriceMin>=${filters.priceMin}`);
+		}
 
-        if (filters.garage) {
-            if (filters.garage.min !== undefined) {
-                numericFilters.push(`garage>=${filters.garage.min}`);
-            }
-            if (filters.garage.max !== undefined) {
-                numericFilters.push(`garage<=${filters.garage.max}`);
-            }
-        }
+		if (filters.priceMax !== undefined) {
+			numericFilters.push(`PriceMax<=${filters.priceMax}`);
+		}
 
-        // Construir filtros de facetas
-        const facetFilters: string[] = [...(filters.facetFilters || [])];
+		// Configuración de búsqueda
+		const searchConfig = {
+			indexName: 'communities-gemini-test',
+			query: '',
+			hitsPerPage: 10,
+			// numericFilters: numericFilters,
+			facetFilters: [
+				cities
+			],
+		};
 
-        if (filters.status) {
-            facetFilters.push(`status:${filters.status}`);
-        }
+		// console.log('🔍 Algolia Search Config:', JSON.stringify(searchConfig, null, 2));
 
-        if (filters.amenities && filters.amenities.length > 0) {
-            // Para amenidades, usamos OR entre ellas
-            filters.amenities.forEach(amenity => {
-                facetFilters.push(`amenities:${amenity}`);
-            });
-        }
+		const searchResponse = await client.search({
+			requests: [searchConfig]
+		});
 
-        if (filters.communities && filters.communities.length > 0) {
-            // Para comunidades, usamos OR entre ellas  
-            filters.communities.forEach(community => {
-                facetFilters.push(`_origin.community.name:${community}`);
-            });
-        }
+		// Validar respuesta
+		if (!searchResponse?.results?.[0] || !('hits' in searchResponse.results[0])) {
+			return {
+				success: false,
+				data: null,
+				error: "No se encontraron resultados",
+				code: 404,
+				history: [],
+				message: 'No se encontraron comunidades que coincidan con los filtros proporcionados.'
+			};
+		}
 
-        // Configuración de búsqueda
-        const searchConfig = {
-            indexName: filters.indexName || 'communities-gemini-test',
-            query: filters.query || divisionObj.id,
-            hitsPerPage: filters.hitsPerPage || 10,
-            numericFilters: numericFilters.length > 0 ? numericFilters : undefined,
-            facetFilters: facetFilters.length > 0 ? facetFilters : undefined,
-        };
+		const result = searchResponse.results[0];
+		const hits = 'hits' in result ? result.hits : [];
 
-        console.log('🔍 Algolia Search Config:', JSON.stringify(searchConfig, null, 2));
+		if (!hits || hits.length === 0) {
+			return {
+				success: false,
+				data: null,
+				error: "No se encontraron comunidades que coincidan con los filtros",
+				code: 404,
+				history: [],
+				message: 'No se encontraron comunidades que coincidan con los filtros proporcionados.'
+			};
+		}
 
-        // Realizar búsqueda
-        const searchResponse = await client.search({
-            requests: [searchConfig]
-        });
+		const formattedHits = hits.map((hit: any) => {
+			const { name, _origin, amenities } = hit;
 
-        // Validar respuesta
-        if (!searchResponse?.results?.[0] || !('hits' in searchResponse.results[0])) {
-            return {
-                success: false,
-                error: "No se encontraron resultados"
-            };
-        }
+			const specs = amenities ? amenities.join(', ') : 'No especificado';
 
-        const result = searchResponse.results[0];
-        const hits = result.hits as unknown as AlgoliaCommunityResult[];
+			return {
+				type: "text",
+				text: `Encontramos en la siguiente comunidad ${name}, en la ciudad de ${_origin.division.name}, con las siguientes amenidades: ${specs}`,
+			};
+		});
 
-        if (!hits || hits.length === 0) {
-            return {
-                success: false,
-                error: "No se encontraron comunidades que coincidan con los filtros"
-            };
-        }
+		return {
+			success: true,
+			code: 200,
+			history: [],
+			message: 'Con los siguientes resultados y los datos proporcionados anteriormente, puedes elegir la mejor comunidad que se adapte a las necesidades del usuario.',
+			data: formattedHits,
+			error: null
+		};
 
-        return {
-            success: true,
-            data: hits,
-            metadata: {
-                totalHits: result.nbHits || 0,
-                hitsPerPage: result.hitsPerPage || 0,
-                query: searchConfig.query,
-                location: filters.location,
-                appliedFilters: [
-                    ...numericFilters,
-                    ...facetFilters.flat()
-                ]
-            }
-        };
-
-    } catch (error) {
-        console.error('❌ Error en búsqueda de Algolia:', error);
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : 'Error desconocido en la búsqueda'
-        };
-    }
+	} catch (error) {
+		console.error('❌ Error en búsqueda de Algolia:', error);
+		return {
+			success: false,
+			code: 500,
+			message: 'Error interno del servidor durante la búsqueda en Algolia.',
+			history: [],
+			data: null,
+			error: 'Error desconocido en la búsqueda'
+		};
+	}
 };
-
-/**
- * Función específica para obtener precios mínimos y máximos
- * @param location - Ubicación para buscar
- * @param sessionId - ID de sesión
- * @returns Precios min/max encontrados
- */
-export const getMinMaxPricesFromAlgolia = async (location: string, sessionId: string) => {
-    const result = await searchAlgolia({
-        sessionId,
-        location,
-        hitsPerPage: 1
-    });
-
-    if (!result.success || !result.data || result.data.length === 0) {
-        return {
-            success: false,
-            error: result.error || "No se encontraron datos de precios"
-        };
-    }
-
-    const community = result.data[0];
-    return {
-        success: true,
-        data: {
-            location,
-            priceMin: community.PriceMin || 0,
-            priceMax: community.PriceMax || 0
-        }
-    };
-};
-
-/**
- * Función específica para obtener amenidades en un rango de precios
- * @param location - Ubicación para buscar
- * @param sessionId - ID de sesión
- * @param priceMin - Precio mínimo
- * @param priceMax - Precio máximo
- * @returns Amenidades encontradas
- */
-export const getAmenitiesFromPricesAlgolia = async (
-    location: string,
-    sessionId: string,
-    priceMin: number,
-    priceMax: number
-) => {
-    const result = await searchAlgolia({
-        sessionId,
-        location,
-        priceMin,
-        priceMax,
-        hitsPerPage: 1
-    });
-
-    if (!result.success || !result.data || result.data.length === 0) {
-        return {
-            success: false,
-            error: result.error || "No se encontraron comunidades en ese rango de precios"
-        };
-    }
-
-    const community = result.data[0];
-    const amenities = community.amenities || [];
-
-    return {
-        success: true,
-        data: {
-            location,
-            amenities
-        }
-    };
-};
-
-/**
- * Función para buscar comunidades por amenidades específicas
- * @param location - Ubicación para buscar
- * @param sessionId - ID de sesión
- * @param amenities - Lista de amenidades deseadas
- * @param priceMin - Precio mínimo opcional
- * @param priceMax - Precio máximo opcional
- * @returns Comunidades que tienen las amenidades
- */
-export const searchCommunitiesByAmenities = async (
-    location: string,
-    sessionId: string,
-    amenities: string[],
-    priceMin?: number,
-    priceMax?: number
-) => {
-    const result = await searchAlgolia({
-        sessionId,
-        location,
-        amenities,
-        priceMin,
-        priceMax,
-        hitsPerPage: 20
-    });
-
-    if (!result.success || !result.data) {
-        return {
-            success: false,
-            error: result.error || "No se encontraron comunidades con esas amenidades"
-        };
-    }
-
-    return {
-        success: true,
-        data: {
-            location,
-            communities: result.data.map(community => ({
-                uid: community.uid,
-                name: community.name,
-                amenities: community.amenities,
-                priceMin: community.PriceMin,
-                priceMax: community.PriceMax
-            })),
-            totalFound: result.metadata?.totalHits || 0
-        }
-    };
-};
-
-/**
- * Función para búsqueda avanzada con múltiples filtros
- * @param filters - Filtros complejos para búsqueda avanzada
- * @returns Resultados de búsqueda avanzada
- */
-export const advancedAlgoliaSearch = async (filters: AlgoliaSearchFilters) => {
-    const result = await searchAlgolia(filters);
-
-    if (!result.success || !result.data) {
-        return {
-            success: false,
-            error: result.error || "No se encontraron resultados"
-        };
-    }
-
-    return {
-        success: true,
-        data: {
-            communities: result.data,
-            metadata: result.metadata,
-            appliedFilters: {
-                location: filters.location,
-                priceRange: filters.priceMin || filters.priceMax ?
-                    `$${filters.priceMin || 0} - $${filters.priceMax || '∞'}` : 'Sin filtro',
-                amenities: filters.amenities || [],
-                communities: filters.communities || [],
-                status: filters.status || 'Todos'
-            }
-        }
-    };
-};
-
-/**
- * Función para buscar comunidades con filtros flexibles
- * @param location - Ubicación para buscar
- * @param sessionId - ID de sesión 
- * @param filters - Filtros opcionales adicionales
- * @returns Comunidades que cumplen con los filtros
- */
-export const searchCommunitiesByFilters = async (
-    location: string,
-    sessionId: string,
-    filters?: {
-        priceMin?: number;
-        priceMax?: number;
-        amenities?: string[];
-        sqft?: Range;
-        beds?: Range;
-        baths?: Range;
-        garage?: Range;
-        status?: string;
-        hitsPerPage?: number;
-    }
-) => {
-    const result = await searchAlgolia({
-        sessionId,
-        location,
-        priceMin: filters?.priceMin,
-        priceMax: filters?.priceMax,
-        amenities: filters?.amenities,
-        sqft: filters?.sqft,
-        beds: filters?.beds,
-        baths: filters?.baths,
-        garage: filters?.garage,
-        status: filters?.status,
-        hitsPerPage: filters?.hitsPerPage || 20
-    });
-
-    if (!result.success || !result.data) {
-        return {
-            success: false,
-            error: result.error || "No se encontraron comunidades con esos filtros"
-        };
-    }
-
-    return {
-        success: true,
-        data: {
-            location,
-            communities: result.data.map(community => ({
-                uid: community.uid,
-                name: community.name,
-                amenities: community.amenities,
-                priceMin: community.PriceMin,
-                priceMax: community.PriceMax,
-                status: community.status
-            })),
-            totalFound: result.metadata?.totalHits || 0,
-            appliedFilters: result.metadata?.appliedFilters || []
-        }
-    };
-};  

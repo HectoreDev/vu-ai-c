@@ -1,30 +1,27 @@
 import z from "zod";
-import { validateFloorplanGarage, ValidationResult } from "../schemas/store.schema";
-import { sessionStore } from "../store/zustandStore";
-import { floorplanSpecsMissing } from "../utils/floorplanSpecsMissing";
+import { floorplanGarageSchema, validateFloorplanGarage, ValidationResult } from "../schemas/store.schema";
+import { useSessionStore } from "../store/zustandStore";
 
-// type Args = z.infer<typeof >;
+
+type Args = z.infer<typeof floorplanGarageSchema>;
 
 export const handleGetFloorplanGarage = async (
-  args: any
-): Promise<ValidationResult<any>> => {
-
-  const { garage_min, garage_max } = args.data;
+  args: Args
+): Promise<ValidationResult<Args>> => {
 
   const response = validateFloorplanGarage({
-    garage_min,
-    garage_max,
-  },
-    `User select number garages ${garage_min}, ${garage_max}`
-  );
+    garage_min: args.garage_min,
+    garage_max: args.garage_max
+  }, `User select number garages ${args.garage_min}, ${args.garage_max} `)
 
-  const store = sessionStore.getState();
+  const { garage_min, garage_max } = response.data;
+
+  const store = useSessionStore.getState();
 
   store.setFloorplanGarage({
-    min: response.data.garage_min,
-    max: response.data.garage_max,
+    min: garage_min,
+    max: garage_max
   });
 
-  return response;
-
+  return response
 };

@@ -1,25 +1,26 @@
-import { validateFloorplanSqft, ValidationResult } from "../schemas/store.schema";
-import { sessionStore } from "../store/zustandStore";
+import z from "zod";
+import { floorplanSqftSchema, validateFloorplanSqft, ValidationResult } from "../schemas/store.schema";
+import { useSessionStore } from "../store/zustandStore";
+
+
+type Args = z.infer<typeof floorplanSqftSchema>;
 
 export const handleGetFloorplanSqft = async (
-  args: any
-): Promise<ValidationResult<any>> => {
-
-  const { sqft_min, sqft_max } = args.data;
-
+  args: Args
+): Promise<ValidationResult<Args>> => {
   const response = validateFloorplanSqft({
-    sqft_min: sqft_min,
-    sqft_max: sqft_max,
-  },
-    `User select number sqft ${sqft_min}, ${sqft_max}`
-  );
+    sqft_min: args.sqft_min,
+    sqft_max: args.sqft_max
+  }, `User select number sqft ${args.sqft_min}, ${args.sqft_max}`)
 
-  const store = sessionStore.getState();
+  const { sqft_min, sqft_max } = response.data;
+
+  const store = useSessionStore.getState();
 
   store.setFloorplanSqft({
-    min: response.data.sqft_min,
-    max: response.data.sqft_max,
+    min: sqft_min,
+    max: sqft_max
   });
 
-  return response;
+  return response
 };

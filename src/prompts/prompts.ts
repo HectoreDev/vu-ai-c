@@ -28,7 +28,7 @@ Si el usuario pide algo fuera de este ámbito (p. ej., recetas, programación, t
 - Identifica qué datos faltan.
   `,
   getNamePrompt: `Obten el nombre del usuario si lo ha agregado y solo regresa el nombre`,
-  getLocationPrompt: `Sí el usuario ha añadido una ciudad o estado, obten la información del lugar o lugares y añadelas en el array, Comma/semicolon separar en un array. ${sessionIdSuggest}`,
+  getLocationsPrompt: `Sí el usuario ha añadido una ciudad o estado, obten la información del lugar o lugares y añadelas en el array, Comma/semicolon separar en un array el locations. ${sessionIdSuggest}`,
   getBudgetPrompt: `Establece el presupuesto del usuario SOLO con priceMin y priceMax. Si el usuario proporciona un precio único, úsalo para ambos campos. Reglas: priceMin [300000, 3000000] y priceMax ≥ priceMin. no aceptes numeros con sufijos k/m (p. ej., '550k', '1.2m'). ${sessionIdSuggest}`,
   getAmenitiesPrompt: `Si el usuario busca una casa, es imprescindible preguntar por las amenidades, si detecta algunas amenidad, agregue una lista de ellas como array ${sessionIdSuggest}`,
   getInterestFindHomePrompt: `Conserva las motivaciones del usuario para buscar una vivienda. Acepta "interests" (array o string).${sessionIdSuggest}`,
@@ -43,11 +43,12 @@ Si el usuario pide algo fuera de este ámbito (p. ej., recetas, programación, t
   .5 (ej. 2.5, 3 1/2). Si se obtiene un solo valor, se debe asignar tanto a bath_min como a bath_max. Si se obtiene un rango, se puede indicar con guion o con "or" (ej. 3-4, 3 or 4). No se permiten decimales diferentes a .5 (ej. 2.3 o 2.65). ${sessionIdSuggest}`,
   getFloorplanGaragePrompt: `Indique cuantos garage esta buscando solo indicar en numeros enteros y agregar el garage_min y garage_max ya si se obtiene un solo input se genera como garage_min y garage_max, y obtener min y max se pone 3-4, 3 or 4, etc, ${sessionIdSuggest}`,
   getFloorplanLevelPrompt: `Indique cuantos niveles esta buscando solo indicar en numeros enteros y agregar el bed_min y bed_min ya si se obtiene un solo input se genera como bed_min y bed_min, y obtener min y max se pone 1-2, 1 a 2, etc, maximo una cantidad de 4 ${sessionIdSuggest}`,
+  searchCommunityPrompt: `Search communities using filters from the session (locations and budget). If missing, suggests collecting them. ${sessionIdSuggest}`
 };
 
 export const propertiesPrompts = {
   nameDescription: `Retorna el nombre que ha brindado el usuario`,
-  locationDescription: `Añade locaciones las locations en un array`,
+  locationsDescription: `Añade las locations en un array`,
   priceMinDescription: `Precio mínimo del rango. Si el usuario dio un solo precio, repítelo aquí y en priceMax. Debe estar entre 300000 y 3000000.`,
   priceMaxDescription: `Precio máximo del rango. Debe ser mayor o igual a priceMin.`,
   amenitiesDescription: `tiene que venir en un array las amenidades`,

@@ -1,24 +1,27 @@
-import { validateFloorplanBath, ValidationResult } from "../schemas/store.schema";
-import { sessionStore } from "../store/zustandStore";
+import z from "zod";
+import { floorplanBathSchema, validateFloorplanBath, ValidationResult } from "../schemas/store.schema";
+import { useSessionStore } from "../store/zustandStore";
+
+type Args = z.infer<typeof floorplanBathSchema>;
+
 
 export const handleGetFloorplanBath = async (
-  args: any
-): Promise<ValidationResult<any>> => {
-
-  const { bath_min, bath_max } = args.data;
+  args: Args
+): Promise<ValidationResult<Args>> => {
 
   const response = validateFloorplanBath({
-    min: bath_min,
-    max: bath_max,
-  },
-    `User select number baths ${bath_min}, ${bath_max}`
-  );
+    min: args.bath_min,
+    max: args.bath_max
+  }, `User select number baths ${args.bath_min}, ${args.bath_max}`);
 
-  const store = sessionStore.getState();
+  const { bath_min, bath_max } = response.data;
+
+  const store = useSessionStore.getState();
+
 
   store.setFloorplanBath({
-    min: response.data.bath_min,
-    max: response.data.bath_max,
+    max: bath_max,
+    min: bath_min
   });
 
   return response;

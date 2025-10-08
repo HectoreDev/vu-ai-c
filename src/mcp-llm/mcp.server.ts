@@ -1,17 +1,5 @@
 import {
-  executeGetNameTool,
-  executeGetLocationTool,
-  executeSessionTool,
-  executeGetCommunitiesTool,
-  executeGetCommunityInfoTool,
-  executeCheckSessionTool,
-  executeSiteplansTool,
-  executeGetFloorplansTool,
-  executeGetMinMaxPricesTool,
-  executeGetAmenitiesFromPricesTool,
-} from "./mcp.tools";
-import {
-  toolGetLocation,
+  toolGetLocations,
   toolGetName,
   toolGetBudget,
   toolGetCustomizing,
@@ -26,19 +14,20 @@ import {
   toolGetMoveInReady,
   toolGetRenting,
   toolSearchComunities,
-  toolStartSession,
 } from "../tools";
+import { Part } from "@google/genai";
 import { sessionStore } from "./../store/zustandStore";
 import { FunctionCall, Part } from "@google/genai";
 import { ResponseError, ResponseSuccess } from "./types/responseType";
-import { dataFakeCommunities } from "../db/db.testhouse";
+import { useStore } from "zustand";
+import { useSessionStore } from "../store/zustandStore";
 
 export class SimpleMcpServer {
   private tools: Map<string, Function> = new Map();
 
   constructor() {
     this.tools.set("getName", toolGetName);
-    this.tools.set("getLocation", toolGetLocation);
+    this.tools.set("getLocations", toolGetLocations);
     this.tools.set("getBudget", toolGetBudget);
     this.tools.set("getCustomizing", toolGetCustomizing);
     this.tools.set("getFloorplanBed", toolGetFloorplanBed);
@@ -74,57 +63,51 @@ export class SimpleMcpServer {
     const results: any[] = [];
     for (let index = 0; index < tools.length; index++) {
       const { functionCall } = tools[index];
-      console.log("functionCall", functionCall);
       if (functionCall && functionCall.name) {
         const { name, args } = functionCall;
         const tool = this.tools.get(name);
         console.log("tool", tool);
+
         if (tool) {
           const result = await tool(args);
-          console.log("result", result);
-          results.push(result);
+          if (name === 'getBudget') results.push(result);
         }
       }
     }
 
-    // notes
-    // en la respuesta trata el nombre como data crudo, necesitamos que sea un mensaje para el usuario más amigable
+    const store = useSessionStore.getState();
 
-    console.log('results', results);
-    const incompleteData = results.some(result => !result.success);
-    console.log('incompleteData', incompleteData);
-    if (incompleteData) {
-      let text = 'Faltan datos: ';
-      results.forEach(result => {
-        if (!result.success) {
-          text += `${result.message} `;
-        }
-      });
+    const completeData = tools.findIndex((tool) => {
+      const { functionCall } = tool;
+      if (functionCall && functionCall.name === 'getBudget') {
+        return true;
+      }
+      return false;
+    });
+
+    if (completeData === -1) {
+      let text = 'El siguiente dato es requerido para continuar con la busqueda: ';
+      const missingData = results.find((result) => { result.success === false; });
+
+      text += missingData ? missingData.message : '';
+
       return {
+        sessionId: store.sessionId,
         message: [{ text }],
-        systemInstruction: 'Al usuario le faltan los siguientes datos:' + text + '. Responde al usuario de manera amigable y hazle preguntas adicionales para obtener más detalles sobre sus requisitos y gustos.'
+        systemInstruction: 'Al usuario le faltan el siguiente dato:' + text + '. Responde al usuario de manera amigable y hazle una pregunta sobre este dato faltante.'
       };
     } else {
 
-      const listOfHouse: { type: 'text', text: string }[] = dataFakeCommunities.map((lot: any) => {
-
-        const specs = JSON.stringify(lot.amenities);
-
-        return {
-          type: "text",
-          text: `Encontramos en las siguiente comunidades ${lot._origin.community.name}, con el UID ${lot._origin.community.uid}, en la ciudad de ${lot._origin.division.name}, con las siguientes amenidades: ${specs}`,
-        }
-      });
+      console.log('results', results[0]);
 
       return {
-        message: listOfHouse,
-        systemInstruction: 'Con la información proporcionada, sugiere al usuario la mejor opción de casa acorde a sus necesidades y preferencias. '
+        sessionId: store.sessionId,
+        data: results[0].data,
+        message: results[0].data,
+        systemInstruction: 'Con la información proporcionada, sugiere al usuario la mejor opción de casa acorde a sus necesidades y preferencias.'
       };
     }
 
-    // const store = useSessionStore.getState();
-    // console.log("Resultados de las tools:", results, store);
-    // return this.responseSuccess(results);
   }
 
   listTools() {

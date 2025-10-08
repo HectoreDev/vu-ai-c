@@ -1,28 +1,25 @@
 import z from "zod";
-import { validateFloorplanBed, ValidationResult } from "../schemas/store.schema";
-import { sessionStore } from "../store/zustandStore";
-import { floorplanSpecsMissing } from "../utils/floorplanSpecsMissing";
+import { floorplanBedSchema, validateFloorplanBed, ValidationResult } from "../schemas/store.schema";
+import { useSessionStore } from "../store/zustandStore";
 
-// type Args = z.infer<typeof >;
+type Args = z.infer<typeof floorplanBedSchema>;
 
 export const handleGetFloorplanBed = async (
-  args: any
-): Promise<ValidationResult<any>> => {
-
-  const { bed_min, bed_max } = args.data;
+  args: Args
+): Promise<ValidationResult<Args>> => {
 
   const response = validateFloorplanBed({
-    bed_min,
-    bed_max,
-  },
-    `User select bed ${bed_min}, ${bed_max}`
-  );
+    bed_max: args.bed_max,
+    bed_min: args.bed_min
+  }, `User select number beds ${args.bed_min}, ${args.bed_max} `);
 
-  const store = sessionStore.getState();
+  const { bed_min, bed_max } = response.data;
+
+  const store = useSessionStore.getState();
 
   store.setFloorplanBed({
-    min: response.data.bed_min,
-    max: response.data.bed_max,
+    min: bed_min,
+    max: bed_max
   });
 
   return response;
