@@ -1,6 +1,6 @@
 // src/mcp/tools/interestedFindHome.ts
 import { z } from "zod";
-import { useSessionStore } from "../store/zustandStore";
+import { sessionStore } from "../store/zustandStore";
 import { validateSession } from "../utils/validateSession";
 import { interestedFindHomeSchema, validateInterestedFindHome, ValidationResult } from "../schemas/store.schema";
 
@@ -14,7 +14,7 @@ export const handleGetInterestFindHome = async (args: Args): Promise<ValidationR
 
   const { interests } = response.data;
 
-  const store = useSessionStore.getState();
+  const store = sessionStore.getState();
 
   store.setInterest(interests);
 

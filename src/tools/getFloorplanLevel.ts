@@ -1,42 +1,25 @@
-import z from "zod";
-import { ValidationResult } from "../schemas/store.schema";
-import { useSessionStore } from "../store/zustandStore";
-import { floorplanSpecsMissing } from "../utils/floorplanSpecsMissing";
-
-// type Args = z.infer<typeof >;
+import { validateFloorplanLevel, ValidationResult } from "../schemas/store.schema";
+import { sessionStore } from "../store/zustandStore";
 
 export const handleGetFloorplanLevel = async (
   args: any
 ): Promise<ValidationResult<any>> => {
-  const parsed = args;
-  // validateRange(args.level_min, args.level_max);
 
-  const { level_min, level_max } = parsed.data;
+  const { level_min, level_max } = args.data;
 
-  const store = useSessionStore.getState();
+  const response = validateFloorplanLevel({
+    level_min,
+    level_max,
+  },
+    `User select number levels ${level_min}, ${level_max}`
+  );
 
-  const floorplanSpecs = {
-    //...store.floorplanSpecs,
-    level: {
-      min: level_min,
-      max: level_max,
-    },
-  }
+  const store = sessionStore.getState();
 
-  const missing = floorplanSpecsMissing(floorplanSpecs)
+  store.setFloorplanLevel({
+    min: response.data.level_min,
+    max: response.data.level_max,
+  });
 
-  // store.setFloorplanSpecs(floorplanSpecs);
-
-  return {
-    success: true,
-    code: 200,
-    data: {
-      level_min,
-      level_max,
-    },
-    error: null,
-    history: [],
-    message: `User select number levels ${level_min}, ${level_max} 
-    ${missing.length > 0 && `estos son los floorplanSpecs que faltan preguntarlos ${missing.toString()}`}`,
-  };
+  return response;
 };

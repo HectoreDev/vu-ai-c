@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { useSessionStore } from "./../store/zustandStore";
+import { sessionStore } from "./../store/zustandStore";
 import {
   customizingSchema,
   validateCustomizing,
@@ -19,7 +19,7 @@ export const handleGetCustomizing = async (
 
   const { customizing } = response.data;
 
-  const store = useSessionStore();
+  const store = sessionStore.getState();
 
   store.setCustomizing(customizing);
 

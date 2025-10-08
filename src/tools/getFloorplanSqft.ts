@@ -1,44 +1,25 @@
-import z from "zod";
-import { ValidationResult } from "../schemas/store.schema";
-import { useSessionStore } from "../store/zustandStore";
-import { floorplanSpecsMissing } from "../utils/floorplanSpecsMissing";
-
-// type Args = z.infer<typeof >;
+import { validateFloorplanSqft, ValidationResult } from "../schemas/store.schema";
+import { sessionStore } from "../store/zustandStore";
 
 export const handleGetFloorplanSqft = async (
   args: any
 ): Promise<ValidationResult<any>> => {
-  const parsed = args;
-  // validateRange(args.sqft_min, args.sqft_max);
 
-  const { sqft_min, sqft_max } = parsed.data;
+  const { sqft_min, sqft_max } = args.data;
 
-  const store = useSessionStore.getState();
+  const response = validateFloorplanSqft({
+    sqft_min: sqft_min,
+    sqft_max: sqft_max,
+  },
+    `User select number sqft ${sqft_min}, ${sqft_max}`
+  );
 
-  const floorplanSpecs = {
-    //...store.floorplanSpecs,
-    sqft: {
-      min: sqft_min,
-      max: sqft_max,
-    },
-  };
+  const store = sessionStore.getState();
 
-  const missing = floorplanSpecsMissing(floorplanSpecs);
+  store.setFloorplanSqft({
+    min: response.data.sqft_min,
+    max: response.data.sqft_max,
+  });
 
-  //store.setFloorplanSpecs(floorplanSpecs);
-
-  return {
-    success: true,
-    code: 200,
-    data: {
-      sqft_min,
-      sqft_max,
-    },
-    error: null,
-    history: [],
-    message: `User select number sqft ${sqft_min}, ${sqft_max} 
-    ${missing.length > 0 &&
-      `estos son los floorplanSpecs que faltan preguntarlos ${missing.toString()}`
-      }`,
-  };
+  return response;
 };

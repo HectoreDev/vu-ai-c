@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ResponseError, ResponseSuccess } from '../mcp-llm/types/responseType';
-import { SessionStore } from '../store/zustandStore';
+import { SessionStore, sessionStore } from '../store/zustandStore';
 
 
 export const sessionIdSchema = z.object({
@@ -196,6 +196,8 @@ export const floorplanGarageSchema = z.object({
 export type ValidationResult<T> = ResponseSuccess | ResponseError;
 
 const createErrorResponse = (error: Error): ResponseError => {
+    const suggestResponse = sessionStore.getState().suggest();
+
     if (error instanceof z.ZodError) {
         return {
             success: false,
@@ -203,7 +205,8 @@ const createErrorResponse = (error: Error): ResponseError => {
             error: error.issues.map(issue => issue.message).join(', '),
             message: 'Error de validación',
             history: [],
-            code: 400
+            code: 400,
+            suggest: suggestResponse
         };
     }
     return {
@@ -212,15 +215,17 @@ const createErrorResponse = (error: Error): ResponseError => {
         error: error.message,
         message: 'Error de validación',
         history: [],
-        code: 400
+        code: 400,
+        suggest: suggestResponse
     };
 };
 
 const createSuccessResponse = (data: Partial<SessionStore>, message: string): ResponseSuccess => {
-
+    const suggestResponse = sessionStore.getState().suggest();
 
     return {
         success: true,
+        suggest: suggestResponse,
         data,
         error: null,
         message,

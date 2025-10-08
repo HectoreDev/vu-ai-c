@@ -3,19 +3,18 @@ import { mcpServer } from "./mcp.server";
 import { invalidateSession } from "./mcp.tools";
 import { generalTools } from "../tools/generalTools";
 import { SchemaType } from "@google/generative-ai";
-import { useSessionStore } from "../store/zustandStore";
-import { SessionHelper } from "../store/helper";
+import { sessionStore } from "../store/zustandStore";
 import type { SessionState } from "./types/gemini.types";
 import { FunctionCallingConfigMode } from "@google/genai";
 
-interface IFHistory  {
+interface IFHistory {
 	role: 'user' | 'model';
 	text: string;
 }
 
 export class GeminiService {
 
-	async chatWithTools(message:string, history: IFHistory[], sessionId?: number) {
+	async chatWithTools(message: string, history: IFHistory[], sessionId?: number) {
 
 		const response1 = await model.sendMessage({
 			message: message,

@@ -1,6 +1,6 @@
 // src/mcp/tools/searchCommunities.ts
 import { z } from "zod";
-import { useSessionStore } from "./../store/zustandStore";
+import { sessionStore } from "./../store/zustandStore";
 
 // ⚠️ Usa tu wrapper real (NO importa Algolia aquí)
 // import { queryCommunities } from "../../search/community.search";
@@ -30,7 +30,7 @@ export const handleSearchCommunities = async (rawArgs: Args) => {
 
   const { sessionId } = pre;
 
-  const store = useSessionStore();
+  const store = sessionStore.getState();
 
   const locations: string[] = Array.isArray(store.locations)
     ? store.locations.filter(Boolean)

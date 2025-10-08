@@ -1,4 +1,4 @@
-import { useSessionStore } from "./../store/zustandStore";
+import { sessionStore } from "./../store/zustandStore";
 
 export const handleStartSession = async () => {
   const sessionId =
@@ -6,7 +6,7 @@ export const handleStartSession = async () => {
       ? crypto.randomUUID()
       : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
-  const store = useSessionStore.getState();
+  const store = sessionStore.getState();
   store.setSessionId(sessionId);
 
   return {

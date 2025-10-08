@@ -1,6 +1,6 @@
 // src/mcp/tools/moveInReady.ts
 import { z } from "zod";
-import { useSessionStore } from "../store/zustandStore";
+import { sessionStore } from "../store/zustandStore";
 import { validateSession } from "../utils/validateSession";
 import {
   moveInReadySchema,
@@ -20,7 +20,7 @@ export const handleGetMoveInReady = async (
 
   const { moveInReady } = response.data;
 
-  const store = useSessionStore();
+  const store = sessionStore.getState();
 
   store.setMoveInReady(moveInReady);
 

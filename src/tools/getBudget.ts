@@ -1,5 +1,5 @@
 import { success, z } from "zod";
-import { useSessionStore } from "./../store/zustandStore";
+import { sessionStore } from "./../store/zustandStore";
 import {
   priceRangeSchema,
   validatePriceRange,
@@ -13,7 +13,7 @@ export const handleGetBudget = async (
 ) : Promise<ValidationResult<Args>> => {
   const response = validatePriceRange(args.priceMin, args.priceMax, `User Select range to price ${args.priceMin} - ${args.priceMax}`);
 
-  const store = useSessionStore();
+  const store = sessionStore.getState();
 
   const { priceMin, priceMax } = response.data;
   

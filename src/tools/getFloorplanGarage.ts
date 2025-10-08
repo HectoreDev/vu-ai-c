@@ -1,6 +1,6 @@
 import z from "zod";
-import { ValidationResult } from "../schemas/store.schema";
-import { useSessionStore } from "../store/zustandStore";
+import { validateFloorplanGarage, ValidationResult } from "../schemas/store.schema";
+import { sessionStore } from "../store/zustandStore";
 import { floorplanSpecsMissing } from "../utils/floorplanSpecsMissing";
 
 // type Args = z.infer<typeof >;
@@ -8,35 +8,23 @@ import { floorplanSpecsMissing } from "../utils/floorplanSpecsMissing";
 export const handleGetFloorplanGarage = async (
   args: any
 ): Promise<ValidationResult<any>> => {
-  const parsed = args;
-  // validateRange(args.garage_min, args.garage_max);
 
-  const { garage_min, garage_max } = parsed.data;
+  const { garage_min, garage_max } = args.data;
 
-  const store = useSessionStore.getState();
+  const response = validateFloorplanGarage({
+    garage_min,
+    garage_max,
+  },
+    `User select number garages ${garage_min}, ${garage_max}`
+  );
 
-  const floorplanSpecs = {
-    //...store.floorplanSpecs,
-    garage: {
-      min: garage_min,
-      max: garage_max,
-    },
-  }
+  const store = sessionStore.getState();
 
-  const missing = floorplanSpecsMissing(floorplanSpecs)
+  store.setFloorplanGarage({
+    min: response.data.garage_min,
+    max: response.data.garage_max,
+  });
 
-  //store.setFloorplanSpecs(floorplanSpecs);
+  return response;
 
-  return {
-    success: true,
-    code: 200,
-    data: {
-      garage_min,
-      garage_max,
-    },
-    error: null,
-    history: [],
-    message: `User select number garages ${garage_min}, ${garage_max} 
-    ${missing.length > 0 && `estos son los floorplanSpecs que faltan preguntarlos ${missing.toString()}`}`,
-  };
 };

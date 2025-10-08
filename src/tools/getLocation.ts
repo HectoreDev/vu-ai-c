@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { useSessionStore } from "../store/zustandStore";
+import { sessionStore } from "../store/zustandStore";
 import { toArray } from "../utils/toArray";
 import {
   locationsSchema,
@@ -15,7 +15,7 @@ export const handleGetLocation = async (args: Args): Promise<ValidationResult<Ar
 
   const { locations } = response.data;
 
-  const store = useSessionStore.getState();
+  const store = sessionStore.getState();
 
   store.setlocations(locations);
 

@@ -28,7 +28,7 @@ import {
   toolSearchComunities,
   toolStartSession,
 } from "../tools";
-import { useSessionStore } from "./../store/zustandStore";
+import { sessionStore } from "./../store/zustandStore";
 import { FunctionCall, Part } from "@google/genai";
 import { ResponseError, ResponseSuccess } from "./types/responseType";
 import { dataFakeCommunities } from "../db/db.testhouse";
@@ -101,12 +101,12 @@ export class SimpleMcpServer {
         }
       });
       return {
-        message: [ { text } ],
+        message: [{ text }],
         systemInstruction: 'Al usuario le faltan los siguientes datos:' + text + '. Responde al usuario de manera amigable y hazle preguntas adicionales para obtener más detalles sobre sus requisitos y gustos.'
       };
     } else {
 
-      const listOfHouse: { type: 'text', text: string }[] = dataFakeCommunities.map((lot:any) => {
+      const listOfHouse: { type: 'text', text: string }[] = dataFakeCommunities.map((lot: any) => {
 
         const specs = JSON.stringify(lot.amenities);
 
