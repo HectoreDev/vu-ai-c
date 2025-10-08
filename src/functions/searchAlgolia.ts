@@ -1,4 +1,4 @@
-import { AlgoliaCommunityResult, AlgoliaSearchResult, IFAlgoliaSearchProps, makeLLMAlgoliaRequest } from "../tools/algoliaSearch";
+import { AlgoliaCommunityResult } from "../tools/algoliaSearch";
 import { getDivisionByName } from "../tools/utilities";
 import { algoliasearch } from "algoliasearch";
 

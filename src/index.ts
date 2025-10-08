@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import geminiRoutes from './routes/gemini.routes';
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
 
@@ -15,10 +16,10 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
-
 // Configurar límites de tamaño de request
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(cookieParser());
 
 // Middleware para manejar timeouts
 app.use((req, res, next) => {

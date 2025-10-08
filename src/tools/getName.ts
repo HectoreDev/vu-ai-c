@@ -30,6 +30,8 @@ console.log('Args', args);
     store.setSessionId(sessionId);
   }
 
+  console.log('Current Store SessionId', store.sessionId);
+
   store.setName(name);
 
   return response;

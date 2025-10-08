@@ -1,42 +1,23 @@
-import {Request, Response} from "express";
-import {geminiService} from "../mcp-llm/gemini.service";
-import {parseResponse} from "../utils/parse";
+import { Request, Response } from "express";
+import { geminiService } from "../mcp-llm/gemini.service";
 
-interface IFData {
-    location: string;
-    priceMin?: number;
-    priceMax?: number;
-    min?: number;
-    max?: number;
-    amenities?: string[];
-    communities?: {
-        uid: string;
-        name: string;
-    }[];
-    floorplans?: {
-        uid: string;
-        name: string;
-    }[];
-    siteplans?: {
-        uid: string;
-        name: string;
-    }[];
-}
+export const chatWithGemini = async (req: Request, res: Response): Promise<void> => {
+	try {
 
-export const chatWithGemini = async (req : Request, res : Response) : Promise < void > => {
-    try {
-        const {text, history, sessionId} = req.body;
+		const { text, history, sessionId } = req.body;
 
-        if (!text) {
-            res.status(400).json({success: false, error: "Mensaje requerido"});
-            return;
-        }
+		if (!text) {
+			res.status(400).json({ success: false, error: "Mensaje requerido" });
+			return;
+		}
 
-        const result = await geminiService.chatWithTools(text, history, sessionId);
+		const result = await geminiService.chatWithTools(text, history, sessionId);
 
-        res.json({success: true, response: result});
-    } catch (error) {
-        const errMsg = error instanceof Error ? error.message : String(error);
-        res.status(500).json({success: false, error: errMsg});
-    }
+		res.cookie('sessionId', result.sessionId, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }); // 1 día
+
+		res.json({ success: true, response: result });
+	} catch (error) {
+		const errMsg = error instanceof Error ? error.message : String(error);
+		res.status(500).json({ success: false, error: errMsg });
+	}
 };
