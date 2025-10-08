@@ -1,16 +1,4 @@
 import {
-  executeGetNameTool,
-  executeGetLocationTool,
-  executeSessionTool,
-  executeGetCommunitiesTool,
-  executeGetCommunityInfoTool,
-  executeCheckSessionTool,
-  executeSiteplansTool,
-  executeGetFloorplansTool,
-  executeGetMinMaxPricesTool,
-  executeGetAmenitiesFromPricesTool,
-} from "./mcp.tools";
-import {
   toolGetLocations,
   toolGetName,
   toolGetBudget,
@@ -26,12 +14,11 @@ import {
   toolGetMoveInReady,
   toolGetRenting,
   toolSearchComunities,
-  toolStartSession,
 } from "../tools";
-import { useSessionStore } from "./../store/zustandStore";
-import { FunctionCall, Part } from "@google/genai";
+import { Part } from "@google/genai";
 import { ResponseError, ResponseSuccess } from "./types/responseType";
-import { dataFakeCommunities } from "../db/db.testhouse";
+import { useStore } from "zustand";
+import { useSessionStore } from "../store/zustandStore";
 
 export class SimpleMcpServer {
   private tools: Map<string, Function> = new Map();
@@ -74,25 +61,25 @@ export class SimpleMcpServer {
     const results: any[] = [];
     for (let index = 0; index < tools.length; index++) {
       const { functionCall } = tools[index];
-      // console.log("functionCall", functionCall);
       if (functionCall && functionCall.name) {
         const { name, args } = functionCall;
         const tool = this.tools.get(name);
         console.log("tool", tool);
+
         if (tool) {
           const result = await tool(args);
-          // console.log("result", result);
           results.push(result);
         }
       }
     }
 
+    const store = useSessionStore.getState();
+
     // notes
     // en la respuesta trata el nombre como data crudo, necesitamos que sea un mensaje para el usuario más amigable
 
-    console.log('results', results);
     const incompleteData = results.some(result => !result.success);
-    console.log('incompleteData', incompleteData);
+
     if (incompleteData) {
       let text = 'El siguiente dato es requerido para continuar con la busqueda: ';
       const missingData = results.find((result) => { result.success === false; });
@@ -100,12 +87,14 @@ export class SimpleMcpServer {
       text += missingData ? missingData.message : '';
 
       return {
+        sessionId: store.sessionId,
         message: [ { text } ],
         systemInstruction: 'Al usuario le faltan el siguiente dato:' + text + '. Responde al usuario de manera amigable y hazle una pregunta sobre este dato faltante.'
       };
     } else {
 
       return {
+        sessionId: store.sessionId,
         message: [
           {
             type: "text",

@@ -1,18 +1,12 @@
 import { model } from "./gemini.config";
 import { mcpServer } from "./mcp.server";
-import { invalidateSession } from "./mcp.tools";
-import { generalTools } from "../tools/generalTools";
-import { SchemaType } from "@google/generative-ai";
-import { useSessionStore } from "../store/zustandStore";
-import { SessionHelper } from "../store/helper";
-import type { SessionState } from "./types/gemini.types";
-import { FunctionCallingConfigMode } from "@google/genai";
+import { Part } from "@google/genai";
 import { prompts } from "../prompts/prompts";
 import { tools } from "../tools/agent.tools";
 
 interface IFHistory  {
 	role: 'user' | 'model';
-	text: string;
+	parts: Part[];
 }
 
 export class GeminiService {
@@ -40,7 +34,7 @@ export class GeminiService {
 		});
 
 		history.push({
-			role: 'user', text: message
+			role: 'user', parts: [{ text: message }]
 		});
 
 		// console.log('text response', response1.candidates?.[0]?.content?.parts);
@@ -61,23 +55,27 @@ export class GeminiService {
 			});
 
 			history.push({
-				role: 'model', text: resultMCP.candidates?.[0]?.content?.parts?.map(part => part.text).join('') || ''
+				role: 'model', parts: resultMCP.candidates?.[0]?.content?.parts || []
 			});
 
 			// console.log('Respuesta final con datos de MCP:', resultMCP.candidates?.[0]?.content?.parts);
 
 			return {
 				history,
+				message: resultMCP.candidates?.[0]?.content?.parts || [],
+				sessionId: mcpResult.sessionId
 			};
 
 		} else {
 
 			history.push({
-				role: 'model', text: response1.candidates?.[0]?.content?.parts?.map(part => part.text).join('') || ''
+				role: 'model', parts: response1.candidates?.[0]?.content?.parts ? response1.candidates?.[0]?.content?.parts : [ { text: '' }  ]
 			});
 
 			return {
 				history,
+				message: response1.candidates?.[0]?.content?.parts ? response1.candidates?.[0]?.content?.parts : [ { text: '' }  ],
+				sessionId: null
 			};
 		}
 
