@@ -65,7 +65,8 @@ export const searchAlgolia = async (filters: AlgoliaSearchFilters): Promise<Resp
 				error: "location es requerido",
 				code: 400,
 				history: [],
-				message: 'El filtro de ubicación es obligatorio para realizar la búsqueda.'
+				message: 'El filtro de ubicación es obligatorio para realizar la búsqueda.',
+				suggest: null
 			};
 		}
 
@@ -111,7 +112,8 @@ export const searchAlgolia = async (filters: AlgoliaSearchFilters): Promise<Resp
 				error: "No se encontraron resultados",
 				code: 404,
 				history: [],
-				message: 'No se encontraron comunidades que coincidan con los filtros proporcionados.'
+				message: 'No se encontraron comunidades que coincidan con los filtros proporcionados.',
+				suggest: null
 			};
 		}
 
@@ -125,7 +127,8 @@ export const searchAlgolia = async (filters: AlgoliaSearchFilters): Promise<Resp
 				error: "No se encontraron comunidades que coincidan con los filtros",
 				code: 404,
 				history: [],
-				message: 'No se encontraron comunidades que coincidan con los filtros proporcionados.'
+				message: 'No se encontraron comunidades que coincidan con los filtros proporcionados.',
+				suggest: null
 			};
 		}
 
@@ -146,7 +149,8 @@ export const searchAlgolia = async (filters: AlgoliaSearchFilters): Promise<Resp
 			history: [],
 			message: 'Con los siguientes resultados y los datos proporcionados anteriormente, puedes elegir la mejor comunidad que se adapte a las necesidades del usuario.',
 			data: formattedHits,
-			error: null
+			error: null,
+			suggest: null
 		};
 
 	} catch (error) {
@@ -157,7 +161,8 @@ export const searchAlgolia = async (filters: AlgoliaSearchFilters): Promise<Resp
 			message: 'Error interno del servidor durante la búsqueda en Algolia.',
 			history: [],
 			data: null,
-			error: 'Error desconocido en la búsqueda'
+			error: 'Error desconocido en la búsqueda',
+			suggest: null
 		};
 	}
 };

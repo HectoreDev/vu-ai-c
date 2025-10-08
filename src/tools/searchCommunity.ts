@@ -1,6 +1,6 @@
 // src/mcp/tools/searchCommunities.ts
 import { z } from "zod";
-import { useSessionStore } from "../store/zustandStore";
+import { sessionStore } from "../store/zustandStore";
 
 // ⚠️ Usa tu wrapper real (NO importa Algolia aquí)
 // import { queryCommunities } from "../../search/community.search";
@@ -28,22 +28,24 @@ type HitOption = {
 type Args = z.infer<typeof undefined>;
 
 export const handleSearchCommunities = async (): Promise<ValidationResult<any>> => {
+  const suggest = sessionStore.getState().suggest();
 
   const {
     locations,
     priceMin,
     priceMax,
     sessionId
-  } = useSessionStore.getState();
+  } = sessionStore.getState();
 
-  if(!sessionId || !locations){
-   return {
+  if (!sessionId || !locations) {
+    return {
       success: false,
       code: 400,
       data: null,
       history: [],
       error: '',
-      message: ''
+      message: '',
+      suggest
     }
   }
 
@@ -60,6 +62,7 @@ export const handleSearchCommunities = async (): Promise<ValidationResult<any>> 
     history: [],
     error: null,
     message: `Comunities search`,
+    suggest
   }
-  
+
 };

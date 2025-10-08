@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { useSessionStore } from "./../store/zustandStore";
+import { sessionStore } from "./../store/zustandStore";
 import { validateSession } from "../utils/validateSession";
 import {
   rentingSchema,
@@ -19,7 +19,7 @@ export const handleGetRenting = async (
 
   const { renting } = response.data;
 
-  const store = useSessionStore();
+  const store = sessionStore.getState();
 
   store.setRenting(renting);
 

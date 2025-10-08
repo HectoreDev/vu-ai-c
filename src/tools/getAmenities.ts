@@ -1,6 +1,6 @@
 import z from "zod"
 import { amenitiesSchema, validateAmenities, ValidationResult } from "../schemas/store.schema"
-import { useSessionStore } from "../store/zustandStore"
+import { sessionStore } from "../store/zustandStore"
 
 
 type Args = z.infer<typeof amenitiesSchema>
@@ -13,7 +13,7 @@ export const handleGetAmenities = async (
 
   const { amenities } = response.data;
 
-  const store = useSessionStore.getState();
+  const store = sessionStore.getState();
 
   store.setAmenities(amenities);
 

@@ -1,9 +1,8 @@
 import z from "zod";
 import { floorplanBathSchema, validateFloorplanBath, ValidationResult } from "../schemas/store.schema";
-import { useSessionStore } from "../store/zustandStore";
+import { sessionStore } from "../store/zustandStore";
 
 type Args = z.infer<typeof floorplanBathSchema>;
-
 
 export const handleGetFloorplanBath = async (
   args: Args
@@ -16,7 +15,7 @@ export const handleGetFloorplanBath = async (
 
   const { bath_min, bath_max } = response.data;
 
-  const store = useSessionStore.getState();
+  const store = sessionStore.getState();
 
 
   store.setFloorplanBath({

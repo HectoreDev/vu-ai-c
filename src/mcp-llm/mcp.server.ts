@@ -17,8 +17,7 @@ import {
 } from "../tools";
 import { Part } from "@google/genai";
 import { ResponseError, ResponseSuccess } from "./types/responseType";
-import { useStore } from "zustand";
-import { useSessionStore } from "../store/zustandStore";
+import { sessionStore } from "../store/zustandStore";
 
 export class SimpleMcpServer {
   private tools: Map<string, Function> = new Map();
@@ -68,12 +67,12 @@ export class SimpleMcpServer {
 
         if (tool) {
           const result = await tool(args);
-          if(name === 'getBudget') results.push(result);
+          if (name === 'getBudget') results.push(result);
         }
       }
     }
 
-    const store = useSessionStore.getState();
+    const store = sessionStore.getState();
 
     const completeData = tools.findIndex((tool) => {
       const { functionCall } = tool;
@@ -91,7 +90,7 @@ export class SimpleMcpServer {
 
       return {
         sessionId: store.sessionId,
-        message: [ { text } ],
+        message: [{ text }],
         systemInstruction: 'Al usuario le faltan el siguiente dato:' + text + '. Responde al usuario de manera amigable y hazle una pregunta sobre este dato faltante.'
       };
     } else {

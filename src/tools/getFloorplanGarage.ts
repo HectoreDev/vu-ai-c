@@ -1,6 +1,6 @@
 import z from "zod";
 import { floorplanGarageSchema, validateFloorplanGarage, ValidationResult } from "../schemas/store.schema";
-import { useSessionStore } from "../store/zustandStore";
+import { sessionStore } from "../store/zustandStore";
 
 
 type Args = z.infer<typeof floorplanGarageSchema>;
@@ -16,7 +16,7 @@ export const handleGetFloorplanGarage = async (
 
   const { garage_min, garage_max } = response.data;
 
-  const store = useSessionStore.getState();
+  const store = sessionStore.getState();
 
   store.setFloorplanGarage({
     min: garage_min,

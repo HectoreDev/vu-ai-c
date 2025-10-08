@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { createStore } from 'zustand/vanilla';
 import {
     validateSessionId,
     validateName,
@@ -7,7 +7,7 @@ import {
     validateAmenities,
     ValidationResult
 } from '../schemas/store.schema';
-import { BudgetType, FloorplanSpecs, Range } from "../types/types";
+import { BudgetType, FloorplanSpecs, Range, IFSuggestResponse } from "../types/types";
 
 interface SessionStore {
     // Estados principales
@@ -100,6 +100,7 @@ interface SessionStore {
     getSessionSummary: () => string;
     clearValidationErrors: (field?: string) => void;
     getValidationErrors: (field?: string) => string[];
+    suggest: () => IFSuggestResponse;
 }
 
 // Estado inicial
@@ -157,7 +158,7 @@ export const initialState = {
 
 
 
-export const useSessionStore = create<SessionStore>()((set, get) => ({
+export const sessionStore = createStore<SessionStore>()((set, get) => ({
 
     ...initialState,
 
@@ -447,102 +448,161 @@ export const useSessionStore = create<SessionStore>()((set, get) => ({
         }
     },
 
+    /**
+     * Función suggest: Sugiere la siguiente acción basándose en el estado actual
+     * 
+     * @returns {Object} Objeto con información sobre propiedades faltantes y sugerencias
+     * - missing: Propiedad principal faltante (name, location, budget) o null
+     * - suggestion: Mensaje de sugerencia para el usuario
+     * - nextTool: Nombre de la siguiente herramienta/función a ejecutar
+     * 
+     * @example
+     * const suggestion = store.suggest();
+     * if (suggestion.missing) {
+     *   console.log(`Falta: ${suggestion.missing}`);
+     * }
+     * console.log(`Sugerencia: ${suggestion.suggestion}`);
+     * console.log(`Siguiente tool: ${suggestion.nextTool}`);
+     */
+    suggest: () => {
+        const state = get();
+
+        // Validar propiedades principales
+        if (!state.name) {
+            return {
+                missing: 'name',
+                suggestion: 'Solicita al usuario su nombre',
+                nextTool: 'get-name'
+            };
+        }
+
+        if (!state.locations || state.locations.length === 0) {
+            return {
+                missing: 'location',
+                suggestion: 'Solicita al usuario la ubicación de su preferencia',
+                nextTool: 'get-location'
+            };
+        }
+
+        if (!state.budget && (!state.priceMin || !state.priceMax)) {
+            return {
+                missing: 'budget',
+                suggestion: 'Solicita al usuario su presupuesto o rango de precios',
+                nextTool: 'get-min-max-prices'
+            };
+        }
+
+        // Si tiene todas las propiedades principales, validar adicionales y sugerir
+        // Validar propiedades adicionales en orden de prioridad
+        if (!state.amenities) {
+            return {
+                missing: null,
+                suggestion: 'Solicita al usuario las amenidades que desea',
+                nextTool: 'get-amenities-from-prices'
+            };
+        }
+
+        if (!state.interest || state.interest.length === 0) {
+            return {
+                missing: null,
+                suggestion: 'Solicita al usuario sus intereses para encontrar un hogar',
+                nextTool: 'get-interested-find-home'
+            };
+        }
+
+        if (state.customizing === null) {
+            return {
+                missing: null,
+                suggestion: 'Solicita al usuario si está interesado en personalización',
+                nextTool: 'get-customizing'
+            };
+        }
+
+        if (state.moveInReady === null) {
+            return {
+                missing: null,
+                suggestion: 'Solicita al usuario si necesita una casa lista para mudarse',
+                nextTool: 'get-move-in-ready'
+            };
+        }
+
+        if (!state.floorplanBed || (state.floorplanBed.min === 0 && state.floorplanBed.max === 0)) {
+            return {
+                missing: null,
+                suggestion: 'Solicita al usuario el número de habitaciones deseado',
+                nextTool: 'get-floorplan-bed'
+            };
+        }
+
+        if (!state.floorplanBath || (state.floorplanBath.min === 0 && state.floorplanBath.max === 0)) {
+            return {
+                missing: null,
+                suggestion: 'Solicita al usuario el número de baños deseado',
+                nextTool: 'get-floorplan-bath'
+            };
+        }
+
+        if (!state.floorplanGarage || (state.floorplanGarage.min === 0 && state.floorplanGarage.max === 0)) {
+            return {
+                missing: null,
+                suggestion: 'Solicita al usuario el número de garajes deseado',
+                nextTool: 'get-floorplan-garage'
+            };
+        }
+
+        if (!state.floorplanLevel || (state.floorplanLevel.min === 0 && state.floorplanLevel.max === 0)) {
+            return {
+                missing: null,
+                suggestion: 'Solicita al usuario el número de niveles deseado',
+                nextTool: 'get-floorplan-level'
+            };
+        }
+
+        if (!state.floorplanSqft || (state.floorplanSqft.min === 0 && state.floorplanSqft.max === 0)) {
+            return {
+                missing: null,
+                suggestion: 'Solicita al usuario los pies cuadrados (sqft) deseados',
+                nextTool: 'get-floorplan-sqft'
+            };
+        }
+
+        if (!state.homeInterest || state.homeInterest.length === 0) {
+            return {
+                missing: null,
+                suggestion: 'Solicita al usuario qué le interesa de un hogar',
+                nextTool: 'get-interesting-home'
+            };
+        }
+
+        if (!state.interestRate) {
+            return {
+                missing: null,
+                suggestion: 'Solicita al usuario la tasa de interés de su preferencia',
+                nextTool: 'get-interest-rate'
+            };
+        }
+
+        if (!state.communities) {
+            return {
+                missing: null,
+                suggestion: 'Busca comunidades basadas en las preferencias del usuario',
+                nextTool: 'get-communities'
+            };
+        }
+
+        // Si tiene toda la información
+        return {
+            missing: null,
+            suggestion: 'Toda la información está completa. Puedes mostrar resultados o buscar información específica de comunidades',
+            nextTool: 'get-community-info'
+        };
+    },
+
 }));
 
-
-useSessionStore.subscribe((state) => {
+// Subscribe para debugging (opcional)
+sessionStore.subscribe((state) => {
     console.log('state', state);
-});
-
-// Hooks de utilidad para acceso rápido a partes específicas del estado
-export const useSessionId = () => useSessionStore((state) => state.sessionId);
-export const useName = () => useSessionStore((state) => state.name);
-export const uselocations = () => useSessionStore((state) => state.locations);
-export const usePriceRange = () => useSessionStore((state) => ({
-    priceMin: state.priceMin,
-    priceMax: state.priceMax
-}));
-export const useAmenities = () => useSessionStore((state) => state.amenities);
-export const useMcpSessionId = () => useSessionStore((state) => state.mcpSessionId);
-
-// Hooks para nuevos campos 
-export const useInterest = () => useSessionStore((state) => state.interest);
-export const useBudgetType = () => useSessionStore((state) => state.budgetType);
-export const useBudget = () => useSessionStore((state) => state.budget);
-export const useCustomizing = () => useSessionStore((state) => state.customizing);
-export const useMoveInReady = () => useSessionStore((state) => state.moveInReady);
-export const useRenting = () => useSessionStore((state) => state.renting);
-export const useHomeInterest = () => useSessionStore((state) => state.homeInterest);
-export const useFloorplanBed = () => useSessionStore((state) => state.floorplanBed);
-export const useFloorplanBath = () => useSessionStore((state) => state.floorplanBath);
-export const useFloorplanGarage = () => useSessionStore((state) => state.floorplanGarage);
-export const useFloorplanLevel = () => useSessionStore((state) => state.floorplanLevel);
-export const useFloorplanSqft = () => useSessionStore((state) => state.floorplanSqft);
-
-// Hook para obtener todas las acciones
-export const useSessionActions = () => useSessionStore((state) => ({
-    // Acciones básicas
-    setSessionId: state.setSessionId,
-    setName: state.setName,
-    setlocations: state.setlocations,
-    setPriceRange: state.setPriceRange,
-    setPriceMin: state.setPriceMin,
-    setPriceMax: state.setPriceMax,
-    setAmenities: state.setAmenities,
-    setCommunities: state.setCommunities,
-    setCommunity: state.setCommunity,
-    setLastToolUsed: state.setLastToolUsed,
-    setMcpSessionId: state.setMcpSessionId,
-    setLocation: state.setLocation,
-
-    // Acciones para nuevos campos 
-    setInterest: state.setInterest,
-    addInterest: state.addInterest,
-    removeInterest: state.removeInterest,
-    setBudgetType: state.setBudgetType,
-    setBudget: state.setBudget,
-    setCustomizing: state.setCustomizing,
-    setMoveInReady: state.setMoveInReady,
-    setRenting: state.setRenting,
-    setHomeInterest: state.setHomeInterest,
-    addHomeInterest: state.addHomeInterest,
-    removeHomeInterest: state.removeHomeInterest,
-    setFloorplanBed: state.setFloorplanBed,
-    setFloorplanBath: state.setFloorplanBath,
-    setFloorplanGarage: state.setFloorplanGarage,
-    setFloorplanLevel: state.setFloorplanLevel,
-    setFloorplanSqft: state.setFloorplanSqft,
-
-    // Acciones de utilidad
-    reset: state.reset,
-    updateSessionData: state.updateSessionData,
-}));
-
-// Hook para obtener utilidades
-export const useSessionUtils = () => useSessionStore((state) => ({
-    isSessionActive: state.isSessionActive,
-    getSessionSummary: state.getSessionSummary,
-}));
-
-// Hooks para validación
-export const useValidationErrors = (field?: string) => useSessionStore((state) => {
-    if (field) {
-        return state.validationErrors[field] || [];
-    }
-    return Object.values(state.validationErrors).flat();
-});
-
-export const useValidationActions = () => useSessionStore((state) => ({
-    clearValidationErrors: state.clearValidationErrors,
-    getValidationErrors: state.getValidationErrors,
-}));
-
-// Hook para verificar si un campo tiene errores
-export const useHasValidationErrors = (field?: string) => useSessionStore((state) => {
-    if (field) {
-        return (state.validationErrors[field] || []).length > 0;
-    }
-    return Object.values(state.validationErrors).some(errors => errors.length > 0);
 });
 
 // Tipo para exportar la interfaz del store

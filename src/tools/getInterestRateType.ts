@@ -1,6 +1,6 @@
 // src/mcp/tools/getInterestRate.ts
 import { z } from "zod";
-import { useSessionStore } from "../store/zustandStore";
+import { sessionStore } from "../store/zustandStore";
 import { InterestRate } from "../types/types";
 import { validateSession } from "../utils/validateSession";
 import { interestRateSchema, validateInterestRate, ValidationResult } from "../schemas/store.schema";
@@ -14,7 +14,7 @@ export const getInterestRateType = async (args: Args): Promise<ValidationResult<
 
   const { interestRate } = response.data
 
-  const store = useSessionStore();
+  const store = sessionStore.getState();
 
   store.setInterestRate(interestRate);
 

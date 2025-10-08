@@ -1,3 +1,5 @@
+import { IFSuggestResponse } from "../../types/types";
+
 export interface ResponseType {
   success: boolean;
   data: any;
@@ -14,6 +16,7 @@ export interface ResponseError extends ResponseType {
   code: number;
   history: any[];
   error: string;
+  suggest: IFSuggestResponse | null;
 }
 
 export interface ResponseSuccess extends ResponseType {
@@ -23,6 +26,7 @@ export interface ResponseSuccess extends ResponseType {
   error: null;
   code: number;
   history: any[];
+  suggest: IFSuggestResponse | null;
 }
 
 export interface Result<T> {

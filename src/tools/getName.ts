@@ -1,7 +1,7 @@
 // src/mcp/tools/getName.ts
 
 import { z } from "zod";
-import { useSessionStore } from "../store/zustandStore";
+import { sessionStore } from "../store/zustandStore";
 import { createSessionId } from "../utils/createSessionId";
 import {
   nameSchema,
@@ -23,7 +23,7 @@ console.log('Args', args);
 
   const { name } = response.data;
 
-  const store = useSessionStore.getState();
+  const store = sessionStore.getState();
 
   if (!sessionId) {
     sessionId = createSessionId();

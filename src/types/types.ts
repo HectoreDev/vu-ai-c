@@ -29,7 +29,13 @@ export interface ISuccessResponse {
 export interface IErrorResponse {
   success: boolean;
   error: "VALIDATION_ERROR" | "MISSING_SESSION" | "INTERNAL";
-  issues?: unknown;  
+  issues?: unknown;
+}
+
+export interface IFSuggestResponse {
+  missing: string | null;
+  suggestion: string | null;
+  nextTool: string | null
 }
 
 export type ToolResponse = ISuccessResponse | IErrorResponse;
