@@ -16,11 +16,8 @@ import {
   toolSearchComunities,
 } from "../tools";
 import { Part } from "@google/genai";
-import { sessionStore } from "./../store/zustandStore";
-import { FunctionCall, Part } from "@google/genai";
 import { ResponseError, ResponseSuccess } from "./types/responseType";
-import { useStore } from "zustand";
-import { useSessionStore } from "../store/zustandStore";
+import { sessionStore } from "../store/zustandStore";
 
 export class SimpleMcpServer {
   private tools: Map<string, Function> = new Map();
@@ -75,7 +72,7 @@ export class SimpleMcpServer {
       }
     }
 
-    const store = useSessionStore.getState();
+    const store = sessionStore.getState();
 
     const completeData = tools.findIndex((tool) => {
       const { functionCall } = tool;

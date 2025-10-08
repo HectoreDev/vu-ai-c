@@ -1,6 +1,6 @@
 import z from "zod";
 import { floorplanSqftSchema, validateFloorplanSqft, ValidationResult } from "../schemas/store.schema";
-import { useSessionStore } from "../store/zustandStore";
+import { sessionStore } from "../store/zustandStore";
 
 
 type Args = z.infer<typeof floorplanSqftSchema>;
@@ -15,7 +15,7 @@ export const handleGetFloorplanSqft = async (
 
   const { sqft_min, sqft_max } = response.data;
 
-  const store = useSessionStore.getState();
+  const store = sessionStore.getState();
 
   store.setFloorplanSqft({
     min: sqft_min,

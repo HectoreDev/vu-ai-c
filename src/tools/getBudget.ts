@@ -19,7 +19,7 @@ export const handleGetBudget = async (
 
   const response = validatePriceRange(priceMin, priceMax, `El rango de presupuesto es entre 300000 y 3500000`);
 
-  const store = useSessionStore.getState();
+  const store = sessionStore.getState();
 
   const { success, data } = response;
 
