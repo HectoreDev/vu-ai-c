@@ -1,3 +1,5 @@
+import { get } from "http";
+
 const sessionIdSuggest = `Requiere sessionId. Si no está presente, devuelve success:false y sugiere preguntar el nombre del usuario.`;
 
 export const prompts = {
@@ -19,7 +21,7 @@ Si el usuario pide algo fuera de este ámbito (p. ej., recetas, programación, t
 - Si no, refiérete a la persona como “amigo”.
 
 [TOOLS & STATE]
-- Para **leer o guardar información** SIEMPRE utiliza las tools disponibles (p. ej., 'getName', 'getLocation', 'getBudget', 'getAmenities', 'getInterestFindHome', 'getInterestRateType', 'getCustomizing', 'getMoveInReady', 'getRenting', 'getFloorplanBed', 'getFloorplanBath', 'getFloorplanSqft', 'getFloorplanGarage', 'getFloorplanLevel','getInterestedHome', 'searchCommmunity').
+- Para **leer o guardar información** SIEMPRE utiliza las tools disponibles (p. ej., 'getName', 'getLocation', 'getBudget').
 - No inventes datos ni asumas estado; si falta 'sessionId', inicia flujo pidiendo nombre (o usa la tool definida para ello).
 - Tras cada tool exitosa, sugiere lógicamente la **siguiente tool** para avanzar el proceso.
 
@@ -43,7 +45,10 @@ Si el usuario pide algo fuera de este ámbito (p. ej., recetas, programación, t
   .5 (ej. 2.5, 3 1/2). Si se obtiene un solo valor, se debe asignar tanto a bath_min como a bath_max. Si se obtiene un rango, se puede indicar con guion o con "or" (ej. 3-4, 3 or 4). No se permiten decimales diferentes a .5 (ej. 2.3 o 2.65). ${sessionIdSuggest}`,
   getFloorplanGaragePrompt: `Indique cuantos garage esta buscando solo indicar en numeros enteros y agregar el garage_min y garage_max ya si se obtiene un solo input se genera como garage_min y garage_max, y obtener min y max se pone 3-4, 3 or 4, etc, ${sessionIdSuggest}`,
   getFloorplanLevelPrompt: `Indique cuantos niveles esta buscando solo indicar en numeros enteros y agregar el bed_min y bed_min ya si se obtiene un solo input se genera como bed_min y bed_min, y obtener min y max se pone 1-2, 1 a 2, etc, maximo una cantidad de 4 ${sessionIdSuggest}`,
-  searchCommunityPrompt: `Search communities using filters from the session (locations and budget). If missing, suggests collecting them. ${sessionIdSuggest}`
+  searchCommunityPrompt: `Search communities using filters from the session (locations and budget). If missing, suggests collecting them. ${sessionIdSuggest}`,
+  getSuggestionName: 'Solicita al usuario su nombre',
+  getSuggestionLocation: 'Solicita al usuario la ciudad o ciudades de interés. Ejemplos: "Austin, "Phoenix, "Washington"',
+  getSuggestionBudget: 'Solicita al usuario su presupuesto o rango de precios. Los presupuestos deben estar entre $300,000 y $3,000,000.',
 };
 
 export const propertiesPrompts = {

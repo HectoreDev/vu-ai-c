@@ -35,7 +35,8 @@ export interface IErrorResponse {
 export interface IFSuggestResponse {
   missing: string | null;
   suggestion: string | null;
-  nextTool: string | null
+  nextTool: string | null;
+  data?: unknown;
 }
 
 export type ToolResponse = ISuccessResponse | IErrorResponse;
