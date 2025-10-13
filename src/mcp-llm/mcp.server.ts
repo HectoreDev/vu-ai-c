@@ -120,8 +120,8 @@ export class SimpleMcpServer {
       message: [{ text: results?.suggestion || '' }],
       data: results?.data || null,
       systemInstruction: results?.data ?
-        'Con la información proporcionada, sugiere al usuario la mejor opción de casa acorde a sus necesidades y preferencias.':
-        'Al usuario le faltan el siguiente dato:' + results?.suggestion || '' + '. Responde al usuario de manera amigable y hazle una pregunta sobre este dato faltante.'
+        'Se te ha brindado información sobre las comunidades que cumplen los requisitos del usuario. Usa esta información para sugerirle al usuario la mejor opción de casa acorde a sus necesidades y preferencias. Después de sugerir la mejor opción, pregunta si desea más información o si quiere ajustar sus criterios de búsqueda.':
+        'Al usuario le faltan el siguiente dato:' + results?.suggestion || '' + '. Responde al usuario de manera amigable y hazle una pregunta sobre este dato faltante. Si ya encontró comunidades que cumplen sus requisitos, sugiérele la mejor opción de casa acorde a sus necesidades y preferencias.',
     };
 
   }
