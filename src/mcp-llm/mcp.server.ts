@@ -124,37 +124,6 @@ export class SimpleMcpServer {
         'Al usuario le faltan el siguiente dato:' + results?.suggestion || '' + '. Responde al usuario de manera amigable y hazle una pregunta sobre este dato faltante.'
     };
 
-    // const completeData = tools.findIndex((tool) => {
-    //   const { functionCall } = tool;
-    //   if (functionCall && functionCall.name === 'getBudget') {
-    //     return true;
-    //   }
-    //   return false;
-    // });
-
-    // if (completeData === -1) {
-    //   let text = 'El siguiente dato es requerido para continuar con la busqueda: ';
-    //   const missingData = results.find((result) => { result.success === false; });
-
-    //   text += missingData ? missingData.message : '';
-
-    //   return {
-    //     sessionId: store.sessionId,
-    //     message: [{ text }],
-    //     systemInstruction: 'Al usuario le faltan el siguiente dato:' + text + '. Responde al usuario de manera amigable y hazle una pregunta sobre este dato faltante.'
-    //   };
-    // } else {
-
-    //   console.log('results', results[0]);
-
-    //   return {
-    //     sessionId: store.sessionId,
-    //     data: results[0].data,
-    //     message: results[0].data,
-    //     systemInstruction: 'Con la información proporcionada, sugiere al usuario la mejor opción de casa acorde a sus necesidades y preferencias.'
-    //   };
-    // }
-
   }
 
   listTools() {
