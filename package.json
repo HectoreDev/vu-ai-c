@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "node --max-old-space-size=8192 ./node_modules/.bin/nodemon src/index.ts",
+    "dev-win": "nodemon --exec ts-node src/index.ts",
     "mcp": "node --max-old-space-size=8192 ./node_modules/.bin/ts-node src/mcp/mcp.server.ts",
     "build": "tsc & chmod 755 build/index.js",
     "start": "node --max-old-space-size=8192 dist/index.js",
