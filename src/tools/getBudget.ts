@@ -27,20 +27,11 @@ export const handleGetBudget = async (
 
   if (success) {
 
-    // const { priceMin, priceMax } = data;
+    console.log('save budget', priceMin, priceMax, data);
+    store.setPriceMin(priceMin);
+    store.setPriceMax(priceMax);
 
-    store.setPriceMin(data.priceMin);
-    store.setPriceMax(data.priceMax);
-
-    const result = await searchAlgolia({
-      location: ['Phoenix'],
-      priceMin,
-      priceMax
-    });
-
-    console.log('Amenities from prices', result);
-
-    return result;
+    return data;
 
   } else {
     return response;

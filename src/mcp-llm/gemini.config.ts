@@ -15,7 +15,7 @@ const ai = new GoogleGenAI({ apiKey: API_KEY });
 export const model = ai.chats.create({
 	model: "gemini-2.0-flash",
 	config: {
-		systemInstruction: prompts.systemInstructions,
+		// systemInstruction: prompts.systemInstructions,
 		tools: [
 			{
 				functionDeclarations: tools

@@ -479,7 +479,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
         if (!state.locations || state.locations.length === 0) {
             return {
                 missing: 'location',
-                suggestion: 'Solicita al usuario la ubicación de su preferencia',
+                suggestion: 'Solicita al usuario la ciudad o ciudades de interés',
                 nextTool: 'getLocations'
             };
         }
@@ -602,7 +602,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
 
 // Subscribe para debugging (opcional)
 sessionStore.subscribe((state) => {
-    console.log('state', state);
+    // console.log('state', state);
 });
 
 // Tipo para exportar la interfaz del store

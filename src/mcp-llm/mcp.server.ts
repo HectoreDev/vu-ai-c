@@ -18,6 +18,8 @@ import {
 import { Part } from "@google/genai";
 import { ResponseError, ResponseSuccess } from "./types/responseType";
 import { sessionStore } from "../store/zustandStore";
+import { IFSuggestResponse } from "../types/types";
+import { searchAlgolia } from "../functions/searchAlgolia";
 
 export class SimpleMcpServer {
   private tools: Map<string, Function> = new Map();
@@ -57,7 +59,8 @@ export class SimpleMcpServer {
   }
 
   async callTools(tools: Part[]) {
-    const results: any[] = [];
+
+    let results: IFSuggestResponse | null = null;
     for (let index = 0; index < tools.length; index++) {
       const { functionCall } = tools[index];
       if (functionCall && functionCall.name) {
@@ -67,43 +70,90 @@ export class SimpleMcpServer {
 
         if (tool) {
           const result = await tool(args);
-          if (name === 'getBudget') results.push(result);
+
+          const store = sessionStore.getState();
+
+          const suggestion = store.suggest();
+          console.log("suggest", suggestion);
+
+          if(suggestion && suggestion.missing === null) {
+
+            console.log('check store', store.locations, store.priceMin, store.priceMax);
+
+            console.log('Buscando comunidades con Algolia...');
+
+            if(store.locations && store.locations.length > 0 && store.priceMin && store.priceMax ) {
+
+              console.log('Buscando comunidades con Algolia...');
+
+              const result = await searchAlgolia({
+                location: store.locations,
+                priceMin: store.priceMin,
+                priceMax: store.priceMax
+              });
+
+              console.log('result algolia', result);
+
+              results = { 
+                suggestion: result.message ? result.message : '',
+                data: result.data,
+                missing: null,
+                nextTool: result.success ? null : 'Por favor proporciona los datos faltantes para continuar con la búsqueda.'
+               };
+
+            } else {
+              results = suggestion;
+            }
+
+          } else {
+            results = suggestion;
+          }
+
         }
       }
     }
 
     const store = sessionStore.getState();
 
-    const completeData = tools.findIndex((tool) => {
-      const { functionCall } = tool;
-      if (functionCall && functionCall.name === 'getBudget') {
-        return true;
-      }
-      return false;
-    });
+    return {
+      sessionId: store.sessionId,
+      message: [{ text: results?.suggestion || '' }],
+      data: results?.data || null,
+      systemInstruction: results?.data ?
+        'Con la información proporcionada, sugiere al usuario la mejor opción de casa acorde a sus necesidades y preferencias.':
+        'Al usuario le faltan el siguiente dato:' + results?.suggestion || '' + '. Responde al usuario de manera amigable y hazle una pregunta sobre este dato faltante.'
+    };
 
-    if (completeData === -1) {
-      let text = 'El siguiente dato es requerido para continuar con la busqueda: ';
-      const missingData = results.find((result) => { result.success === false; });
+    // const completeData = tools.findIndex((tool) => {
+    //   const { functionCall } = tool;
+    //   if (functionCall && functionCall.name === 'getBudget') {
+    //     return true;
+    //   }
+    //   return false;
+    // });
 
-      text += missingData ? missingData.message : '';
+    // if (completeData === -1) {
+    //   let text = 'El siguiente dato es requerido para continuar con la busqueda: ';
+    //   const missingData = results.find((result) => { result.success === false; });
 
-      return {
-        sessionId: store.sessionId,
-        message: [{ text }],
-        systemInstruction: 'Al usuario le faltan el siguiente dato:' + text + '. Responde al usuario de manera amigable y hazle una pregunta sobre este dato faltante.'
-      };
-    } else {
+    //   text += missingData ? missingData.message : '';
 
-      console.log('results', results[0]);
+    //   return {
+    //     sessionId: store.sessionId,
+    //     message: [{ text }],
+    //     systemInstruction: 'Al usuario le faltan el siguiente dato:' + text + '. Responde al usuario de manera amigable y hazle una pregunta sobre este dato faltante.'
+    //   };
+    // } else {
 
-      return {
-        sessionId: store.sessionId,
-        data: results[0].data,
-        message: results[0].data,
-        systemInstruction: 'Con la información proporcionada, sugiere al usuario la mejor opción de casa acorde a sus necesidades y preferencias.'
-      };
-    }
+    //   console.log('results', results[0]);
+
+    //   return {
+    //     sessionId: store.sessionId,
+    //     data: results[0].data,
+    //     message: results[0].data,
+    //     systemInstruction: 'Con la información proporcionada, sugiere al usuario la mejor opción de casa acorde a sus necesidades y preferencias.'
+    //   };
+    // }
 
   }
 
