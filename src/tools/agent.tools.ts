@@ -89,10 +89,10 @@ const toolSchema: Record<string, FunctionDeclaration> = {
           type: Type.STRING,
           description: propertiesPrompts.sessionIdDescription,
         },
-        interests: {
-          type: Type.ARRAY,
-          items: { type: Type.STRING },
-          description: propertiesPrompts.interestsDescription,
+        interestFindHome: {
+          type: Type.STRING,
+          // items: { type: Type.STRING },
+          description: propertiesPrompts.interestsFindHomeDescription,
         },
       },
     },
@@ -176,11 +176,11 @@ const toolSchema: Record<string, FunctionDeclaration> = {
           description: propertiesPrompts.sessionIdDescription,
         },
         bed_min: {
-          type: Type.STRING,
+          type: Type.NUMBER,
           description: propertiesPrompts.bedMinDescription,
         },
         bed_max: {
-          type: Type.STRING,
+          type: Type.NUMBER,
           description: propertiesPrompts.bedMaxDescription,
         },
       },
@@ -197,11 +197,11 @@ const toolSchema: Record<string, FunctionDeclaration> = {
           description: propertiesPrompts.sessionIdDescription,
         },
         bath_min: {
-          type: Type.STRING,
+          type: Type.NUMBER,
           description: propertiesPrompts.bathMinDescription,
         },
         bath_max: {
-          type: Type.STRING,
+          type: Type.NUMBER,
           description: propertiesPrompts.bathMaxDescription,
         },
       },
@@ -218,11 +218,11 @@ const toolSchema: Record<string, FunctionDeclaration> = {
           description: propertiesPrompts.sessionIdDescription,
         },
         sqft_min: {
-          type: Type.STRING,
+          type: Type.NUMBER,
           description: propertiesPrompts.sqftMinDescription,
         },
         sqft_max: {
-          type: Type.STRING,
+          type: Type.NUMBER,
           description: propertiesPrompts.sqftMaxDescription,
         },
       },
@@ -238,12 +238,12 @@ const toolSchema: Record<string, FunctionDeclaration> = {
           type: Type.STRING,
           description: propertiesPrompts.sessionIdDescription,
         },
-        sqft_min: {
-          type: Type.STRING,
+        garage_min: {
+          type: Type.NUMBER,
           description: propertiesPrompts.garageMinDescription,
         },
-        sqft_max: {
-          type: Type.STRING,
+        garage_max: {
+          type: Type.NUMBER,
           description: propertiesPrompts.garageMaxDescription,
         },
       },
@@ -260,11 +260,11 @@ const toolSchema: Record<string, FunctionDeclaration> = {
           description: propertiesPrompts.sessionIdDescription,
         },
         level_min: {
-          type: Type.STRING,
+          type: Type.NUMBER,
           description: propertiesPrompts.levelMinDescription,
         },
         level_max: {
-          type: Type.STRING,
+          type: Type.NUMBER,
           description: propertiesPrompts.levelMaxDescription,
         },
       },
@@ -280,7 +280,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
           type: Type.STRING,
           description: propertiesPrompts.sessionIdDescription,
         },
-        homeInterest: {
+        interestedHome: {
           type: Type.ARRAY,
           items: { type: Type.STRING },
           description: propertiesPrompts.homeInterestDescription,

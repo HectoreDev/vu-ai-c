@@ -71,20 +71,20 @@ export const floorplanSpecsSchema = z.object({
 });
 
 export const interestRateSchema = z.object({
-    interestRate: z.string()
+    interestRateType: z.string()
         .trim()
         .min(1, { message: 'La tasa de interés no puede estar vacía' })
         .max(500, { message: 'La tasa de interés no puede exceder 500 caracteres' })
 });
 
-export const interestedFindHomeSchema = z.object({
-    interestedFindHome: z.array(z.string().trim())
+export const interestFindHomeSchema = z.object({
+    interestFindHome: z.string().trim()
         .min(1, { message: 'El interés no puede ser un arreglo vacío' })
-        .max(5, { message: 'El interés no puede exceder de 5 elementos' })
+        .max(500, { message: 'El interés no puede exceder de 500 elementos' })
 });
 
 export const interestingHomeSchema = z.object({
-    interestingHome: z.array(z.string().trim())
+    interestedHome: z.array(z.string().trim())
         .min(1, { message: 'El interés no puede ser un arreglo vacío' })
         .max(5, { message: 'El interés no puede exceder de 5 elementos' })
 });
@@ -114,11 +114,11 @@ export const floorplanBedSchema = z.object({
     bed_min: z.number()
         .int({ message: 'El número mínimo de habitaciones debe ser un entero' })
         .min(1, { message: 'El número mínimo de habitaciones debe ser al menos 1' })
-        .max(4, { message: 'El número mínimo de habitaciones no puede exceder 4' }),
+        .max(6, { message: 'El número mínimo de habitaciones no puede exceder 4' }),
     bed_max: z.number()
         .int({ message: 'El número máximo de habitaciones debe ser un entero' })
         .min(1, { message: 'El número máximo de habitaciones debe ser al menos 1' })
-        .max(4, { message: 'El número máximo de habitaciones no puede exceder ' })
+        .max(6, { message: 'El número máximo de habitaciones no puede exceder ' })
 }).refine(data => data.bed_max >= data.bed_min, {
     message: 'El número máximo de habitaciones debe ser mayor o igual al número mínimo',
     path: ['bed_max']
@@ -164,11 +164,11 @@ export const floorplanSqftSchema = z.object({
     sqft_min: z.number()
         .int({ message: 'El número mínimo de sqft debe ser un entero' })
         .min(1, { message: 'El número mínimo de sqft debe ser al menos 1' })
-        .max(1000, { message: 'El número mínimo de sqft no puede exceder 1000' }),
+        .max(5000, { message: 'El número mínimo de sqft no puede exceder 5000' }),
     sqft_max: z.number()
         .int({ message: 'El número máximo de sqft debe ser un entero' })
         .min(1, { message: 'El número máximo de sqft debe ser al menos 1' })
-        .max(1000, { message: 'El número máximo de sqft no puede exceder 1000' })
+        .max(5000, { message: 'El número máximo de sqft no puede exceder 5000' })
 }).refine(data => data.sqft_max >= data.sqft_min, {
     message: 'El número máximo de niveles debe ser mayor o igual al número mínimo',
     path: ['sqft_max']
@@ -178,11 +178,11 @@ export const floorplanGarageSchema = z.object({
     garage_min: z.number()
         .int({ message: 'El número mínimo de garages debe ser un entero' })
         .min(1, { message: 'El número mínimo de garages debe ser al menos 1' })
-        .max(3, { message: 'El número mínimo de garages no puede exceder 3' }),
+        .max(5, { message: 'El número mínimo de garages no puede exceder 5' }),
     garage_max: z.number()
         .int({ message: 'El número máximo de garages debe ser un entero' })
         .min(1, { message: 'El número máximo de garages debe ser al menos 1' })
-        .max(3, { message: 'El número máximo de garages no puede exceder 3' })
+        .max(5, { message: 'El número máximo de garages no puede exceder 5' })
 }).refine(data => data.garage_max >= data.garage_min, {
     message: 'El número máximo de garajes debe ser mayor o igual al número mínimo',
     path: ['garage_max']
@@ -217,11 +217,11 @@ const createErrorResponse = (error: Error): ResponseError => {
 };
 
 const createSuccessResponse = (data: Partial<SessionStore>, message: string): ResponseSuccess => {
-    const suggestResponse = sessionStore.getState().suggest();
+    // const suggestResponse = sessionStore.getState().suggest();
 
     return {
         success: true,
-        suggest: suggestResponse,
+        suggest: null,
         data,
         error: null,
         message,
@@ -261,7 +261,7 @@ export const validateLocations = (locations: string[], message: string): Validat
 export const validateLocation = (location: string, message: string): ValidationResult<{ location: string }> => {
     try {
         const data = locationSchema.parse({ location });
-        console.log("validateLocation data", data);
+        // console.log("validateLocation data", data);
 
         return createSuccessResponse(data, message);
     } catch (error) {
@@ -297,33 +297,35 @@ export const validateCustomizing = (customizing: boolean, message: string): Vali
 };
 
 
-export const validateInterestRate = (interestRate: string, message: string): ValidationResult<{ interestRate: string }> => {
+export const validateInterestRate = (interestRateType: string, message: string): ValidationResult<{ interestRateType: string }> => {
     try {
-        const data = interestRateSchema.parse({ interestRate });
+        const data = interestRateSchema.parse({ interestRateType });
         return createSuccessResponse(data, message);
     } catch (error) {
         return createErrorResponse(error as Error);
     }
 };
 
-export const validateInterestedFindHome = (interestedFindHome: string[], message: string): ValidationResult<{ interestedFindHome: string }> => {
+export const validateInterestedFindHome = (interestFindHome: string, message: string): ValidationResult<{ interestFindHome: string }> => {
     try {
         // validar como arreglo
-        const data = interestedFindHomeSchema.parse({ interestedFindHome });
+        const data = interestFindHomeSchema.parse({ interestFindHome });
+        console.log('QQQQQQQQQQQ', data);
+        
         return createSuccessResponse({
-            interest: data.interestedFindHome
+            interestFindHome: data.interestFindHome
         }, message);
     } catch (error) {
         return createErrorResponse(error as Error);
     }
 };
 
-export const validateInterestingHome = (interestingHome: string[], message: string): ValidationResult<{ interestingHome: string }> => {
+export const validateInterestingHome = (interestedHome: string[], message: string): ValidationResult<{ interestingHome: string }> => {
     try {
         // validar 
-        const data = interestingHomeSchema.parse({ interestingHome });
+        const data = interestingHomeSchema.parse({ interestedHome });
         return createSuccessResponse({
-            homeInterest: data.interestingHome
+            homeInterest: data.interestedHome
         }, message);
     } catch (error) {
         return createErrorResponse(error as Error);
@@ -362,7 +364,7 @@ export const validateFloorplanBed = (data: { bed_min: number, bed_max: number },
     }
 };
 
-export const validateFloorplanBath = (data: { min: number, max: number }, message: string): ValidationResult<{ bath_min: number; bath_max: number }> => {
+export const validateFloorplanBath = (data: { bath_min: number, bath_max: number }, message: string): ValidationResult<{ bath_min: number; bath_max: number }> => {
     try {
         const validatedData = floorplanBathSchema.parse(data);
         return createSuccessResponse({
@@ -393,6 +395,7 @@ export const validateFloorplanLevel = (data: { level_min: number, level_max: num
 export const validateFloorplanSqft = (data: { sqft_min: number, sqft_max: number }, message: string): ValidationResult<{ sqft_min: number; sqft_max: number }> => {
     try {
         const validatedData = floorplanSqftSchema.parse(data);
+
         return createSuccessResponse({
             floorplanSqft: {
                 min: validatedData.sqft_min,

@@ -1,6 +1,6 @@
 import { get } from "http";
 
-const sessionIdSuggest = `Requiere sessionId. Si no está presente, devuelve success:false y sugiere preguntar el nombre del usuario.`;
+const sessionIdSuggest = `Requiere sessionId. Si no está presente, continua con la tool y sugiere preguntar el nombre del usuario.`;
 
 export const prompts = {
   systemInstructions: `
@@ -21,10 +21,9 @@ Si el usuario pide algo fuera de este ámbito (p. ej., recetas, programación, t
 - Si no, refiérete a la persona como “amigo”.
 
 [TOOLS & STATE]
-- Para **leer o guardar información** SIEMPRE utiliza las tools disponibles (p. ej., 'getName', 'getLocation', 'getBudget').
+- Para **leer o guardar información** SIEMPRE utiliza las tools disponibles.
 - No inventes datos ni asumas estado; si falta 'sessionId', inicia flujo pidiendo nombre (o usa la tool definida para ello).
-- Tras cada tool exitosa, sugiere lógicamente la **siguiente tool** para avanzar el proceso.
-
+- Tras cada tool exitosa, suguiere el paso siguiente que te sugerira la respuesta de la tool.
 [INTERACCIÓN / MODO LIBRE]
 - Si el usuario escribe libremente (ej.: “hola, soy Eduardo y busco casa en Orlando”), extrae lo relevante (nombre, mercado, etc.) y usa las tools para **persistir** esos datos. 
 - Identifica qué datos faltan.
@@ -38,7 +37,7 @@ Si el usuario pide algo fuera de este ámbito (p. ej., recetas, programación, t
   getCustomizingPrompt: `Persistir si el usuario está interesado en casas personalizables. Acepta {customizing:boolean} o {customizing} como valor booleano de texto libre. ${sessionIdSuggest}`,
   getMoveInReadyPrompt: `Indique si desea incluir viviendas listas para mudanza rápida. Acepta {moveInReady:boolean} o texto que devuelve un valor booleano. ${sessionIdSuggest}`,
   getRentingPrompt: `Indique si desea incluir viviendas disponibles para alquiler. Acepta {renting:boolean} o texto que devuelve un valor booleano. ${sessionIdSuggest}`,
-  getInterestedHomePrompt: `Indique que intereses debe de tener la casa que esta buscando por ejemplo un solo nivel, sin escaleras etc, agregar en un array. ${sessionIdSuggest}`,
+  getInterestedHomePrompt: `Indique que intereses debe de tener la casa que esta buscando por ejemplo un solo nivel, sin escaleras, solo lo que sea de una casa etc, agregar en un array. ${sessionIdSuggest}`,
   getFloorplanBedPrompt: `Indique cuantos cuartos esta buscando solo indicar en numeros enteros y agregar el bed_min y bed_min ya si se obtiene un solo input se genera como bed_min y bed_min, y obtener min y max se pone 3-4, 3 or 4, etc, ${sessionIdSuggest}`,
   getFloorplanSqftPrompt: `Indique cuantos metros cuadrados esta buscando solo indicar en numeros enteros y agregar el sqft_min y sqft_max ya si se obtiene un solo input se genera como sqft_min y sqft_max, y obtener sqft_min y sqft_max se pone 1200-2000, 1000 a 2000, etc, ${sessionIdSuggest}`,
   getFloorplanBathPrompt: `Indique cuántos baños está buscando. Solo se aceptan números enteros (ej. 2, 3) o medios baños en incrementos de 
@@ -46,9 +45,6 @@ Si el usuario pide algo fuera de este ámbito (p. ej., recetas, programación, t
   getFloorplanGaragePrompt: `Indique cuantos garage esta buscando solo indicar en numeros enteros y agregar el garage_min y garage_max ya si se obtiene un solo input se genera como garage_min y garage_max, y obtener min y max se pone 3-4, 3 or 4, etc, ${sessionIdSuggest}`,
   getFloorplanLevelPrompt: `Indique cuantos niveles esta buscando solo indicar en numeros enteros y agregar el bed_min y bed_min ya si se obtiene un solo input se genera como bed_min y bed_min, y obtener min y max se pone 1-2, 1 a 2, etc, maximo una cantidad de 4 ${sessionIdSuggest}`,
   searchCommunityPrompt: `Search communities using filters from the session (locations and budget). If missing, suggests collecting them. ${sessionIdSuggest}`,
-  getSuggestionName: 'Solicita al usuario su nombre',
-  getSuggestionLocation: 'Solicita al usuario la ciudad o ciudades de interés. Ejemplos: "Austin, "Phoenix, "Washington"',
-  getSuggestionBudget: 'Solicita al usuario su presupuesto o rango de precios. Los presupuestos deben estar entre $300,000 y $3,000,000.',
 };
 
 export const propertiesPrompts = {
@@ -58,7 +54,7 @@ export const propertiesPrompts = {
   priceMaxDescription: `Precio máximo del rango. Debe ser mayor o igual a priceMin.`,
   amenitiesDescription: `tiene que venir en un array las amenidades`,
   sessionIdDescription: `Obligatorio. Si falta, la herramienta responde con una sugerencia para capturar el nombre del usuario.`,
-  interestsDescription: `Un array de intereses en tags`,
+  interestsFindHomeDescription: `texto libre que describe las motivaciones del usuario para buscar una vivienda.`,
   interestRateType: `exto libre como 'FHA', 'Convencional', 'no', 'omitir', valor: 'fha_30' | 'convencional_30' | 'null' (para borrar explícitamente)`,
   customizingDescription: `verdadero si está interesado, falso en caso contrario. Texto libre como 'sí', 'no', 'hoy no'.`,
   moveInReadyDescription: `verdadero para incluir mudanzas rápidas, falso para excluir y texto libre como 'sí, incluir', 'no, ahora no' convertir en booleano.`,
@@ -74,4 +70,25 @@ export const propertiesPrompts = {
   garageMaxDescription: `garage_max del rango. Debe ser mayor o igual a garage_min.`,
   levelMinDescription: `level_min del rango. Si el usuario dio un solo valor, repítelo aquí y en level_max.`,
   levelMaxDescription: `level_max del rango. Debe ser mayor o igual a level_min.`,
+};
+
+export const suggestionPrompts = {
+  suggestionName: "Solicita al usuario su nombre",
+  suggestionLocation:
+    'Solicita al usuario la ciudad o ciudades de interés.',
+  suggestionBudget:
+    "Solicita al usuario su presupuesto o rango de precios. Los presupuestos deben estar entre $300,000 y $3,000,000.",
+  suggestionAnemities: "Solicita al usuario las amenidades que desea",
+  suggestionInterestFindHome: 'Solicita al usuario porque esta buscando casa o porque esta interesado en comprar una casa casa ejemplo: cambio de trabajo, inversion, etc',
+  suggestionCustomizing: 'Solicita al usuario si está interesado en personalización de la casa',
+  suggestionMoveInReady: 'Solicita al usuario si necesita una casa lista para mudarse',
+  suggestionFloorplanBed: 'Solicita al usuario el número de habitaciones deseado',
+  suggestionFloorplanBath:  'Solicita al usuario el número de baños deseado',
+  suggestionFloorplanGarage: 'Solicita al usuario el número de garajes deseado',
+  suggestionFloorplanLevel: 'Solicita al usuario el número de niveles deseado',
+  suggestionFloorplanSqft: 'Solicita al usuario los pies cuadrados (sqft) deseados',
+  suggestionHomeInterest:  'Solicita al usuario que intereses debe de tener la casa que esta buscando por ejemplo un solo nivel, sin escaleras, solo lo que sea de una casa etc',
+  suggestionInterestRateType: 'Solicita al usuario la tasa de interés de su preferencia dentro de estas opciones: FHA 30-Year Fixed Rate, Conventional 30-Year Fixed Rate o si no tiene preferencia',
+  suggestionSearhCommunity: 'o solicita si quiere que busque comunidades',
+  suggestionComplete: 'Toda la información está completa. Puedes mostrar resultados o buscar información específica de comunidades'
 };

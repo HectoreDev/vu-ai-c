@@ -10,13 +10,13 @@ type Args = z.infer<typeof interestRateSchema>;
 
 export const getInterestRateType = async (args: Args): Promise<ValidationResult<Args>>  => {
 
-  const response = validateInterestRate(args.interestRate, `User select interest rate ${args.interestRate}`)
+  const response = validateInterestRate(args.interestRateType, `User select interest rate ${args.interestRateType}`)
 
-  const { interestRate } = response.data
+  const { interestRateType } = response.data
 
   const store = sessionStore.getState();
 
-  store.setInterestRate(interestRate);
+  store.setInterestRateType(interestRateType);
 
   return response;
 }

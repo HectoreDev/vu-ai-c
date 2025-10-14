@@ -10,16 +10,18 @@ import {
   toolGetFloorplanSqft,
   toolGetInterestRate,
   toolGetInterestedFindHome,
-  toolGetInterestingHome,
+  toolGetInterestedHome,
   toolGetMoveInReady,
   toolGetRenting,
   toolSearchComunities,
+  toolGetAmenities,
 } from "../tools";
 import { Part } from "@google/genai";
 import { ResponseError, ResponseSuccess } from "./types/responseType";
 import { sessionStore } from "../store/zustandStore";
 import { IFSuggestResponse } from "../types/types";
 import { searchAlgolia } from "../functions/searchAlgolia";
+import { ValidationResult } from "../schemas/store.schema";
 
 export class SimpleMcpServer {
   private tools: Map<string, Function> = new Map();
@@ -34,12 +36,13 @@ export class SimpleMcpServer {
     this.tools.set("getFloorplanGarage", toolGetFloorplanGarage);
     this.tools.set("getFloorplanLevel", toolGetFloorplanLevel);
     this.tools.set("getFloorplanSqft", toolGetFloorplanSqft);
-    this.tools.set("getInterestRate", toolGetInterestRate);
-    this.tools.set("getInterestedFindHome", toolGetInterestedFindHome);
-    this.tools.set("getAmenities", toolGetInterestingHome);
+    this.tools.set("getInterestRateType", toolGetInterestRate);
+    this.tools.set("getInterestFindHome", toolGetInterestedFindHome);
+    this.tools.set("getInterestedHome", toolGetInterestedHome);
+    this.tools.set("getAmenities", toolGetAmenities);
     this.tools.set("getMoveInReady", toolGetMoveInReady);
     this.tools.set("getRenting", toolGetRenting);
-    this.tools.set("getSearchCommunities", toolSearchComunities);
+    this.tools.set("searchCommmunity", toolSearchComunities);
   }
 
   responseSuccess(data: any) {
@@ -59,8 +62,7 @@ export class SimpleMcpServer {
   }
 
   async callTools(tools: Part[]) {
-
-    let results: IFSuggestResponse | null = null;
+    let results: Partial<ValidationResult<any>> = {};
     for (let index = 0; index < tools.length; index++) {
       const { functionCall } = tools[index];
       if (functionCall && functionCall.name) {
@@ -70,60 +72,69 @@ export class SimpleMcpServer {
 
         if (tool) {
           const result = await tool(args);
+          // console.log("suggest", suggestion);
 
-          const store = sessionStore.getState();
+          // if(suggestion && suggestion.missing === null) {
 
-          const suggestion = store.suggest();
-          console.log("suggest", suggestion);
+          //   console.log('check store', store.locations, store.priceMin, store.priceMax);
 
-          if(suggestion && suggestion.missing === null) {
+          //   console.log('Buscando comunidades con Algolia...');
 
-            console.log('check store', store.locations, store.priceMin, store.priceMax);
+          //   // if(store.locations && store.locations.length > 0 && store.priceMin && store.priceMax ) {
 
-            console.log('Buscando comunidades con Algolia...');
+          //   //   console.log('Buscando comunidades con Algolia...');
 
-            if(store.locations && store.locations.length > 0 && store.priceMin && store.priceMax ) {
+          //   //   const result = await searchAlgolia({
+          //   //     location: store.locations,
+          //   //     priceMin: store.priceMin,
+          //   //     priceMax: store.priceMax
+          //   //   });
 
-              console.log('Buscando comunidades con Algolia...');
+          //   //   console.log('result algolia', result);
 
-              const result = await searchAlgolia({
-                location: store.locations,
-                priceMin: store.priceMin,
-                priceMax: store.priceMax
-              });
+          //   //   results = {
+          //   //     suggestion: result.message ? result.message : '',
+          //   //     data: result.data,
+          //   //     missing: null,
+          //   //     nextTool: result.success ? null : 'Por favor proporciona los datos faltantes para continuar con la búsqueda.'
+          //   //    };
 
-              console.log('result algolia', result);
+          //   // } else {
+          //   //   results = suggestion;
+          //   // }
 
-              results = { 
-                suggestion: result.message ? result.message : '',
-                data: result.data,
-                missing: null,
-                nextTool: result.success ? null : 'Por favor proporciona los datos faltantes para continuar con la búsqueda.'
-               };
-
-            } else {
-              results = suggestion;
-            }
-
-          } else {
-            results = suggestion;
-          }
-
+          // } else {
+            // console.log('Result', result);
+            
+          results = {
+            ...result,
+          };
+          // }
         }
       }
     }
 
     const store = sessionStore.getState();
+    const suggestion = sessionStore.getState().suggest();
+    // console.log("SUGGESTION FINAL MCP", suggestion);
+
+    if (suggestion) {
+      results = {
+        suggest: suggestion,
+      };
+    }
 
     return {
       sessionId: store.sessionId,
-      message: [{ text: results?.suggestion || '' }],
-      data: results?.data || null,
-      systemInstruction: results?.data ?
-        'Se te ha brindado información sobre las comunidades que cumplen los requisitos del usuario. Usa esta información para sugerirle al usuario la mejor opción de casa acorde a sus necesidades y preferencias. Después de sugerir la mejor opción, pregunta si desea más información o si quiere ajustar sus criterios de búsqueda.':
-        'Al usuario le faltan el siguiente dato:' + results?.suggestion || '' + '. Responde al usuario de manera amigable y hazle una pregunta sobre este dato faltante. Si ya encontró comunidades que cumplen sus requisitos, sugiérele la mejor opción de casa acorde a sus necesidades y preferencias.',
+      message: [{ text: results?.suggest || "" }],
+      data: results.data || null,
+      systemInstruction:
+     
+        // 'Se te ha brindado información sobre las comunidades que cumplen los requisitos del usuario. Usa esta información para sugerirle al usuario la mejor opción de casa acorde a sus necesidades y preferencias. Después de sugerir la mejor opción, pregunta si desea más información o si quiere ajustar sus criterios de búsqueda.':
+        "Al usuario le faltan el siguiente dato:" +
+        JSON.stringify(results?.suggest?.suggestion) +
+        ". Responde al usuario de manera amigable y hazle una pregunta especifica sobre este dato faltante. Si ya encontró comunidades que cumplen sus requisitos, sugiérele la mejor opción de casa acorde a sus necesidades y preferencias.",
     };
-
   }
 
   listTools() {

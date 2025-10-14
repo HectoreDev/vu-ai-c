@@ -22,7 +22,7 @@ export class GeminiService {
 		const response1 = await model.sendMessage({
 			message: message,
 			config: {
-				// systemInstruction: prompts.systemInstructions,
+				systemInstruction: prompts.systemInstructions,
 				tools: [
 					{
 						functionDeclarations: tools
@@ -43,20 +43,20 @@ export class GeminiService {
 			role: 'user', parts: [{ text: message }]
 		});
 
-		console.log('text response', response1.candidates?.[0]?.content?.parts);
-		console.log('functionCalls', response1.functionCalls);
+		// console.log('text response', response1.candidates?.[0]?.content?.parts);
+		// console.log('functionCalls', response1.functionCalls);
 
 		const toolsCall = response1.candidates?.[0]?.content?.parts || [];
 		// console.log('toolsCall', toolsCall.length);
 
 		if (response1.functionCalls && response1.functionCalls.length > 0) {
 			const mcpResult = await mcpServer.callTools(toolsCall);
-			console.log('Resultados de herramientas:', mcpResult.data);
+			console.log('Resultados de herramientas:', mcpResult);
 
 			console.log('Prompt', mcpResult.systemInstruction);
 
 			const resultMCP = await model.sendMessage({
-				message: mcpResult.data ? mcpResult.data : 'No se encontraron comunidades que coincidan con los criterios proporcionados.',
+				message: JSON.stringify(mcpResult.data) || {},
 				config: {
 					systemInstruction: mcpResult.systemInstruction
 				}

@@ -54,6 +54,7 @@ export const handleSearchCommunities = async (): Promise<ValidationResult<any>> 
     priceMin,
     priceMax
   });
+console.log('search communities', response.data);
 
   return {
     success: true,

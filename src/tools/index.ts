@@ -17,19 +17,19 @@ import { handleGetFloorplanLevel } from "./getFloorplanLevel";
 import { handleGetAmenities } from "./getAmenities";
 
 export const toolStartSession = handleStartSession;
-export const toolGetInterestedFindHome = handleGetInterestFindHome; //
-export const toolGetName = handleGetName; //
-export const toolGetLocations = handleGetLocations;  //
-export const toolGetInterestRate = getInterestRateType;  //
-export const toolGetBudget = handleGetBudget; // 
-export const toolGetCustomizing = handleGetCustomizing; //
-export const toolGetRenting = handleGetRenting; //
+export const toolGetInterestedFindHome = handleGetInterestFindHome; 
+export const toolGetName = handleGetName; 
+export const toolGetLocations = handleGetLocations; 
+export const toolGetInterestRate = getInterestRateType;  
+export const toolGetBudget = handleGetBudget; 
+export const toolGetCustomizing = handleGetCustomizing; 
+export const toolGetRenting = handleGetRenting; 
 export const toolGetFloorplanBed = handleGetFloorplanBed;
 export const toolGetFloorplanBath = handleGetFloorplanBath;
 export const toolGetFloorplanSqft = handleGetFloorplanSqft;
 export const toolGetFloorplanGarage = handleGetFloorplanGarage;
 export const toolGetFloorplanLevel = handleGetFloorplanLevel;
-export const toolGetInterestingHome = handleGetInterestedHome; //
+export const toolGetInterestedHome = handleGetInterestedHome; 
 export const toolSearchComunities = handleSearchCommunities;
-export const toolGetMoveInReady = handleGetMoveInReady; //
-export const toolGetAmenities = handleGetAmenities; //
+export const toolGetMoveInReady = handleGetMoveInReady; 
+export const toolGetAmenities = handleGetAmenities; 
