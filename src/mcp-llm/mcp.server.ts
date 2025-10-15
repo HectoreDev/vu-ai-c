@@ -68,58 +68,25 @@ export class SimpleMcpServer {
       if (functionCall && functionCall.name) {
         const { name, args } = functionCall;
         const tool = this.tools.get(name);
-        console.log("tool", tool);
+        console.log("Tool", tool);
 
         if (tool) {
+          
           const result = await tool(args);
-          // console.log("suggest", suggestion);
 
-          // if(suggestion && suggestion.missing === null) {
-
-          //   console.log('check store', store.locations, store.priceMin, store.priceMax);
-
-          //   console.log('Buscando comunidades con Algolia...');
-
-          //   // if(store.locations && store.locations.length > 0 && store.priceMin && store.priceMax ) {
-
-          //   //   console.log('Buscando comunidades con Algolia...');
-
-          //   //   const result = await searchAlgolia({
-          //   //     location: store.locations,
-          //   //     priceMin: store.priceMin,
-          //   //     priceMax: store.priceMax
-          //   //   });
-
-          //   //   console.log('result algolia', result);
-
-          //   //   results = {
-          //   //     suggestion: result.message ? result.message : '',
-          //   //     data: result.data,
-          //   //     missing: null,
-          //   //     nextTool: result.success ? null : 'Por favor proporciona los datos faltantes para continuar con la búsqueda.'
-          //   //    };
-
-          //   // } else {
-          //   //   results = suggestion;
-          //   // }
-
-          // } else {
-            // console.log('Result', result);
-            
           results = {
             ...result,
           };
-          // }
         }
       }
     }
 
     const store = sessionStore.getState();
     const suggestion = sessionStore.getState().suggest();
-    // console.log("SUGGESTION FINAL MCP", suggestion);
 
     if (suggestion) {
       results = {
+        ...results,
         suggest: suggestion,
       };
     }
@@ -128,12 +95,15 @@ export class SimpleMcpServer {
       sessionId: store.sessionId,
       message: [{ text: results?.suggest || "" }],
       data: results.data || null,
-      systemInstruction:
-     
-        // 'Se te ha brindado información sobre las comunidades que cumplen los requisitos del usuario. Usa esta información para sugerirle al usuario la mejor opción de casa acorde a sus necesidades y preferencias. Después de sugerir la mejor opción, pregunta si desea más información o si quiere ajustar sus criterios de búsqueda.':
-        "Al usuario le faltan el siguiente dato:" +
-        JSON.stringify(results?.suggest?.suggestion) +
-        ". Responde al usuario de manera amigable y hazle una pregunta especifica sobre este dato faltante. Si ya encontró comunidades que cumplen sus requisitos, sugiérele la mejor opción de casa acorde a sus necesidades y preferencias.",
+      systemInstruction: `INSTRUCCIONES (NO MOSTRAR):
+    - sugerencia de tool para proxima pregunta: ${results.suggest?.nextTool}.
+    - Falta este dato este es el suggest: ${JSON.stringify(
+      results.suggest?.suggestion
+    )}.
+    - Pregunta SOLO por ese dato, tono cordial y por su nombre o amigo.
+    - PROHIBIDO inventar, solo formular pregunta que este asociada con el suggest.
+    - ${store.communities && store.communities.length > 0 ? "agregar los datos de las comunidades que encontraste": ""}
+    `,
     };
   }
 

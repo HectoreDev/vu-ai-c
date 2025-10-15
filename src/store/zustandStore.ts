@@ -14,6 +14,7 @@ import {
   Range,
   IFSuggestResponse,
 } from "../types/types";
+import is from "zod/v4/locales/is.cjs";
 
 interface SessionStore {
   // Estados principales
@@ -25,7 +26,7 @@ interface SessionStore {
   amenities?: string;
 
   // Estados adicionales
-  communities?: string;
+  communities?: any;
   community?: string;
   lastToolUsed?: string;
   mcpSessionId?: string;
@@ -38,7 +39,7 @@ interface SessionStore {
   budget: BudgetType | null;
   customizing: boolean | null;
   moveInReady: boolean | null;
-  renting: string | null;
+  renting: boolean | null;
   homeInterest: string[];
   interestRateType?: string;
 
@@ -79,7 +80,7 @@ interface SessionStore {
   setPriceMin: (priceMin: number) => void;
   setPriceMax: (priceMax: number) => void;
   setAmenities: (amenities: string) => ValidationResult<{ amenities: string }>;
-  setCommunities: (communities: string) => void;
+  setCommunities: (communities: any) => void;
   setCommunity: (community: string) => void;
   setLastToolUsed: (tool: string) => void;
   setMcpSessionId: (mcpSessionId: string) => void;
@@ -93,7 +94,7 @@ interface SessionStore {
   setBudget: (budget: BudgetType) => void;
   setCustomizing: (customizing: boolean) => void;
   setMoveInReady: (moveInReady: boolean) => void;
-  setRenting: (renting: string) => void;
+  setRenting: (renting: boolean) => void;
   setHomeInterest: (homeInterest: string[]) => void;
   addHomeInterest: (homeInterest: string) => void;
   removeHomeInterest: (homeInterest: string) => void;
@@ -342,20 +343,6 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     set({ interestRateType });
   },
 
-  // addInterest: (newInterest: string) => {
-  //   set((state) => ({
-  //     interest: state.interest.includes(newInterest)
-  //       ? state.interest
-  //       : [...state.interest, newInterest],
-  //   }));
-  // },
-
-  // removeInterest: (interestToRemove: string) => {
-  //   set((state) => ({
-  //     interest: state.interest.filter((i) => i !== interestToRemove),
-  //   }));
-  // },
-
   setBudgetType: (budgetType: string) => {
     set({ budgetType });
   },
@@ -372,7 +359,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     set({ moveInReady });
   },
 
-  setRenting: (renting: string) => {
+  setRenting: (renting: boolean) => {
     set({ renting });
   },
 
@@ -488,7 +475,22 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
   suggest: () => {
     const state = get();
 
-    
+    const proccesSuggest = (
+      promptSugestion: string,
+      toolSuggestion: string,
+      state: SessionStore
+    ) => {
+
+      const isCommunities = state.communities && state.communities.length > 0;
+
+      return {
+        suggestion: `${promptSugestion} ${
+          !isCommunities ? ` ${suggestionPrompts.suggestionSearhCommunity}`
+        : ""}`,
+        nextTool: `${toolSuggestion} ${!isCommunities ? `| searchCommunity`: ""}`
+      };
+    };
+
     // Validar propiedades principales
     if (!state.name) {
       return {
@@ -522,36 +524,38 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       state.locations.length > 0 &&
       state.name
     ) {
-			
       if (!state.amenities) {
         return {
           missing: null,
-          suggestion: suggestionPrompts.suggestionAnemities + suggestionPrompts.suggestionSearhCommunity,
-          nextTool: "getAmenities | searchCommmunity",
+          ...proccesSuggest(suggestionPrompts.suggestionAnemities, "getAmenities", state)
         };
       }
 
       if (!state.interestFindHome) {
         return {
           missing: null,
-          suggestion: suggestionPrompts.suggestionInterestFindHome + suggestionPrompts.suggestionSearhCommunity,
-          nextTool: "getInterestFindHome | searchCommmunity",
+          ...proccesSuggest(suggestionPrompts.suggestionInterestFindHome, "getInterestFindHome", state)
         };
       }
 
       if (state.customizing === null) {
         return {
           missing: null,
-          suggestion: suggestionPrompts.suggestionCustomizing + suggestionPrompts.suggestionSearhCommunity,
-          nextTool: "getCustomizing | searchCommmunity",
+          ...proccesSuggest(suggestionPrompts.suggestionCustomizing, "getCustomizing", state)
         };
       }
 
       if (state.moveInReady === null) {
         return {
           missing: null,
-          suggestion: suggestionPrompts.suggestionMoveInReady + suggestionPrompts.suggestionSearhCommunity,
-          nextTool: "getMoveInReady | searchCommmunity",
+          ...proccesSuggest(suggestionPrompts.suggestionMoveInReady, "getMoveInReady", state)
+        };
+      }
+
+      if (state.renting === null) {
+        return {
+          missing: null,
+          ...proccesSuggest(suggestionPrompts.suggestionRenting, "getRenting", state)
         };
       }
 
@@ -561,8 +565,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       ) {
         return {
           missing: null,
-          suggestion: suggestionPrompts.suggestionFloorplanBed + suggestionPrompts.suggestionSearhCommunity,
-          nextTool: "getFloorplanBed | searchCommmunity",
+          ...proccesSuggest(suggestionPrompts.suggestionFloorplanBed, "getFloorplanBed", state)
         };
       }
 
@@ -572,8 +575,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       ) {
         return {
           missing: null,
-          suggestion: suggestionPrompts.suggestionFloorplanBath + suggestionPrompts.suggestionSearhCommunity,
-          nextTool: "getFloorplanBath | searchCommmunity",
+          ...proccesSuggest(suggestionPrompts.suggestionFloorplanBath, "getFloorplanBath", state)
         };
       }
 
@@ -583,8 +585,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       ) {
         return {
           missing: null,
-          suggestion: suggestionPrompts.suggestionFloorplanGarage + suggestionPrompts.suggestionSearhCommunity,
-          nextTool: "getFloorplanGarage | searchCommmunity",
+          ...proccesSuggest(suggestionPrompts.suggestionFloorplanGarage, "getFloorplanGarage", state)
         };
       }
 
@@ -594,8 +595,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       ) {
         return {
           missing: null,
-          suggestion: suggestionPrompts.suggestionFloorplanLevel + suggestionPrompts.suggestionSearhCommunity,
-          nextTool: "getFloorplanLevel | searchCommmunity",
+          ...proccesSuggest(suggestionPrompts.suggestionFloorplanLevel, "getFloorplanLevel", state)
         };
       }
 
@@ -605,24 +605,21 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       ) {
         return {
           missing: null,
-          suggestion: suggestionPrompts.suggestionFloorplanSqft + suggestionPrompts.suggestionSearhCommunity,
-          nextTool: "getFloorplanSqft | searchCommmunity",
+          ...proccesSuggest(suggestionPrompts.suggestionFloorplanSqft, "getFloorplanSqft", state)
         };
       }
 
       if (!state.homeInterest || state.homeInterest.length === 0) {
         return {
           missing: null,
-          suggestion: suggestionPrompts.suggestionHomeInterest + suggestionPrompts.suggestionSearhCommunity,
-          nextTool: "getInterestedHome | searchCommmunity",
+          ...proccesSuggest(suggestionPrompts.suggestionHomeInterest, "getInterestedHome", state)
         };
       }
 
       if (!state.interestRateType) {
         return {
           missing: null,
-          suggestion: suggestionPrompts.suggestionInterestRateType + suggestionPrompts.suggestionSearhCommunity,
-          nextTool: "getInterestRateType | searchCommmunity",
+          ...proccesSuggest(suggestionPrompts.suggestionInterestRateType, "getInterestRateType", state)
         };
       }
 

@@ -9,24 +9,21 @@ Eres un asesor de ventas inmobiliarias digital. Tu objetivo es ayudar a los usua
 
 [SCOPE]
 Solo respondes sobre temas inmobiliarios: presupuesto, tasa/producto, ubicaciones/mercados, especificaciones de floorplan (recámaras/baños/garage/sqft), “quick move-in”, renta, y características deseadas del hogar. 
-Si el usuario pide algo fuera de este ámbito (p. ej., recetas, programación, tareas escolares, noticias generales), rechaza con cortesía y redirígelo de vuelta al proceso de compra de vivienda.
+Si el usuario pide algo fuera de este ámbito (p. ej., recetas, programación, tareas escolares, noticias generales), rechaza con cortesía y redirígelo de vuelta al proceso de compra de casa.
 
 [TONE & STYLE]
-- Cercano, profesional, proactivo y positivo.
+- Cercano, profesional, amigable, proactivo y positivo.
 - Frases breves y claras (1–2 líneas por mensaje).
+- 1 o 2 emojis por respuesta.
 - Llama al usuario por su nombre si lo conocemos; si no, usa “amigo”.
 
 [PERSONALIZACIÓN]
 - Si hay nombre en sesión, úsalo con naturalidad (“¡Excelente, (nommbre usuario)!”). 
 - Si no, refiérete a la persona como “amigo”.
 
-[TOOLS & STATE]
-- Para **leer o guardar información** SIEMPRE utiliza las tools disponibles.
-- No inventes datos ni asumas estado; si falta 'sessionId', inicia flujo pidiendo nombre (o usa la tool definida para ello).
-- Tras cada tool exitosa, suguiere el paso siguiente que te sugerira la respuesta de la tool.
 [INTERACCIÓN / MODO LIBRE]
-- Si el usuario escribe libremente (ej.: “hola, soy Eduardo y busco casa en Orlando”), extrae lo relevante (nombre, mercado, etc.) y usa las tools para **persistir** esos datos. 
-- Identifica qué datos faltan.
+- Si el usuario escribe libremente (ej.: “hola, soy Eduardo y busco casa en Orlando”), extrae lo relevante (nombre, localizacion, etc.) y usa las tools para **persistir** esos datos. 
+
   `,
   getNamePrompt: `Obten el nombre del usuario si lo ha agregado y solo regresa el nombre`,
   getLocationsPrompt: `Sí el usuario ha añadido una ciudad o estado, obten la información del lugar o lugares y añadelas en el array, Comma/semicolon separar en un array el locations. ${sessionIdSuggest}`,
@@ -74,21 +71,34 @@ export const propertiesPrompts = {
 
 export const suggestionPrompts = {
   suggestionName: "Solicita al usuario su nombre",
-  suggestionLocation:
-    'Solicita al usuario la ciudad o ciudades de interés.',
+  suggestionLocation: "Solicita al usuario la ciudad o ciudades de interés.",
   suggestionBudget:
     "Solicita al usuario su presupuesto o rango de precios. Los presupuestos deben estar entre $300,000 y $3,000,000.",
   suggestionAnemities: "Solicita al usuario las amenidades que desea",
-  suggestionInterestFindHome: 'Solicita al usuario porque esta buscando casa o porque esta interesado en comprar una casa casa ejemplo: cambio de trabajo, inversion, etc',
-  suggestionCustomizing: 'Solicita al usuario si está interesado en personalización de la casa',
-  suggestionMoveInReady: 'Solicita al usuario si necesita una casa lista para mudarse',
-  suggestionFloorplanBed: 'Solicita al usuario el número de habitaciones deseado',
-  suggestionFloorplanBath:  'Solicita al usuario el número de baños deseado',
-  suggestionFloorplanGarage: 'Solicita al usuario el número de garajes deseado',
-  suggestionFloorplanLevel: 'Solicita al usuario el número de niveles deseado',
-  suggestionFloorplanSqft: 'Solicita al usuario los pies cuadrados (sqft) deseados',
-  suggestionHomeInterest:  'Solicita al usuario que intereses debe de tener la casa que esta buscando por ejemplo un solo nivel, sin escaleras, solo lo que sea de una casa etc',
-  suggestionInterestRateType: 'Solicita al usuario la tasa de interés de su preferencia dentro de estas opciones: FHA 30-Year Fixed Rate, Conventional 30-Year Fixed Rate o si no tiene preferencia',
-  suggestionSearhCommunity: 'o solicita si quiere que busque comunidades',
-  suggestionComplete: 'Toda la información está completa. Puedes mostrar resultados o buscar información específica de comunidades'
+  suggestionInterestFindHome:
+    "Solicita al usuario porque esta buscando casa o porque esta interesado en comprar una casa casa ejemplo: cambio de trabajo, inversion, etc",
+  suggestionCustomizing:
+    "Solicita al usuario si está interesado en personalización de la casa",
+  suggestionMoveInReady:
+    "Solicita al usuario si necesita una casa lista para mudarse",
+  suggestionFloorplanBed:
+    "Solicita al usuario el número de habitaciones deseado",
+  suggestionFloorplanBath: "Solicita al usuario el número de baños deseado",
+  suggestionFloorplanGarage: "Solicita al usuario el número de garajes deseado",
+  suggestionFloorplanLevel: "Solicita al usuario el número de niveles deseado",
+  suggestionRenting: "Solicita al usuario si esta interesado en rentar",
+  suggestionFloorplanSqft:
+    "Solicita al usuario los pies cuadrados (sqft) deseados",
+  suggestionHomeInterest:
+    "Solicita al usuario que intereses debe de tener la casa que esta buscando por ejemplo un solo nivel, sin escaleras, solo lo que sea de una casa etc",
+  suggestionInterestRateType:
+    "Solicita al usuario la tasa de interés de su preferencia dentro de estas opciones: FHA 30-Year Fixed Rate, Conventional 30-Year Fixed Rate o si no tiene preferencia",
+  suggestionSearhCommunity: "o solicita si quiere que busque comunidades",
+  suggestionComplete:
+    "Toda la información está completa. Puedes mostrar resultados o buscar información específica de comunidades",
 };
+
+// [TOOLS & STATE]
+// - Para **leer o guardar información** SIEMPRE utiliza las tools disponibles.
+// - No inventes datos ni asumas estado; si falta 'sessionId', inicia flujo pidiendo nombre (o usa la tool definida para ello).
+// - Tras cada tool exitosa, suguiere el paso siguiente que te sugerira la respuesta de la tool.
