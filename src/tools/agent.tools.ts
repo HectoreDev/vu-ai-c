@@ -72,7 +72,8 @@ const toolSchema: Record<string, FunctionDeclaration> = {
           description: propertiesPrompts.sessionIdDescription,
         },
         amenities: {
-          type: Type.STRING,
+          type: Type.ARRAY,
+          items: { type: Type.STRING },
           description: propertiesPrompts.amenitiesDescription,
         },
       },
