@@ -1,7 +1,6 @@
 import z from "zod";
 import { floorplanLevelSchema, validateFloorplanLevel, ValidationResult } from "../schemas/store.schema";
 import { sessionStore } from "../store/zustandStore";
-import { floorplanSpecsMissing } from "../utils/floorplanSpecsMissing";
 
 type Args = z.infer<typeof floorplanLevelSchema>;
 

@@ -1,6 +1,6 @@
 import { model } from "./gemini.config";
 import { mcpServer } from "./mcp.server";
-import { Part } from "@google/genai";
+import { Part, Type } from "@google/genai";
 import { prompts } from "../prompts/prompts";
 import { tools } from "../tools/agent.tools";
 import { invalidateSession } from "./mcp.tools";
@@ -11,82 +11,69 @@ import type { SessionState } from "./types/gemini.types";
 import { FunctionCallingConfigMode } from "@google/genai";
 
 interface IFHistory {
-	role: 'user' | 'model';
-	parts: Part[];
+  role: "user" | "model";
+  parts: Part[];
 }
 
 export class GeminiService {
+  async chatWithTools(
+    message: string,
+    history: IFHistory[],
+    sessionId?: number
+  ) {
+    const response1 = await model.sendMessage({
+      message: message,
+    });
 
-	async chatWithTools(message: string, history: IFHistory[], sessionId?: number) {
+    history.push({
+      role: "user",
+      parts: [{ text: message }],
+    });
 
-		const response1 = await model.sendMessage({
-			message: message,
-			config: {
-				// systemInstruction: prompts.systemInstructions,
-				tools: [
-					{
-						functionDeclarations: tools
-					},
-				],
-				toolConfig: {
-					functionCallingConfig: {
-						// Force the model to call the specified function
-						// mode: FunctionCallingConfigMode.ANY,
-						// Specify the exact tool name to force
-						// allowedFunctionNames: generalTools.listTools
-					}
-				}
-			}
-		});
+    // console.log('text response', response1.candidates?.[0]?.content?.parts);
+    // console.log('functionCalls', response1.functionCalls);
 
-		history.push({
-			role: 'user', parts: [{ text: message }]
-		});
+    const toolsCall = response1.candidates?.[0]?.content?.parts || [];
+    // console.log('toolsCall', toolsCall.length);
 
-		console.log('text response', response1.candidates?.[0]?.content?.parts);
-		console.log('functionCalls', response1.functionCalls);
+    if (response1.functionCalls && response1.functionCalls.length > 0) {
+      const mcpResult = await mcpServer.callTools(toolsCall);
+      console.log("Resultados de herramientas:", mcpResult.data);
 
-		const toolsCall = response1.candidates?.[0]?.content?.parts || [];
-		// console.log('toolsCall', toolsCall.length);
+      console.log('Prompt', mcpResult.systemInstruction);
 
-		if (response1.functionCalls && response1.functionCalls.length > 0) {
-			const mcpResult = await mcpServer.callTools(toolsCall);
-			console.log('Resultados de herramientas:', mcpResult.data);
+      const resultMCP = await model.sendMessage({
+        message: JSON.stringify(mcpResult.data) || {},
+        config: {
+          systemInstruction: mcpResult.systemInstruction,
+        },
+      });
 
-			console.log('Prompt', mcpResult.systemInstruction);
+      history.push({
+        role: "model",
+        parts: resultMCP.candidates?.[0]?.content?.parts || [],
+      });
 
-			const resultMCP = await model.sendMessage({
-				message: mcpResult.data ? mcpResult.data : 'No se encontraron comunidades que coincidan con los criterios proporcionados.',
-				config: {
-					systemInstruction: mcpResult.systemInstruction
-				}
-			});
+      return {
+        history,
+        message: resultMCP.candidates?.[0]?.content?.parts || [],
+        sessionId: mcpResult.sessionId,
+      };
+    } else {
+      history.push({
+        role: "model",
+        parts: response1.candidates?.[0]?.content?.parts
+          ? response1.candidates?.[0]?.content?.parts
+          : [{ text: "" }],
+      });
 
-			history.push({
-				role: 'model', parts: resultMCP.candidates?.[0]?.content?.parts || []
-			});
-
-			return {
-				history,
-				message: resultMCP.candidates?.[0]?.content?.parts || [],
-				sessionId: mcpResult.sessionId
-			};
-
-		} else {
-
-			history.push({
-				role: 'model', parts: response1.candidates?.[0]?.content?.parts ? response1.candidates?.[0]?.content?.parts : [{ text: '' }]
-			});
-
-			return {
-				history,
-				message: response1.candidates?.[0]?.content?.parts,
-				sessionId: null
-			};
-		}
-
-	}
-
+      return {
+        history,
+        message: response1.candidates?.[0]?.content?.parts,
+        sessionId: null,
+      };
+    }
+  }
 }
 
-export const geminiService = new GeminiService(); 
+export const geminiService = new GeminiService();

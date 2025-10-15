@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { sessionStore } from "../store/zustandStore";
-import { toArray } from "../utils/toArray";
+
 import {
   locationsSchema,
   validateLocation,
@@ -11,7 +11,7 @@ import {
 type Args = z.infer<typeof locationsSchema>;
 
 export const handleGetLocations = async (args: Args): Promise<ValidationResult<Args>> => {
-  console.log('Args',args);
+  // console.log('Args',args);
   const response = validateLocations(args.locations, `User select locations ${args}`);
 
   const { locations } = response.data;

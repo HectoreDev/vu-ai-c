@@ -1,609 +1,666 @@
-import { createStore } from 'zustand/vanilla';
+import { createStore } from "zustand/vanilla";
 import {
-	validateSessionId,
-	validateName,
-	validateLocations,
-	validatePriceRange,
-	validateAmenities,
-	ValidationResult
-} from '../schemas/store.schema';
-import { prompts } from '../prompts/prompts';
-import { BudgetType, FloorplanSpecs, Range, IFSuggestResponse } from "../types/types";
+  validateSessionId,
+  validateName,
+  validateLocations,
+  validatePriceRange,
+  validateAmenities,
+  ValidationResult,
+} from "../schemas/store.schema";
+import { prompts, suggestionPrompts } from "../prompts/prompts";
+import {
+  BudgetType,
+  FloorplanSpecs,
+  Range,
+  IFSuggestResponse,
+} from "../types/types";
+import is from "zod/v4/locales/is.cjs";
+import { hasItems } from "./helper";
 
 interface SessionStore {
-	// Estados principales
-	sessionId?: string;
-	name?: string;
-	locations?: string[];
-	priceMin?: number;
-	priceMax?: number;
-	amenities?: string;
+  // Estados principales
+  sessionId?: string;
+  name?: string;
+  locations?: string[];
+  priceMin?: number;
+  priceMax?: number;
+  amenities?: string[];
 
-	// Estados adicionales
-	communities?: string;
-	community?: string;
-	lastToolUsed?: string;
-	mcpSessionId?: string;
-	location?: string;
+  // Estados adicionales
+  communities?: any;
+  community?: string;
+  lastToolUsed?: string;
+  mcpSessionId?: string;
+  location?: string;
 
-	// Nuevos campos del flujo extendido 
-	interest: string[];
+  // Nuevos campos del flujo extendido
+  interestFindHome?: string;
 
-	budgetType: string | null;
-	budget: BudgetType | null;
-	customizing: boolean | null;
-	moveInReady: boolean | null;
-	renting: string | null;
-	homeInterest: string[];
-	interestRate?: string;
+  budgetType: string | null;
+  budget: BudgetType | null;
+  customizing: boolean | null;
+  moveInReady: boolean | null;
+  renting: boolean | null;
+  homeInterest: string[];
+  interestRateType?: string;
 
-	floorplanBed: {
-		min: number;
-		max: number;
-	};
-	floorplanBath: {
-		min: number;
-		max: number;
-	};
-	floorplanGarage: {
-		min: number;
-		max: number;
-	};
-	floorplanLevel: {
-		min: number;
-		max: number;
-	};
-	floorplanSqft: {
-		min: number;
-		max: number;
-	};
+  floorplanBed: {
+    min: number;
+    max: number;
+  };
+  floorplanBath: {
+    min: number;
+    max: number;
+  };
+  floorplanGarage: {
+    min: number;
+    max: number;
+  };
+  floorplanLevel: {
+    min: number;
+    max: number;
+  };
+  floorplanSqft: {
+    min: number;
+    max: number;
+  };
 
-	// Estado para errores de validación
-	validationErrors: Record<string, string[]>;
+  // Estado para errores de validación
+  validationErrors: Record<string, string[]>;
 
-	// Acciones básicas con validación
-	setSessionId: (sessionId: string) => ValidationResult<{ sessionId: string }>;
-	setName: (name: string) => ValidationResult<{ name: string }>;
-	setlocations: (locations: string[]) => ValidationResult<{ locations: string[] }>;
-	setPriceRange: (priceMin: number, priceMax: number) => ValidationResult<{ priceMin: number; priceMax: number }>;
-	setPriceMin: (priceMin: number) => void;
-	setPriceMax: (priceMax: number) => void;
-	setAmenities: (amenities: string) => ValidationResult<{ amenities: string }>;
-	setCommunities: (communities: string) => void;
-	setCommunity: (community: string) => void;
-	setLastToolUsed: (tool: string) => void;
-	setMcpSessionId: (mcpSessionId: string) => void;
-	setLocation: (location: string) => void;
+  // Acciones básicas con validación
+  setSessionId: (sessionId: string) => ValidationResult<{ sessionId: string }>;
+  setName: (name: string) => ValidationResult<{ name: string }>;
+  setlocations: (
+    locations: string[]
+  ) => ValidationResult<{ locations: string[] }>;
+  setPriceRange: (
+    priceMin: number,
+    priceMax: number
+  ) => ValidationResult<{ priceMin: number; priceMax: number }>;
+  setPriceMin: (priceMin: number) => void;
+  setPriceMax: (priceMax: number) => void;
+  setAmenities: (amenities: string[]) => ValidationResult<{ amenities: string }>;
+  setCommunities: (communities: any) => void;
+  setCommunity: (community: string) => void;
+  setLastToolUsed: (tool: string) => void;
+  setMcpSessionId: (mcpSessionId: string) => void;
+  setLocation: (location: string) => void;
 
-	// Acciones para nuevos campos 
-	setInterest: (interest: string[]) => void;
-	setInterestRate: (interestRate: string) => void;
-	addInterest: (interest: string) => void;
-	removeInterest: (interest: string) => void;
-	setBudgetType: (budgetType: string) => void;
-	setBudget: (budget: BudgetType) => void;
-	setCustomizing: (customizing: boolean) => void;
-	setMoveInReady: (moveInReady: boolean) => void;
-	setRenting: (renting: string) => void;
-	setHomeInterest: (homeInterest: string[]) => void;
-	addHomeInterest: (homeInterest: string) => void;
-	removeHomeInterest: (homeInterest: string) => void;
-	setFloorplanBed: (floorplanBed: { min: number, max: number }) => void;
-	setFloorplanBath: (floorplanBath: { min: number, max: number }) => void;
-	setFloorplanGarage: (floorplanGarage: { min: number, max: number }) => void;
-	setFloorplanLevel: (floorplanLevel: { min: number, max: number }) => void;
-	setFloorplanSqft: (floorplanSqft: { min: number, max: number }) => void;
+  // Acciones para nuevos campos
+  setInterestFindHome: (interestFindHome: string) => void;
+  setInterestRateType: (interestRateType: string) => void;
+  // removeInterest: (interest: string) => void;
+  setBudgetType: (budgetType: string) => void;
+  setBudget: (budget: BudgetType) => void;
+  setCustomizing: (customizing: boolean) => void;
+  setMoveInReady: (moveInReady: boolean) => void;
+  setRenting: (renting: boolean) => void;
+  setHomeInterest: (homeInterest: string[]) => void;
+  addHomeInterest: (homeInterest: string) => void;
+  removeHomeInterest: (homeInterest: string) => void;
+  setFloorplanBed: (floorplanBed: { min: number; max: number }) => void;
+  setFloorplanBath: (floorplanBath: { min: number; max: number }) => void;
+  setFloorplanGarage: (floorplanGarage: { min: number; max: number }) => void;
+  setFloorplanLevel: (floorplanLevel: { min: number; max: number }) => void;
+  setFloorplanSqft: (floorplanSqft: { min: number; max: number }) => void;
 
-	// Acciones de utilidad
-	reset: () => void;
-	updateSessionData: (data: Partial<SessionStore>) => void;
-	isSessionActive: () => boolean;
-	getSessionSummary: () => string;
-	clearValidationErrors: (field?: string) => void;
-	getValidationErrors: (field?: string) => string[];
-	suggest: () => IFSuggestResponse;
+  // Acciones de utilidad
+  reset: () => void;
+  updateSessionData: (data: Partial<SessionStore>) => void;
+  isSessionActive: () => boolean;
+  getSessionSummary: () => string;
+  clearValidationErrors: (field?: string) => void;
+  getValidationErrors: (field?: string) => string[];
+  suggest: () => IFSuggestResponse;
 }
 
 // Estado inicial
 export const initialState = {
-	// Estados principales
-	sessionId: undefined,
-	name: undefined,
-	locations: undefined,
-	priceMin: undefined,
-	priceMax: undefined,
-	amenities: undefined,
+  // Estados principales
+  sessionId: undefined,
+  name: undefined,
+  locations: undefined,
+  priceMin: undefined,
+  priceMax: undefined,
+  amenities: undefined,
 
-	// Estados adicionales
-	communities: undefined,
-	community: undefined,
-	lastToolUsed: undefined,
-	mcpSessionId: undefined,
-	location: undefined,
+  // Estados adicionales
+  communities: undefined,
+  community: undefined,
+  lastToolUsed: undefined,
+  mcpSessionId: undefined,
+  location: undefined,
 
-	// Nuevos campos del flujo extendido 
-	interest: [],
-	budgetType: null,
-	budget: null,
-	customizing: null,
-	moveInReady: null,
-	renting: null,
-	homeInterest: [],
-	interestRate: undefined,
+  // Nuevos campos del flujo extendido
+  interestFindHome: undefined,
+  budgetType: null,
+  budget: null,
+  customizing: null,
+  moveInReady: null,
+  renting: null,
+  homeInterest: [],
+  interestRate: undefined,
 
-	// Floorplan specs
-	floorplanBed: {
-		min: 0,
-		max: 0,
-	},
-	floorplanBath: {
-		min: 0,
-		max: 0,
-	},
-	floorplanGarage: {
-		min: 0,
-		max: 0,
-	},
-	floorplanLevel: {
-		min: 0,
-		max: 0,
-	},
-	floorplanSqft: {
-		min: 0,
-		max: 0,
-	},
+  // Floorplan specs
+  floorplanBed: {
+    min: 0,
+    max: 0,
+  },
+  floorplanBath: {
+    min: 0,
+    max: 0,
+  },
+  floorplanGarage: {
+    min: 0,
+    max: 0,
+  },
+  floorplanLevel: {
+    min: 0,
+    max: 0,
+  },
+  floorplanSqft: {
+    min: 0,
+    max: 0,
+  },
 
-	// Estado para errores de validación
-	validationErrors: {},
+  // Estado para errores de validación
+  validationErrors: {},
 };
 
-
-
 export const sessionStore = createStore<SessionStore>()((set, get) => ({
+  ...initialState,
 
-	...initialState,
+  // Acciones básicas con validación
+  setSessionId: (sessionId: string) => {
+    const validation = validateSessionId(sessionId, "SessionId");
 
-	// Acciones básicas con validación
-	setSessionId: (sessionId: string) => {
-		const validation = validateSessionId(sessionId, "SessionId");
+    if (validation.success) {
+      set((state) => ({
+        sessionId: validation.data.sessionId,
+        validationErrors: {
+          ...state.validationErrors,
+          sessionId: [],
+        },
+      }));
+    } else {
+      // Store actual validation errors
+      const errorMessages = validation.error
+        ? [validation.error]
+        : ["Error de validación"];
+      set((state) => ({
+        validationErrors: {
+          ...state.validationErrors,
+          sessionId: errorMessages,
+        },
+      }));
+    }
+    return validation;
+  },
 
-		if (validation.success) {
-			set((state) => ({
-				sessionId: validation.data.sessionId,
-				validationErrors: {
-					...state.validationErrors,
-					sessionId: []
-				}
-			}));
-		} else {
-			// Store actual validation errors
-			const errorMessages = validation.error ? [validation.error] : ['Error de validación'];
-			set((state) => ({
-				validationErrors: {
-					...state.validationErrors,
-					sessionId: errorMessages
-				}
-			}));
-		}
-		return validation;
-	},
+  setName: (name: string) => {
+    const validation = validateName(name, "Name");
 
-	setName: (name: string) => {
-		const validation = validateName(name, "Name");
+    if (validation.success) {
+      set((state) => ({
+        name: validation.data.name,
+        validationErrors: {
+          ...state.validationErrors,
+          name: [],
+        },
+      }));
+    } else {
+      // Store actual validation errors
+      const errorMessages = validation.error
+        ? [validation.error]
+        : ["Error de validación"];
+      set((state) => ({
+        validationErrors: {
+          ...state.validationErrors,
+          name: errorMessages,
+        },
+      }));
+    }
+    return validation;
+  },
 
-		if (validation.success) {
-			set((state) => ({
-				name: validation.data.name,
-				validationErrors: {
-					...state.validationErrors,
-					name: []
-				}
-			}));
-		} else {
-			// Store actual validation errors
-			const errorMessages = validation.error ? [validation.error] : ['Error de validación'];
-			set((state) => ({
-				validationErrors: {
-					...state.validationErrors,
-					name: errorMessages
-				}
-			}));
-		}
-		return validation;
-	},
+  setlocations: (locations: string[]) => {
+    const validation = validateLocations(locations, "Locations");
 
-	setlocations: (locations: string[]) => {
-		const validation = validateLocations(locations, "Locations");
+    if (validation.success) {
+      set((state) => ({
+        locations: validation.data.locations,
+        validationErrors: {
+          ...state.validationErrors,
+          locations: [],
+        },
+      }));
+    } else {
+      // Store actual validation errors
+      const errorMessages = validation.error
+        ? [validation.error]
+        : ["Error de validación"];
+      set((state) => ({
+        validationErrors: {
+          ...state.validationErrors,
+          locations: errorMessages,
+        },
+      }));
+    }
+    return validation;
+  },
 
-		if (validation.success) {
-			set((state) => ({
-				locations: validation.data.locations,
-				validationErrors: {
-					...state.validationErrors,
-					locations: []
-				}
-			}));
-		} else {
-			// Store actual validation errors
-			const errorMessages = validation.error ? [validation.error] : ['Error de validación'];
-			set((state) => ({
-				validationErrors: {
-					...state.validationErrors,
-					locations: errorMessages
-				}
-			}));
-		}
-		return validation;
-	},
+  setPriceRange: (priceMin: number, priceMax: number) => {
+    const validation = validatePriceRange(priceMin, priceMax, "PriceRange");
 
-	setPriceRange: (priceMin: number, priceMax: number) => {
-		const validation = validatePriceRange(priceMin, priceMax, "PriceRange");
+    if (validation.success) {
+      set((state) => ({
+        priceMin: validation.data.priceMin,
+        priceMax: validation.data.priceMax,
+        validationErrors: {
+          ...state.validationErrors,
+          priceRange: [],
+        },
+      }));
+    } else {
+      // Store actual validation errors
+      const errorMessages = validation.error
+        ? [validation.error]
+        : ["Error de validación"];
+      set((state) => ({
+        validationErrors: {
+          ...state.validationErrors,
+          priceRange: errorMessages,
+        },
+      }));
+    }
+    return validation;
+  },
 
-		if (validation.success) {
-			set((state) => ({
-				priceMin: validation.data.priceMin,
-				priceMax: validation.data.priceMax,
-				validationErrors: {
-					...state.validationErrors,
-					priceRange: []
-				}
-			}));
-		} else {
-			// Store actual validation errors
-			const errorMessages = validation.error ? [validation.error] : ['Error de validación'];
-			set((state) => ({
-				validationErrors: {
-					...state.validationErrors,
-					priceRange: errorMessages
-				}
-			}));
-		}
-		return validation;
-	},
+  setPriceMin: (priceMin: number) => {
+    set({ priceMin });
+    return get().priceMin;
+  },
 
-	setPriceMin: (priceMin: number) => {
-		set({ priceMin });
-		return get().priceMin;
-	},
+  setPriceMax: (priceMax: number) => {
+    set({ priceMax });
+    return get().priceMax;
+  },
 
-	setPriceMax: (priceMax: number) => {
-		set({ priceMax });
-		return get().priceMax;
-	},
+  setAmenities: (amenities: string[]) => {
+    const validation = validateAmenities(amenities, "Amenities");
 
-	setAmenities: (amenities: string) => {
-		const validation = validateAmenities(amenities, "Amenities");
+    if (validation.success) {
+      set((state) => ({
+        amenities: validation.data.amenities,
+        validationErrors: {
+          ...state.validationErrors,
+          amenities: [],
+        },
+      }));
+    } else {
+      // Store actual validation errors
+      const errorMessages = validation.error
+        ? [validation.error]
+        : ["Error de validación"];
+      set((state) => ({
+        validationErrors: {
+          ...state.validationErrors,
+          amenities: errorMessages,
+        },
+      }));
+    }
+    return validation;
+  },
 
-		if (validation.success) {
-			set((state) => ({
-				amenities: validation.data.amenities,
-				validationErrors: {
-					...state.validationErrors,
-					amenities: []
-				}
-			}));
-		} else {
-			// Store actual validation errors
-			const errorMessages = validation.error ? [validation.error] : ['Error de validación'];
-			set((state) => ({
-				validationErrors: {
-					...state.validationErrors,
-					amenities: errorMessages
-				}
-			}));
-		}
-		return validation;
-	},
+  setCommunities: (communities: string) => {
+    // const validation = validateCommunities(communities, "Communities");
+    set({ communities });
+  },
 
-	setCommunities: (communities: string) => {
-		// const validation = validateCommunities(communities, "Communities");
-		set({ communities });
-	},
+  setCommunity: (community: string) => {
+    set({ community });
+  },
 
-	setCommunity: (community: string) => {
-		set({ community });
-	},
+  setLastToolUsed: (lastToolUsed: string) => {
+    set({ lastToolUsed });
+  },
 
-	setLastToolUsed: (lastToolUsed: string) => {
-		set({ lastToolUsed });
-	},
+  setMcpSessionId: (mcpSessionId: string) => {
+    set({ mcpSessionId });
+  },
 
-	setMcpSessionId: (mcpSessionId: string) => {
-		set({ mcpSessionId });
-	},
+  setLocation: (location: string) => {
+    set({ location });
+  },
 
-	setLocation: (location: string) => {
-		set({ location });
-	},
+  // Acciones para nuevos campos
 
-	// Acciones para nuevos campos 
+  setInterestFindHome: (interestFindHome: string) => {
+    set({ interestFindHome });
+  },
 
-	setInterest: (interest: string[]) => {
-		set({ interest });
-	},
+  setInterestRateType: (interestRateType: string) => {
+    set({ interestRateType });
+  },
 
-	setInterestRate: (interestRate: string) => {
-		set({ interestRate });
-	},
+  setBudgetType: (budgetType: string) => {
+    set({ budgetType });
+  },
 
-	addInterest: (newInterest: string) => {
-		set((state) => ({
-			interest: state.interest.includes(newInterest)
-				? state.interest
-				: [...state.interest, newInterest]
-		}));
-	},
+  setBudget: (budget: BudgetType) => {
+    set({ budget });
+  },
 
-	removeInterest: (interestToRemove: string) => {
-		set((state) => ({
-			interest: state.interest.filter(i => i !== interestToRemove)
-		}));
-	},
+  setCustomizing: (customizing: boolean) => {
+    set({ customizing });
+  },
 
-	setBudgetType: (budgetType: string) => {
-		set({ budgetType });
-	},
+  setMoveInReady: (moveInReady: boolean) => {
+    set({ moveInReady });
+  },
 
-	setBudget: (budget: BudgetType) => {
-		set({ budget });
-	},
+  setRenting: (renting: boolean) => {
+    set({ renting });
+  },
 
-	setCustomizing: (customizing: boolean) => {
-		set({ customizing });
-	},
+  setHomeInterest: (homeInterest: string[]) => {
+    set({ homeInterest });
+  },
 
-	setMoveInReady: (moveInReady: boolean) => {
-		set({ moveInReady });
-	},
+  addHomeInterest: (newHomeInterest: string) => {
+    set((state) => ({
+      homeInterest: state.homeInterest.includes(newHomeInterest)
+        ? state.homeInterest
+        : [...state.homeInterest, newHomeInterest],
+    }));
+  },
 
-	setRenting: (renting: string) => {
-		set({ renting });
-	},
+  removeHomeInterest: (homeInterestToRemove: string) => {
+    set((state) => ({
+      homeInterest: state.homeInterest.filter(
+        (h) => h !== homeInterestToRemove
+      ),
+    }));
+  },
 
-	setHomeInterest: (homeInterest: string[]) => {
-		set({ homeInterest });
-	},
+  setFloorplanBed: (floorplanBed: { min: number; max: number }) => {
+    set({ floorplanBed });
+  },
 
-	addHomeInterest: (newHomeInterest: string) => {
-		set((state) => ({
-			homeInterest: state.homeInterest.includes(newHomeInterest)
-				? state.homeInterest
-				: [...state.homeInterest, newHomeInterest]
-		}));
-	},
+  setFloorplanBath: (floorplanBath: { min: number; max: number }) => {
+    set({ floorplanBath });
+  },
 
-	removeHomeInterest: (homeInterestToRemove: string) => {
-		set((state) => ({
-			homeInterest: state.homeInterest.filter(h => h !== homeInterestToRemove)
-		}));
-	},
+  setFloorplanGarage: (floorplanGarage: { min: number; max: number }) => {
+    set({ floorplanGarage });
+  },
 
-	setFloorplanBed: (floorplanBed: { min: number, max: number }) => {
-		set({ floorplanBed });
-	},
+  setFloorplanLevel: (floorplanLevel: { min: number; max: number }) => {
+    set({ floorplanLevel });
+  },
 
-	setFloorplanBath: (floorplanBath: { min: number, max: number }) => {
-		set({ floorplanBath });
-	},
+  setFloorplanSqft: (floorplanSqft: { min: number; max: number }) => {
+    set({ floorplanSqft });
+  },
 
-	setFloorplanGarage: (floorplanGarage: { min: number, max: number }) => {
-		set({ floorplanGarage });
-	},
+  // Acciones de utilidad
+  reset: () => set(initialState),
 
-	setFloorplanLevel: (floorplanLevel: { min: number, max: number }) => {
-		set({ floorplanLevel });
-	},
+  updateSessionData: (data: Partial<SessionStore>) =>
+    set((state) => ({ ...state, ...data })),
 
-	setFloorplanSqft: (floorplanSqft: { min: number, max: number }) => {
-		set({ floorplanSqft });
-	},
+  isSessionActive: () => {
+    const state = get();
+    return !!(state.sessionId || state.mcpSessionId);
+  },
 
-	// Acciones de utilidad
-	reset: () =>
-		set(initialState),
+  getSessionSummary: () => {
+    const state = get();
+    const summary = [];
 
-	updateSessionData: (data: Partial<SessionStore>) =>
-		set((state) => ({ ...state, ...data })),
+    if (state.name) summary.push(`Nombre: ${state.name}`);
+    if (state.locations) summary.push(`Ubicación: ${state.locations}`);
+    if (state.priceMin && state.priceMax) {
+      summary.push(
+        `Rango de precios: $${state.priceMin.toLocaleString()} - $${state.priceMax.toLocaleString()}`
+      );
+    }
+    if (state.amenities) summary.push(`Amenidades: ${state.amenities}`);
+    if (state.communities) summary.push(`Comunidades encontradas: Sí`);
+    if (state.community)
+      summary.push(`Comunidad seleccionada: ${state.community}`);
 
-	isSessionActive: () => {
-		const state = get();
-		return !!(state.sessionId || state.mcpSessionId);
-	},
+    return summary.length > 0 ? summary.join(" | ") : "Sin datos de sesión";
+  },
 
-	getSessionSummary: () => {
-		const state = get();
-		const summary = [];
+  // Métodos de utilidad para validación
+  clearValidationErrors: (field?: string) => {
+    if (field) {
+      set((state) => ({
+        validationErrors: {
+          ...state.validationErrors,
+          [field]: [],
+        },
+      }));
+    } else {
+      set({ validationErrors: {} });
+    }
+  },
 
-		if (state.name) summary.push(`Nombre: ${state.name}`);
-		if (state.locations) summary.push(`Ubicación: ${state.locations}`);
-		if (state.priceMin && state.priceMax) {
-			summary.push(`Rango de precios: $${state.priceMin.toLocaleString()} - $${state.priceMax.toLocaleString()}`);
-		}
-		if (state.amenities) summary.push(`Amenidades: ${state.amenities}`);
-		if (state.communities) summary.push(`Comunidades encontradas: Sí`);
-		if (state.community) summary.push(`Comunidad seleccionada: ${state.community}`);
+  getValidationErrors: (field?: string) => {
+    const state = get();
+    if (field) {
+      return state.validationErrors[field] || [];
+    } else {
+      return Object.values(state.validationErrors).flat();
+    }
+  },
 
-		return summary.length > 0 ? summary.join(' | ') : 'Sin datos de sesión';
-	},
+  /**
+   * Función suggest: Sugiere la siguiente acción basándose en el estado actual
+   *
+   * @returns {Object} Objeto con información sobre propiedades faltantes y sugerencias
+   * - missing: Propiedad principal faltante (name, location, budget) o null
+   * - suggestion: Mensaje de sugerencia para el usuario
+   * - nextTool: Nombre de la siguiente herramienta/función a ejecutar
+   *
+   * @example
+   * const suggestion = store.suggest();
+   * if (suggestion.missing) {
+   *   console.log(`Falta: ${suggestion.missing}`);
+   * }
+   * console.log(`Sugerencia: ${suggestion.suggestion}`);
+   * console.log(`Siguiente tool: ${suggestion.nextTool}`);
+   */
+  suggest: () => {
+    const state = get();
 
-	// Métodos de utilidad para validación
-	clearValidationErrors: (field?: string) => {
-		if (field) {
-			set((state) => ({
-				validationErrors: {
-					...state.validationErrors,
-					[field]: []
-				}
-			}));
-		} else {
-			set({ validationErrors: {} });
-		}
-	},
+    const buildSuggest = (
+      prompt: string,
+      primaryTool: string,
+      state: SessionStore
+    ): IFSuggestResponse => {
+      const hasCommunities = hasItems(state.communities);
+      const extraPrompt = !hasCommunities
+        ? ` o ${suggestionPrompts.suggestionSearhCommunity}`
+        : "";
+      const extraTool = !hasCommunities ? ["searchCommunity"] : [];
 
-	getValidationErrors: (field?: string) => {
-		const state = get();
-		if (field) {
-			return state.validationErrors[field] || [];
-		} else {
-			return Object.values(state.validationErrors).flat();
-		}
-	},
+      const nextTools = [primaryTool, ...extraTool];
 
-	/**
-	 * Función suggest: Sugiere la siguiente acción basándose en el estado actual
-	 * 
-	 * @returns {Object} Objeto con información sobre propiedades faltantes y sugerencias
-	 * - missing: Propiedad principal faltante (name, location, budget) o null
-	 * - suggestion: Mensaje de sugerencia para el usuario
-	 * - nextTool: Nombre de la siguiente herramienta/función a ejecutar
-	 * 
-	 * @example
-	 * const suggestion = store.suggest();
-	 * if (suggestion.missing) {
-	 *   console.log(`Falta: ${suggestion.missing}`);
-	 * }
-	 * console.log(`Sugerencia: ${suggestion.suggestion}`);
-	 * console.log(`Siguiente tool: ${suggestion.nextTool}`);
-	 */
-	suggest: () => {
-		const state = get();
+      return {
+        missing: null,
+        suggestion: `${prompt}${extraPrompt}`.replace(/\s+/g, " ").trim(),
+        nextTool: nextTools.join(" | "),
+      };
+    };
 
-		// Validar propiedades principales
-		if (!state.name) {
-			return {
-				missing: 'name',
-				suggestion: prompts.getSuggestionName,
-				nextTool: 'getName'
-			};
-		}
+    // Validar propiedades principales
+    if (!state.name) {
+      return {
+        missing: "name",
+        suggestion: suggestionPrompts.suggestionName,
+        nextTool: "getName",
+      };
+    }
 
-		if (!state.locations || state.locations.length === 0) {
-			return {
-				missing: 'location',
-				suggestion: prompts.getSuggestionLocation,
-				nextTool: 'getLocations'
-			};
-		}
+    if (!state.locations || state.locations.length === 0) {
+      return {
+        missing: "location",
+        suggestion: suggestionPrompts.suggestionLocation,
+        nextTool: "getLocations",
+      };
+    }
 
-		if (!state.budget && (!state.priceMin || !state.priceMax)) {
-			return {
-				missing: 'budget',
-				suggestion: prompts.getSuggestionBudget,
-				nextTool: 'getBudget'
-			};
-		}
+    if (!state.budget && (!state.priceMin || !state.priceMax)) {
+      return {
+        missing: "budget",
+        suggestion: suggestionPrompts.suggestionBudget,
+        nextTool: "getBudget",
+      };
+    }
 
-		// Si tiene todas las propiedades principales, validar adicionales y sugerir
-		// Validar propiedades adicionales en orden de prioridad
-		if (!state.amenities) {
-			return {
-				missing: null,
-				suggestion: 'Solicita al usuario las amenidades que desea',
-				nextTool: 'getAmenities'
-			};
-		}
+    // Si tiene todas las propiedades principales, validar adicionales y sugerir
+    // Validar propiedades adicionales en orden de prioridad
+    if (
+      state.priceMin &&
+      state.priceMax &&
+      state.locations.length > 0 &&
+      state.name
+    ) {
+      if (!state.amenities) {
+        return buildSuggest(
+          suggestionPrompts.suggestionAnemities,
+          "getAmenities",
+          state
+        );
+      }
 
-		if (!state.interest || state.interest.length === 0) {
-			return {
-				missing: null,
-				suggestion: 'Solicita al usuario sus intereses para encontrar un hogar',
-				nextTool: 'getInterestFindHome'
-			};
-		}
+      if (!state.interestFindHome) {
+        return buildSuggest(
+            suggestionPrompts.suggestionInterestFindHome,
+            "getInterestFindHome",
+            state
+          )
+      }
 
-		if (state.customizing === null) {
-			return {
-				missing: null,
-				suggestion: 'Solicita al usuario si está interesado en personalización',
-				nextTool: 'getCustomizing'
-			};
-		}
+      if (state.customizing === null) {
+        return buildSuggest(
+            suggestionPrompts.suggestionCustomizing,
+            "getCustomizing",
+            state
+          )
+      }
 
-		if (state.moveInReady === null) {
-			return {
-				missing: null,
-				suggestion: 'Solicita al usuario si necesita una casa lista para mudarse',
-				nextTool: 'getMoveInReady'
-			};
-		}
+      if (state.moveInReady === null) {
+        return buildSuggest(
+            suggestionPrompts.suggestionMoveInReady,
+            "getMoveInReady",
+            state
+          )
+      }
 
-		if (!state.floorplanBed || (state.floorplanBed.min === 0 && state.floorplanBed.max === 0)) {
-			return {
-				missing: null,
-				suggestion: 'Solicita al usuario el número de habitaciones deseado',
-				nextTool: 'getFloorplanBed'
-			};
-		}
+      if (state.renting === null) {
+        return buildSuggest(
+            suggestionPrompts.suggestionRenting,
+            "getRenting",
+            state
+          )
+      }
 
-		if (!state.floorplanBath || (state.floorplanBath.min === 0 && state.floorplanBath.max === 0)) {
-			return {
-				missing: null,
-				suggestion: 'Solicita al usuario el número de baños deseado',
-				nextTool: 'getFloorplanBath'
-			};
-		}
+      if (
+        !state.floorplanBed ||
+        (state.floorplanBed.min === 0 && state.floorplanBed.max === 0)
+      ) {
+        return buildSuggest(
+            suggestionPrompts.suggestionFloorplanBed,
+            "getFloorplanBed",
+            state
+          )
+      }
 
-		if (!state.floorplanGarage || (state.floorplanGarage.min === 0 && state.floorplanGarage.max === 0)) {
-			return {
-				missing: null,
-				suggestion: 'Solicita al usuario el número de garajes deseado',
-				nextTool: 'getFloorplanGarage'
-			};
-		}
+      if (
+        !state.floorplanBath ||
+        (state.floorplanBath.min === 0 && state.floorplanBath.max === 0)
+      ) {
+        return buildSuggest(
+            suggestionPrompts.suggestionFloorplanBath,
+            "getFloorplanBath",
+            state
+          )
+      }
 
-		if (!state.floorplanLevel || (state.floorplanLevel.min === 0 && state.floorplanLevel.max === 0)) {
-			return {
-				missing: null,
-				suggestion: 'Solicita al usuario el número de niveles deseado',
-				nextTool: 'getFloorplanLevel'
-			};
-		}
+      if (
+        !state.floorplanGarage ||
+        (state.floorplanGarage.min === 0 && state.floorplanGarage.max === 0)
+      ) {
+        return buildSuggest(
+            suggestionPrompts.suggestionFloorplanGarage,
+            "getFloorplanGarage",
+            state
+          )
+      }
 
-		if (!state.floorplanSqft || (state.floorplanSqft.min === 0 && state.floorplanSqft.max === 0)) {
-			return {
-				missing: null,
-				suggestion: 'Solicita al usuario los pies cuadrados (sqft) deseados',
-				nextTool: 'getFloorplanSqft'
-			};
-		}
+      if (
+        !state.floorplanLevel ||
+        (state.floorplanLevel.min === 0 && state.floorplanLevel.max === 0)
+      ) {
+        return buildSuggest(
+            suggestionPrompts.suggestionFloorplanLevel,
+            "getFloorplanLevel",
+            state
+          )
+      }
 
-		if (!state.homeInterest || state.homeInterest.length === 0) {
-			return {
-				missing: null,
-				suggestion: 'Solicita al usuario qué le interesa de un hogar',
-				nextTool: 'getInterestedHome'
-			};
-		}
+      if (
+        !state.floorplanSqft ||
+        (state.floorplanSqft.min === 0 && state.floorplanSqft.max === 0)
+      ) {
+        return buildSuggest(
+            suggestionPrompts.suggestionFloorplanSqft,
+            "getFloorplanSqft",
+            state
+          )
+      }
 
-		if (!state.interestRate) {
-			return {
-				missing: null,
-				suggestion: 'Solicita al usuario la tasa de interés de su preferencia',
-				nextTool: 'getInterestRateType'
-			};
-		}
+      if (!state.homeInterest || state.homeInterest.length === 0) {
+        return buildSuggest(
+            suggestionPrompts.suggestionHomeInterest,
+            "getInterestedHome",
+            state
+          )
+      }
 
-		if (!state.communities) {
-			return {
-				missing: null,
-				suggestion: 'Busca comunidades basadas en las preferencias del usuario',
-				nextTool: 'searchCommmunity'
-			};
-		}
+      if (!state.interestRateType) {
+        return buildSuggest(
+            suggestionPrompts.suggestionInterestRateType,
+            "getInterestRateType",
+            state
+          )
+      }
 
-		// Si tiene toda la información
-		return {
-			missing: null,
-			suggestion: 'Toda la información está completa. Puedes mostrar resultados o buscar información específica de comunidades',
-			nextTool: 'searchCommmunity'
-		};
-	},
+      if (!state.communities) {
+        return {
+          missing: null,
+          suggestion: suggestionPrompts.suggestionSearhCommunity,
+          nextTool: "searchCommmunity",
+        };
+      }
+    }
 
+    // Si tiene toda la información
+    return {
+      missing: null,
+      suggestion: suggestionPrompts.suggestionComplete,
+      nextTool: "searchCommmunity",
+    };
+  },
 }));
 
 // Subscribe para debugging (opcional)
 sessionStore.subscribe((state) => {
-	// console.log('state', state);
+  // console.log('state', state);
 });
 
 // Tipo para exportar la interfaz del store
