@@ -1,3 +1,4 @@
+import { Range } from '../types/types';
 import { sessionStore, SessionStore } from './zustandStore';
 
 /**
@@ -13,6 +14,8 @@ export type SessionData = Pick<SessionStore,
 export type SessionFlow = Pick<SessionStore,
     'lastToolUsed' | 'communities' | 'community'
 >;
+
+type MaybeBool = boolean | null | undefined;
 
 /**
  * Helper class con utilidades para el SessionStore
@@ -40,3 +43,7 @@ export class SessionHelper {
         }
     }
 }
+
+export const hasRange = (r?: Range | null) => !!r && (r.min ?? 0) > 0 && (r.max ?? 0) > 0;
+export const isUnsetBool = (v: MaybeBool) => v === null || v === undefined;
+export const hasItems = <T>(a?: T[] | null) => Array.isArray(a) && a.length > 0;

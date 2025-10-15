@@ -15,6 +15,7 @@ import {
   IFSuggestResponse,
 } from "../types/types";
 import is from "zod/v4/locales/is.cjs";
+import { hasItems } from "./helper";
 
 interface SessionStore {
   // Estados principales
@@ -475,19 +476,23 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
   suggest: () => {
     const state = get();
 
-    const proccesSuggest = (
-      promptSugestion: string,
-      toolSuggestion: string,
+    const buildSuggest = (
+      prompt: string,
+      primaryTool: string,
       state: SessionStore
-    ) => {
+    ): IFSuggestResponse => {
+      const hasCommunities = hasItems(state.communities);
+      const extraPrompt = !hasCommunities
+        ? ` o ${suggestionPrompts.suggestionSearhCommunity}`
+        : "";
+      const extraTool = !hasCommunities ? ["searchCommunity"] : [];
 
-      const isCommunities = state.communities && state.communities.length > 0;
+      const nextTools = [primaryTool, ...extraTool];
 
       return {
-        suggestion: `${promptSugestion} ${
-          !isCommunities ? ` ${suggestionPrompts.suggestionSearhCommunity}`
-        : ""}`,
-        nextTool: `${toolSuggestion} ${!isCommunities ? `| searchCommunity`: ""}`
+        missing: null,
+        suggestion: `${prompt}${extraPrompt}`.replace(/\s+/g, " ").trim(),
+        nextTool: nextTools.join(" | "),
       };
     };
 
@@ -525,102 +530,114 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       state.name
     ) {
       if (!state.amenities) {
-        return {
-          missing: null,
-          ...proccesSuggest(suggestionPrompts.suggestionAnemities, "getAmenities", state)
-        };
+        return buildSuggest(
+          suggestionPrompts.suggestionAnemities,
+          "getAmenities",
+          state
+        );
       }
 
       if (!state.interestFindHome) {
-        return {
-          missing: null,
-          ...proccesSuggest(suggestionPrompts.suggestionInterestFindHome, "getInterestFindHome", state)
-        };
+        return buildSuggest(
+            suggestionPrompts.suggestionInterestFindHome,
+            "getInterestFindHome",
+            state
+          )
       }
 
       if (state.customizing === null) {
-        return {
-          missing: null,
-          ...proccesSuggest(suggestionPrompts.suggestionCustomizing, "getCustomizing", state)
-        };
+        return buildSuggest(
+            suggestionPrompts.suggestionCustomizing,
+            "getCustomizing",
+            state
+          )
       }
 
       if (state.moveInReady === null) {
-        return {
-          missing: null,
-          ...proccesSuggest(suggestionPrompts.suggestionMoveInReady, "getMoveInReady", state)
-        };
+        return buildSuggest(
+            suggestionPrompts.suggestionMoveInReady,
+            "getMoveInReady",
+            state
+          )
       }
 
       if (state.renting === null) {
-        return {
-          missing: null,
-          ...proccesSuggest(suggestionPrompts.suggestionRenting, "getRenting", state)
-        };
+        return buildSuggest(
+            suggestionPrompts.suggestionRenting,
+            "getRenting",
+            state
+          )
       }
 
       if (
         !state.floorplanBed ||
         (state.floorplanBed.min === 0 && state.floorplanBed.max === 0)
       ) {
-        return {
-          missing: null,
-          ...proccesSuggest(suggestionPrompts.suggestionFloorplanBed, "getFloorplanBed", state)
-        };
+        return buildSuggest(
+            suggestionPrompts.suggestionFloorplanBed,
+            "getFloorplanBed",
+            state
+          )
       }
 
       if (
         !state.floorplanBath ||
         (state.floorplanBath.min === 0 && state.floorplanBath.max === 0)
       ) {
-        return {
-          missing: null,
-          ...proccesSuggest(suggestionPrompts.suggestionFloorplanBath, "getFloorplanBath", state)
-        };
+        return buildSuggest(
+            suggestionPrompts.suggestionFloorplanBath,
+            "getFloorplanBath",
+            state
+          )
       }
 
       if (
         !state.floorplanGarage ||
         (state.floorplanGarage.min === 0 && state.floorplanGarage.max === 0)
       ) {
-        return {
-          missing: null,
-          ...proccesSuggest(suggestionPrompts.suggestionFloorplanGarage, "getFloorplanGarage", state)
-        };
+        return buildSuggest(
+            suggestionPrompts.suggestionFloorplanGarage,
+            "getFloorplanGarage",
+            state
+          )
       }
 
       if (
         !state.floorplanLevel ||
         (state.floorplanLevel.min === 0 && state.floorplanLevel.max === 0)
       ) {
-        return {
-          missing: null,
-          ...proccesSuggest(suggestionPrompts.suggestionFloorplanLevel, "getFloorplanLevel", state)
-        };
+        return buildSuggest(
+            suggestionPrompts.suggestionFloorplanLevel,
+            "getFloorplanLevel",
+            state
+          )
       }
 
       if (
         !state.floorplanSqft ||
         (state.floorplanSqft.min === 0 && state.floorplanSqft.max === 0)
       ) {
-        return {
-          missing: null,
-          ...proccesSuggest(suggestionPrompts.suggestionFloorplanSqft, "getFloorplanSqft", state)
-        };
+        return buildSuggest(
+            suggestionPrompts.suggestionFloorplanSqft,
+            "getFloorplanSqft",
+            state
+          )
       }
 
       if (!state.homeInterest || state.homeInterest.length === 0) {
-        return {
-          missing: null,
-          ...proccesSuggest(suggestionPrompts.suggestionHomeInterest, "getInterestedHome", state)
-        };
+        return buildSuggest(
+            suggestionPrompts.suggestionHomeInterest,
+            "getInterestedHome",
+            state
+          )
       }
 
       if (!state.interestRateType) {
-        return {
-          missing: null,
-          ...proccesSuggest(suggestionPrompts.suggestionInterestRateType, "getInterestRateType", state)
-        };
+        return buildSuggest(
+            suggestionPrompts.suggestionInterestRateType,
+            "getInterestRateType",
+            state
+          )
       }
 
       if (!state.communities) {
