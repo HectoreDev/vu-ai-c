@@ -24,7 +24,7 @@ interface SessionStore {
   locations?: string[];
   priceMin?: number;
   priceMax?: number;
-  amenities?: string;
+  amenities?: string[];
 
   // Estados adicionales
   communities?: any;
@@ -80,7 +80,7 @@ interface SessionStore {
   ) => ValidationResult<{ priceMin: number; priceMax: number }>;
   setPriceMin: (priceMin: number) => void;
   setPriceMax: (priceMax: number) => void;
-  setAmenities: (amenities: string) => ValidationResult<{ amenities: string }>;
+  setAmenities: (amenities: string[]) => ValidationResult<{ amenities: string }>;
   setCommunities: (communities: any) => void;
   setCommunity: (community: string) => void;
   setLastToolUsed: (tool: string) => void;
@@ -287,7 +287,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     return get().priceMax;
   },
 
-  setAmenities: (amenities: string) => {
+  setAmenities: (amenities: string[]) => {
     const validation = validateAmenities(amenities, "Amenities");
 
     if (validation.success) {

@@ -91,7 +91,7 @@ export const searchAlgolia = async (filters: AlgoliaSearchFilters): Promise<Resp
 		const searchConfig = {
 			indexName: 'communities-gemini-test',
 			query: '',
-			hitsPerPage: 10,
+			hitsPerPage: 5,
 			// numericFilters: numericFilters,
 			facetFilters: [
 				cities
@@ -133,13 +133,21 @@ export const searchAlgolia = async (filters: AlgoliaSearchFilters): Promise<Resp
 		}
 
 		const formattedHits = hits.map((hit: any) => {
-			const { name, _origin, amenities } = hit;
+			// const { name, _origin, amenities } = hit;
 
-			const specs = amenities ? amenities.join(', ') : 'No especificado';
+			// const specs = amenities ? amenities.join(', ') : 'No especificado';
+
+			// const resumeHits = {
+			// 	name: hit.name,
+			// 	city: hit._origin?.division?.name,
+			// 	minPrice: hit.minPrice,
+			// 	maxPrice: hit.maxPrice,
+			// 	amenities: hit.amenities
+			// };
 
 			return {
 				type: "text",
-				text: `Encontramos en la siguiente comunidad ${name}, en la ciudad de ${_origin.division.name}, con las siguientes amenidades: ${specs}`,
+				text: `Encontramos en la siguiente comunidad en formato json: ${JSON.stringify(hit)}`,
 			};
 		});
 

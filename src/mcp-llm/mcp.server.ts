@@ -91,10 +91,12 @@ export class SimpleMcpServer {
       };
     }
 
+    console.log("communities", store.communities);
+
     return {
       sessionId: store.sessionId,
       message: [{ text: results?.suggest || "" }],
-      data: results.data || null,
+      data: store.communities && store.communities.length > 0 ? store.communities : null,
       systemInstruction: `INSTRUCCIONES (NO MOSTRAR):
     - sugerencia de tool para proxima pregunta: ${results.suggest?.nextTool}.
     - Falta este dato este es el suggest: ${JSON.stringify(
@@ -102,7 +104,7 @@ export class SimpleMcpServer {
     )}.
     - Pregunta SOLO por ese dato, tono cordial y por su nombre o amigo.
     - PROHIBIDO inventar, solo formular pregunta que este asociada con el suggest.
-    - ${store.communities && store.communities.length > 0 ? "agregar los datos de las comunidades que encontraste": ""}
+    - ${store.communities && store.communities.length > 0 ? "Ya tienes los datos de las comunidades que encontraste, sugiere las comunidades que mejor se adapten al usuario": "Sigue preguntando hasta tener todos los datos necesarios para encontrar la mejor comunidad acorde a las necesidades del usuario."}
     `,
     };
   }

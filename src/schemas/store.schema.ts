@@ -55,10 +55,7 @@ export const priceRangeSchema = z.object({
 
 export const amenitiesSchema = z.object({
   amenities: z
-    .string()
-    .trim()
-    .min(1, { message: "Las amenidades no pueden estar vacías" })
-    .max(500, { message: "Las amenidades no pueden exceder 500 caracteres" }),
+    .array(z.string().trim().min(1))
 });
 
 export const customizingSchema = z.object({
@@ -345,7 +342,7 @@ export const validatePriceRange = (
 };
 
 export const validateAmenities = (
-  amenities: string,
+  amenities: string[],
   message: string
 ): ValidationResult<{ amenities: string }> => {
   try {

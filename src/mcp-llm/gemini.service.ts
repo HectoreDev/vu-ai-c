@@ -40,7 +40,7 @@ export class GeminiService {
       const mcpResult = await mcpServer.callTools(toolsCall);
       console.log("Resultados de herramientas:", mcpResult.data);
 
-      // console.log('Prompt', mcpResult.systemInstruction);
+      console.log('Prompt', mcpResult.systemInstruction);
 
       const resultMCP = await model.sendMessage({
         message: JSON.stringify(mcpResult.data) || {},
