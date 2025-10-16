@@ -19,6 +19,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
       },
       required: ["name"],
     },
+    
   },
   getLocations: {
     name: "getLocations",
@@ -31,11 +32,30 @@ const toolSchema: Record<string, FunctionDeclaration> = {
           description: propertiesPrompts.sessionIdDescription,
         },
         locations: {
+        
           type: Type.ARRAY,
-          items: { type: Type.STRING },
           description: propertiesPrompts.locationsDescription,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              state:{
+                type: Type.STRING,
+                description: propertiesPrompts.stateDescription
+              },
+              location:{
+                type: Type.STRING,
+                description: propertiesPrompts.locationDescription
+              },
+              zip: {
+                type: Type.STRING,
+                description: propertiesPrompts.zipDescription
+              }
+            }
+          },
         },
+    
       },
+    
       required: ["locations"],
     },
   },
@@ -289,20 +309,20 @@ const toolSchema: Record<string, FunctionDeclaration> = {
       },
     },
   },
-  searchCommmunity: {
-    name: "searchCommmunity",
-    description: prompts.searchCommunityPrompt,
-    parameters: {
-      type: Type.OBJECT,
-      properties: {
-        sessionId: {
-          type: Type.STRING,
-          description:  propertiesPrompts.sessionIdDescription,
-        },
-      },
-      required: ["sessionId"],
-    },
-  },
+  // searchCommmunity: {
+  //   name: "searchCommmunity",
+  //   description: prompts.searchCommunityPrompt,
+  //   parameters: {
+  //     type: Type.OBJECT,
+  //     properties: {
+  //       sessionId: {
+  //         type: Type.STRING,
+  //         description:  propertiesPrompts.sessionIdDescription,
+  //       },
+  //     },
+  //     required: ["sessionId"],
+  //   },
+  // },
 };
 
 export type ToolTypes = keyof typeof toolSchema;

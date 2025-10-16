@@ -4,41 +4,34 @@ import { sessionStore } from "../store/zustandStore";
 
 import { searchAlgolia } from "../functions/searchAlgolia";
 import { createErrorResponse, ValidationResult } from "../schemas/store.schema";
-
-
+import { getCommunitiesPrices } from "../search/getCommunitiesPrices";
 
 type Args = z.infer<typeof undefined>;
 
-export const handleSearchCommunities = async (): Promise<ValidationResult<Args>> => {
+export const searchCommunities = async (): Promise<
+  ValidationResult<Args>
+> => {
+  const { locations, setCommunities, communities } = sessionStore.getState();
 
-  const {
-    locations,
-    priceMin,
-    priceMax,
-    sessionId,
-    setCommunities
-  } = sessionStore.getState();
-
-  if(Array.isArray(locations) && locations.length === 0 || !locations){
-    return createErrorResponse(new Error("Locations is empty"))
+  if ((Array.isArray(locations) && locations.length === 0) || !locations) {
+    return createErrorResponse(new Error("Locations is empty"));
   }
 
-  const response = await searchAlgolia({
-    location: locations,
-    priceMin,
-    priceMax
-  });
+  const response = await getCommunitiesPrices(locations);
 
-  setCommunities(response.data)
+  const comunityMerge =Array.isArray(communities) ? communities : [];
+  
+  if (response) {
+    setCommunities(Array.from(new Set([...response, ...comunityMerge])));
+  }
 
   return {
     success: true,
     code: 200,
-    data: response.data,
+    data: response,
     history: [],
     error: null,
     message: `Comunities search`,
-    suggest: null
-  }
-
+    suggest: null,
+  };
 };

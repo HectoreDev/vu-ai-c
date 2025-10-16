@@ -12,7 +12,6 @@ type Args = z.infer<typeof priceRangeSchema>;
 export const handleGetBudget = async (
   args: Args
 ): Promise<ValidationResult<Args>> => {
-  // console.log('Args', args);
 
   const priceMax = parseInt(args.priceMax.toString());
   const priceMin = parseInt(args.priceMin.toString());
@@ -25,8 +24,7 @@ export const handleGetBudget = async (
 
   const store = sessionStore.getState();
 
-  store.setPriceMin(priceMin);
-  store.setPriceMax(priceMax);
+  store.setBudgetPriceRange(priceMin, priceMax);
 
   return response;
 };

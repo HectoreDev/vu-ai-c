@@ -1,6 +1,16 @@
 export type InterestRate = "fha_30" | "conventional_30" | null;
 
+export interface IFLocation {
+  state: string;
+  location?: string;
+  zip?: string;
+}
+
 export interface BudgetType {
+  price?: {
+    priceMin: number;
+    priceMax: number;
+  };
   total_budget?: Range;
   down_payment?: number;
   interest_rate?: number;
