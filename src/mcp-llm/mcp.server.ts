@@ -13,7 +13,7 @@ import {
   toolGetInterestedHome,
   toolGetMoveInReady,
   toolGetRenting,
-  toolSearchComunities,
+  // toolSearchComunities,
   toolGetAmenities,
 } from "../tools";
 import { Part } from "@google/genai";
@@ -42,7 +42,7 @@ export class SimpleMcpServer {
     this.tools.set("getAmenities", toolGetAmenities);
     this.tools.set("getMoveInReady", toolGetMoveInReady);
     this.tools.set("getRenting", toolGetRenting);
-    this.tools.set("searchCommmunity", toolSearchComunities);
+    // this.tools.set("searchCommmunity", toolSearchComunities);
   }
 
   responseSuccess(data: any) {
@@ -75,6 +75,7 @@ export class SimpleMcpServer {
       if (functionCall && functionCall.name) {
         const { name, args } = functionCall;
         const tool = this.tools.get(name);
+        console.log("Tool Name", name);
         console.log("Tool", tool);
 
         if (tool) {

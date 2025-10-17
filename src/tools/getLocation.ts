@@ -16,7 +16,9 @@ export const handleGetLocation = async (args: Args): Promise<ValidationResult<Ar
 
   const store = sessionStore.getState();
 
-  store.setlocations(locations);
+  const locationMerge = Array.isArray(store.locations) ? store.locations : [];
+
+  store.setlocations(Array.from(new Set([...locations, ...locationMerge])));
 
   return response;
 };

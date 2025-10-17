@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ResponseError, ResponseSuccess } from "../mcp-llm/types/responseType";
 import { SessionStore, sessionStore } from "../store/zustandStore";
+import { IFLocation } from "../types/types";
 
 export const sessionIdSchema = z.object({
   sessionId: z
@@ -25,14 +26,33 @@ export const nameSchema = z.object({
     }),
 });
 
+
+// z.union([z.array(z.string()), z.string()]) este puede unir estrings si el arg no lo crea
+
+export const locationsSchemaAlt = z.object({
+  state: z
+    .string()
+    .trim()
+    .min(2, { message: "El estado debe tener al menos 2 caracter" }),
+  location: z
+    .string()
+    .trim()
+    .min(3, { message: "El estado debe tener al menos 3 caracter" })
+    .optional(),
+  zip: z
+    .string()
+    .trim()
+    .min(5, { message: "El estado debe tener al menos 5 caracter" })
+    .max(5, { message: "El estado debe tener al menos 5 caracter" })
+    .optional(),
+});
+
 export const locationsSchema = z.object({
   locations: z
-    .array(z.string().trim().min(1))
+    .array(locationsSchemaAlt)
     .min(1, { message: "Debe proporcionar al menos una ubicación" })
     .max(5, { message: "No puede exceder 5 ubicaciones" }),
 });
-
-// z.union([z.array(z.string()), z.string()]) este puede unir estrings si el arg no lo crea
 
 export const locationSchema = z.object({
   location: z
@@ -54,8 +74,7 @@ export const priceRangeSchema = z.object({
 });
 
 export const amenitiesSchema = z.object({
-  amenities: z
-    .array(z.string().trim().min(1))
+  amenities: z.array(z.string().trim().min(1)),
 });
 
 export const customizingSchema = z.object({
@@ -266,7 +285,6 @@ const createSuccessResponse = (
   data: Partial<SessionStore>,
   message: string
 ): ResponseSuccess => {
-
   return {
     success: true,
     suggest: null,
@@ -303,7 +321,7 @@ export const validateName = (
 };
 
 export const validateLocations = (
-  locations: string[],
+  locations: IFLocation[],
   message: string
 ): ValidationResult<{ locations: string[] }> => {
   try {

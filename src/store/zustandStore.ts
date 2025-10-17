@@ -13,6 +13,7 @@ import {
   FloorplanSpecs,
   Range,
   IFSuggestResponse,
+  IFLocation,
 } from "../types/types";
 import is from "zod/v4/locales/is.cjs";
 import { hasItems } from "./helper";
@@ -21,7 +22,7 @@ interface SessionStore {
   // Estados principales
   sessionId?: string;
   name?: string;
-  locations?: string[];
+  locations?: IFLocation[];
   priceMin?: number;
   priceMax?: number;
   amenities?: string[];
@@ -72,15 +73,17 @@ interface SessionStore {
   setSessionId: (sessionId: string) => ValidationResult<{ sessionId: string }>;
   setName: (name: string) => ValidationResult<{ name: string }>;
   setlocations: (
-    locations: string[]
-  ) => ValidationResult<{ locations: string[] }>;
+    locations: IFLocation[]
+  ) => ValidationResult<{ locations: IFLocation[] }>;
   setPriceRange: (
     priceMin: number,
     priceMax: number
   ) => ValidationResult<{ priceMin: number; priceMax: number }>;
   setPriceMin: (priceMin: number) => void;
   setPriceMax: (priceMax: number) => void;
-  setAmenities: (amenities: string[]) => ValidationResult<{ amenities: string }>;
+  setAmenities: (
+    amenities: string[]
+  ) => ValidationResult<{ amenities: string }>;
   setCommunities: (communities: any) => void;
   setCommunity: (community: string) => void;
   setLastToolUsed: (tool: string) => void;
@@ -112,6 +115,7 @@ interface SessionStore {
   getSessionSummary: () => string;
   clearValidationErrors: (field?: string) => void;
   getValidationErrors: (field?: string) => string[];
+  setBudgetPriceRange: (priceMin: number, priceMax: number) => void;
   suggest: () => IFSuggestResponse;
 }
 
@@ -224,7 +228,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     return validation;
   },
 
-  setlocations: (locations: string[]) => {
+  setlocations: (locations: IFLocation[]) => {
     const validation = validateLocations(locations, "Locations");
 
     if (validation.success) {
@@ -414,7 +418,16 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     const state = get();
     return !!(state.sessionId || state.mcpSessionId);
   },
-
+  setBudgetPriceRange: (priceMin: number, priceMax: number) =>
+    set((state) => ({
+      budget: {
+        ...state.budget,
+        price: {
+          priceMin,
+          priceMax,
+        },
+      },
+    })),
   getSessionSummary: () => {
     const state = get();
     const summary = [];
@@ -513,22 +526,24 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       };
     }
 
-    if (!state.budget && (!state.priceMin || !state.priceMax)) {
-      return {
-        missing: "budget",
-        suggestion: suggestionPrompts.suggestionBudget,
-        nextTool: "getBudget",
-      };
-    }
-
     // Si tiene todas las propiedades principales, validar adicionales y sugerir
     // Validar propiedades adicionales en orden de prioridad
-    if (
-      state.priceMin &&
-      state.priceMax &&
-      state.locations.length > 0 &&
-      state.name
-    ) {
+    if (state.locations.length > 0 && state.name) {
+      
+      if (
+        !state.budget?.price &&
+        state.priceMin !== undefined &&
+        state.priceMax !== undefined
+      ) {
+        return {
+          missing: "budget",
+          suggestion: `${
+            suggestionPrompts.suggestionBudget
+          } y un rango de precios entre ${state.priceMin.toLocaleString()} y ${state.priceMax.toLocaleString()}`,
+          nextTool: "getBudget",
+        };
+      }
+
       if (!state.amenities) {
         return buildSuggest(
           suggestionPrompts.suggestionAnemities,
@@ -539,34 +554,34 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
 
       if (!state.interestFindHome) {
         return buildSuggest(
-            suggestionPrompts.suggestionInterestFindHome,
-            "getInterestFindHome",
-            state
-          )
+          suggestionPrompts.suggestionInterestFindHome,
+          "getInterestFindHome",
+          state
+        );
       }
 
       if (state.customizing === null) {
         return buildSuggest(
-            suggestionPrompts.suggestionCustomizing,
-            "getCustomizing",
-            state
-          )
+          suggestionPrompts.suggestionCustomizing,
+          "getCustomizing",
+          state
+        );
       }
 
       if (state.moveInReady === null) {
         return buildSuggest(
-            suggestionPrompts.suggestionMoveInReady,
-            "getMoveInReady",
-            state
-          )
+          suggestionPrompts.suggestionMoveInReady,
+          "getMoveInReady",
+          state
+        );
       }
 
       if (state.renting === null) {
         return buildSuggest(
-            suggestionPrompts.suggestionRenting,
-            "getRenting",
-            state
-          )
+          suggestionPrompts.suggestionRenting,
+          "getRenting",
+          state
+        );
       }
 
       if (
@@ -574,10 +589,10 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
         (state.floorplanBed.min === 0 && state.floorplanBed.max === 0)
       ) {
         return buildSuggest(
-            suggestionPrompts.suggestionFloorplanBed,
-            "getFloorplanBed",
-            state
-          )
+          suggestionPrompts.suggestionFloorplanBed,
+          "getFloorplanBed",
+          state
+        );
       }
 
       if (
@@ -585,10 +600,10 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
         (state.floorplanBath.min === 0 && state.floorplanBath.max === 0)
       ) {
         return buildSuggest(
-            suggestionPrompts.suggestionFloorplanBath,
-            "getFloorplanBath",
-            state
-          )
+          suggestionPrompts.suggestionFloorplanBath,
+          "getFloorplanBath",
+          state
+        );
       }
 
       if (
@@ -596,10 +611,10 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
         (state.floorplanGarage.min === 0 && state.floorplanGarage.max === 0)
       ) {
         return buildSuggest(
-            suggestionPrompts.suggestionFloorplanGarage,
-            "getFloorplanGarage",
-            state
-          )
+          suggestionPrompts.suggestionFloorplanGarage,
+          "getFloorplanGarage",
+          state
+        );
       }
 
       if (
@@ -607,10 +622,10 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
         (state.floorplanLevel.min === 0 && state.floorplanLevel.max === 0)
       ) {
         return buildSuggest(
-            suggestionPrompts.suggestionFloorplanLevel,
-            "getFloorplanLevel",
-            state
-          )
+          suggestionPrompts.suggestionFloorplanLevel,
+          "getFloorplanLevel",
+          state
+        );
       }
 
       if (
@@ -618,26 +633,26 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
         (state.floorplanSqft.min === 0 && state.floorplanSqft.max === 0)
       ) {
         return buildSuggest(
-            suggestionPrompts.suggestionFloorplanSqft,
-            "getFloorplanSqft",
-            state
-          )
+          suggestionPrompts.suggestionFloorplanSqft,
+          "getFloorplanSqft",
+          state
+        );
       }
 
       if (!state.homeInterest || state.homeInterest.length === 0) {
         return buildSuggest(
-            suggestionPrompts.suggestionHomeInterest,
-            "getInterestedHome",
-            state
-          )
+          suggestionPrompts.suggestionHomeInterest,
+          "getInterestedHome",
+          state
+        );
       }
 
       if (!state.interestRateType) {
         return buildSuggest(
-            suggestionPrompts.suggestionInterestRateType,
-            "getInterestRateType",
-            state
-          )
+          suggestionPrompts.suggestionInterestRateType,
+          "getInterestRateType",
+          state
+        );
       }
 
       if (!state.communities) {

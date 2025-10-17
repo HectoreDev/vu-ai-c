@@ -1,3 +1,5 @@
+import { sessionStore } from "../store/zustandStore";
+import { tools } from "../tools/agent.tools";
 import { model } from "./gemini.config";
 import { mcpServer } from "./mcp.server";
 import { Part, Type } from "@google/genai";
@@ -16,6 +18,13 @@ export class GeminiService {
 
     const response1 = await model.sendMessage({
       message: message,
+      config: {
+        tools: [
+          {
+            functionDeclarations: tools,
+          },
+        ],
+      },
     });
 
 		if(response1.promptFeedback?.blockReason) {
@@ -39,9 +48,9 @@ export class GeminiService {
 
     if (response1.functionCalls && response1.functionCalls.length > 0) {
       const mcpResult = await mcpServer.callTools(toolsCall);
-      console.log("Resultados de herramientas:", mcpResult.data);
+      console.log("Resultados de herramientas:", mcpResult);
 
-      console.log('Prompt', mcpResult.systemInstruction);
+      console.log("Prompt", mcpResult.systemInstruction);
 
       const resultMCP = await model.sendMessage({
         message: JSON.stringify(mcpResult.data) || {},
@@ -69,16 +78,37 @@ export class GeminiService {
         sessionId: mcpResult.sessionId,
       };
     } else {
+      const results = sessionStore.getState().suggest();
+      const { communities } = sessionStore.getState();
+
+      const systemInstruction = `INSTRUCCIONES (NO MOSTRAR):
+    - sugerencia de tool para proxima pregunta: ${results?.nextTool}.
+    - Falta este dato este es el suggest: ${JSON.stringify(results.suggestion)}.
+    - Pregunta SOLO por ese dato, tono cordial y por su nombre o amigo.
+    - PROHIBIDO inventar, solo formular pregunta que este asociada con el suggest.
+    - ${
+      communities && communities.length > 0
+        ? "Sugiere las comunidades que mejor se adapten al usuario pero siempre sigue preguntando hasta tener todos los datos necesarios para encontrar la mejor comunidad acorde a las necesidades del usuario."
+        : "Sigue preguntando hasta tener todos los datos necesarios para encontrar la mejor comunidad acorde a las necesidades del usuario."
+    }`;
+
+      const response2 = await model.sendMessage({
+        message: message,
+        config: {
+          systemInstruction: systemInstruction,
+        },
+      });
+
       history.push({
         role: "model",
-        parts: response1.candidates?.[0]?.content?.parts
-          ? response1.candidates?.[0]?.content?.parts
+        parts: response2.candidates?.[0]?.content?.parts
+          ? response2.candidates?.[0]?.content?.parts
           : [{ text: "" }],
       });
 
       return {
         history,
-        message: response1.candidates?.[0]?.content?.parts,
+        message: response2.candidates?.[0]?.content?.parts,
         sessionId: null,
       };
     }
