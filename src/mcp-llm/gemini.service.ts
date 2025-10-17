@@ -1,14 +1,8 @@
+import { sessionStore } from "../store/zustandStore";
+import { tools } from "../tools/agent.tools";
 import { model } from "./gemini.config";
 import { mcpServer } from "./mcp.server";
 import { Part, Type } from "@google/genai";
-import { prompts } from "../prompts/prompts";
-import { tools, toolsNames } from "../tools/agent.tools";
-import { invalidateSession } from "./mcp.tools";
-import { generalTools } from "../tools/generalTools";
-import { SchemaType } from "@google/generative-ai";
-import { sessionStore } from "../store/zustandStore";
-import type { SessionState } from "./types/gemini.types";
-import { FunctionCallingConfigMode } from "@google/genai";
 
 interface IFHistory {
   role: "user" | "model";
@@ -21,6 +15,7 @@ export class GeminiService {
     history: IFHistory[],
     sessionId?: number
   ) {
+
     const response1 = await model.sendMessage({
       message: message,
       config: {
@@ -31,6 +26,14 @@ export class GeminiService {
         ],
       },
     });
+
+		if(response1.promptFeedback?.blockReason) {
+			return {
+        history,
+        message: [{ text: "Lo sentimos, tu petición no pudo ser procesada. Intenta de nuevo más tarde." }],
+        sessionId: '',
+      };
+		}
 
     history.push({
       role: "user",
@@ -55,6 +58,14 @@ export class GeminiService {
           systemInstruction: mcpResult.systemInstruction,
         },
       });
+
+			if(resultMCP.promptFeedback?.blockReason) {
+			return {
+        history,
+        message: [{ text: "Lo sentimos, tu petición no pudo ser procesada. Intenta de nuevo más tarde." }],
+        sessionId: '',
+      };
+		}
 
       history.push({
         role: "model",
