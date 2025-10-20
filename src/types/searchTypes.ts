@@ -1,7 +1,7 @@
 export interface IFArgsSearch {
+  faceType: string;
   query: string;
-  page: number;
-  filters: string;
+  filters: string[] | string;
   numericFilters?: string[];
 }
 
