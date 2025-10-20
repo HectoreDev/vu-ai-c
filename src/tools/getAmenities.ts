@@ -11,7 +11,6 @@ type Args = z.infer<typeof amenitiesSchema>;
 export const handleGetAmenities = async (
   args: Args
 ): Promise<ValidationResult<Args>> => {
-  console.log('AMENITIES',args.amenities);
 
   const response = validateAmenities(
     args.amenities,

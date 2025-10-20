@@ -13,7 +13,7 @@ type Args = z.infer<typeof interestFindHomeSchema>;
 export const handleGetInterestFindHome = async (
   args: Args
 ): Promise<ValidationResult<Args>> => {
-  console.log("ARGS", args);
+
 
   const response = validateInterestedFindHome(
     args.interestFindHome,
@@ -23,7 +23,6 @@ export const handleGetInterestFindHome = async (
   const { interestFindHome } = response.data;
 
   const store = sessionStore.getState();
-  console.log("SERRRRR", interestFindHome);
 
   store.setInterestFindHome(interestFindHome);
 

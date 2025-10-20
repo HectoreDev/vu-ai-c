@@ -11,7 +11,6 @@ type Args = z.infer<typeof floorplanBathSchema>;
 export const handleGetFloorplanBath = async (
   args: Args
 ): Promise<ValidationResult<Args>> => {
-  console.log("Args", args);
 
   const response = validateFloorplanBath(
     {
@@ -20,7 +19,6 @@ export const handleGetFloorplanBath = async (
     },
     `User select number baths ${args.bath_min}, ${args.bath_max}`
   );
-  console.log("Response", response);
 
   const { bath_min, bath_max } = response.data;
 

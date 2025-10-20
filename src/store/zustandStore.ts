@@ -491,19 +491,12 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     const buildSuggest = (
       prompt: string,
       primaryTool: string,
-      state: SessionStore
     ): IFSuggestResponse => {
-      const hasCommunities = hasItems(state.communities);
-      const extraPrompt = !hasCommunities
-        ? ` o ${suggestionPrompts.suggestionSearhCommunity}`
-        : "";
-
-      const nextTools = [primaryTool];
 
       return {
         missing: null,
-        suggestion: `${prompt}${extraPrompt}`.replace(/\s+/g, " ").trim(),
-        nextTool: nextTools.join(" | "),
+        suggestion: prompt,
+        nextTool: primaryTool
       };
     };
 
@@ -544,40 +537,35 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       if (!state.amenities) {
         return buildSuggest(
           suggestionPrompts.suggestionAnemities,
-          "getAmenities",
-          state
+          "getAmenities"
         );
       }
 
       if (!state.interestFindHome) {
         return buildSuggest(
           suggestionPrompts.suggestionInterestFindHome,
-          "getInterestFindHome",
-          state
+          "getInterestFindHome"
         );
       }
 
       if (state.customizing === null) {
         return buildSuggest(
           suggestionPrompts.suggestionCustomizing,
-          "getCustomizing",
-          state
+          "getCustomizing"
         );
       }
 
       if (state.moveInReady === null) {
         return buildSuggest(
           suggestionPrompts.suggestionMoveInReady,
-          "getMoveInReady",
-          state
+          "getMoveInReady"
         );
       }
 
       if (state.renting === null) {
         return buildSuggest(
           suggestionPrompts.suggestionRenting,
-          "getRenting",
-          state
+          "getRenting"
         );
       }
 
@@ -587,8 +575,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       ) {
         return buildSuggest(
           suggestionPrompts.suggestionFloorplanBed,
-          "getFloorplanBed",
-          state
+          "getFloorplanBed"
         );
       }
 
@@ -598,8 +585,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       ) {
         return buildSuggest(
           suggestionPrompts.suggestionFloorplanBath,
-          "getFloorplanBath",
-          state
+          "getFloorplanBath"
         );
       }
 
@@ -609,8 +595,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       ) {
         return buildSuggest(
           suggestionPrompts.suggestionFloorplanGarage,
-          "getFloorplanGarage",
-          state
+          "getFloorplanGarage"
         );
       }
 
@@ -620,8 +605,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       ) {
         return buildSuggest(
           suggestionPrompts.suggestionFloorplanLevel,
-          "getFloorplanLevel",
-          state
+          "getFloorplanLevel"
         );
       }
 
@@ -631,41 +615,30 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       ) {
         return buildSuggest(
           suggestionPrompts.suggestionFloorplanSqft,
-          "getFloorplanSqft",
-          state
+          "getFloorplanSqft"
         );
       }
 
       if (!state.homeInterest || state.homeInterest.length === 0) {
         return buildSuggest(
           suggestionPrompts.suggestionHomeInterest,
-          "getInterestedHome",
-          state
+          "getInterestedHome"
         );
       }
 
       if (!state.interestRateType) {
         return buildSuggest(
           suggestionPrompts.suggestionInterestRateType,
-          "getInterestRateType",
-          state
+          "getInterestRateType"
         );
-      }
-
-      if (!state.communities) {
-        return {
-          missing: null,
-          suggestion: suggestionPrompts.suggestionSearhCommunity,
-          nextTool: "searchCommmunity",
-        };
       }
     }
 
     // Si tiene toda la información
     return {
       missing: null,
-      suggestion: suggestionPrompts.suggestionComplete,
-      nextTool: "searchCommmunity",
+      suggestion: '',
+      nextTool: '',
     };
   },
 }));
