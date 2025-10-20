@@ -17,10 +17,12 @@ export const searchCommunities = async (): Promise<
     return createErrorResponse(new Error("Locations is empty"));
   }
 
+  console.log("Searching communities for locations:", locations);
+
   const response = await getCommunitiesPrices(locations);
 
-  const comunityMerge =Array.isArray(communities) ? communities : [];
-  
+  const comunityMerge = Array.isArray(communities) ? communities : [];
+
   if (response) {
     setCommunities(Array.from(new Set([...response, ...comunityMerge])));
   }

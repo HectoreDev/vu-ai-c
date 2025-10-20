@@ -1,20 +1,23 @@
-import type { SearchResponse } from "algoliasearch";
+import type { SearchResponse, SearchResult } from "algoliasearch";
 import { client } from "./client";
 import { IFArgsSearch } from "../types/searchTypes";
 
-
 export const queryDocument = async (
   args: IFArgsSearch
-): Promise<SearchResponse<any>> => {
-  const result = await client.searchSingleIndex({
-    indexName: "community-by-AI",
-    searchParams: {
+): Promise<SearchResult<unknown>[]> => {
+
+  const requests = [
+    {
+      indexName: "community-by-AI",
       query: args.query,
-      filters: args.filters,
-      page: args.page,
+      facetFilters: [ args.faceType, args.filters],
       numericFilters: args.numericFilters,
     },
+  ];
+
+  const result = await client.search({
+    requests: requests
   });
 
-  return result;
+  return result.results;
 };
