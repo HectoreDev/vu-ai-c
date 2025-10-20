@@ -1,3 +1,4 @@
+import { createSuggestPrompt } from "../prompts/prompts";
 import { sessionStore } from "../store/zustandStore";
 import { tools } from "../tools/agent.tools";
 import { model } from "./gemini.config";
@@ -15,7 +16,6 @@ export class GeminiService {
     history: IFHistory[],
     sessionId?: number
   ) {
-
     const response1 = await model.sendMessage({
       message: message,
       config: {
@@ -27,13 +27,17 @@ export class GeminiService {
       },
     });
 
-		if(response1.promptFeedback?.blockReason) {
-			return {
+    if (response1.promptFeedback?.blockReason) {
+      return {
         history,
-        message: [{ text: "Lo sentimos, tu petición no pudo ser procesada. Intenta de nuevo más tarde." }],
-        sessionId: '',
+        message: [
+          {
+            text: "Lo sentimos, tu petición no pudo ser procesada. Intenta de nuevo más tarde.",
+          },
+        ],
+        sessionId: "",
       };
-		}
+    }
 
     history.push({
       role: "user",
@@ -59,13 +63,17 @@ export class GeminiService {
         },
       });
 
-			if(resultMCP.promptFeedback?.blockReason) {
-			return {
-        history,
-        message: [{ text: "Lo sentimos, tu petición no pudo ser procesada. Intenta de nuevo más tarde." }],
-        sessionId: '',
-      };
-		}
+      if (resultMCP.promptFeedback?.blockReason) {
+        return {
+          history,
+          message: [
+            {
+              text: "Lo sentimos, tu petición no pudo ser procesada. Intenta de nuevo más tarde.",
+            },
+          ],
+          sessionId: "",
+        };
+      }
 
       history.push({
         role: "model",
@@ -78,24 +86,10 @@ export class GeminiService {
         sessionId: mcpResult.sessionId,
       };
     } else {
-      const results = sessionStore.getState().suggest();
-      const { communities } = sessionStore.getState();
-
-      const systemInstruction = `INSTRUCCIONES (NO MOSTRAR):
-    - sugerencia de tool para proxima pregunta: ${results?.nextTool}.
-    - Falta este dato este es el suggest: ${JSON.stringify(results.suggestion)}.
-    - Pregunta SOLO por ese dato, tono cordial y por su nombre o amigo.
-    - PROHIBIDO inventar, solo formular pregunta que este asociada con el suggest.
-    - ${
-      communities && communities.length > 0
-        ? "Sugiere las comunidades que mejor se adapten al usuario pero siempre sigue preguntando hasta tener todos los datos necesarios para encontrar la mejor comunidad acorde a las necesidades del usuario."
-        : "Sigue preguntando hasta tener todos los datos necesarios para encontrar la mejor comunidad acorde a las necesidades del usuario."
-    }`;
-
       const response2 = await model.sendMessage({
         message: message,
         config: {
-          systemInstruction: systemInstruction,
+          systemInstruction: createSuggestPrompt(),
         },
       });
 

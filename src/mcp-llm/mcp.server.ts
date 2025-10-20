@@ -22,6 +22,7 @@ import { sessionStore } from "../store/zustandStore";
 import { IFSuggestResponse } from "../types/types";
 import { searchAlgolia } from "../functions/searchAlgolia";
 import { ValidationResult } from "../schemas/store.schema";
+import { createHandleError, createSuggestPrompt } from "../prompts/prompts";
 
 export class SimpleMcpServer {
   private tools: Map<string, Function> = new Map();
@@ -85,15 +86,7 @@ export class SimpleMcpServer {
               ...result,
             };
           } catch (error) {
-            handleError = {
-              isError: true,
-              message: "Error executing tool: " + (error as Error).message,
-              systemInstruction: `INSTRUCCIONES (NO MOSTRAR):
-              - Ocurrió un error al ejecutar la herramienta ${name}: ${(error as Error).message}.
-              - Por favor, informa al usuario que hubo un problema técnico y que estamos trabajando para solucionarlo.
-              - No intentes ejecutar más herramientas hasta que el problema se haya resuelto.
-              `
-            };
+            handleError = createHandleError(error, name)
             console.error("Error executing tool:", error);
             break;
           }
@@ -126,17 +119,9 @@ export class SimpleMcpServer {
 
       return {
         sessionId: store.sessionId,
-        message: [{ text: results?.suggest || "" }],
-        data: store.communities && store.communities.length > 0 ? store.communities : null,
-        systemInstruction: `INSTRUCCIONES (NO MOSTRAR):
-      - sugerencia de tool para proxima pregunta: ${results.suggest?.nextTool}.
-      - Falta este dato este es el suggest: ${JSON.stringify(
-          results.suggest?.suggestion
-        )}.
-      - Pregunta SOLO por ese dato, tono cordial y por su nombre o amigo.
-      - PROHIBIDO inventar, solo formular pregunta que este asociada con el suggest.
-      - ${store.communities && store.communities.length > 0 ? "Ya tienes los datos de las comunidades que encontraste, sugiere las comunidades que mejor se adapten al usuario" : "Sigue preguntando hasta tener todos los datos necesarios para encontrar la mejor comunidad acorde a las necesidades del usuario."}
-      `
+        message: [{ text: results.message || "" }],
+        data: results.data,
+        systemInstruction: createSuggestPrompt()
       };
 
     }

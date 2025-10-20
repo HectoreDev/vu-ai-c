@@ -498,9 +498,8 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       const extraPrompt = !hasCommunities
         ? ` o ${suggestionPrompts.suggestionSearhCommunity}`
         : "";
-      const extraTool = !hasCommunities ? ["searchCommunity"] : [];
 
-      const nextTools = [primaryTool, ...extraTool];
+      const nextTools = [primaryTool];
 
       return {
         missing: null,

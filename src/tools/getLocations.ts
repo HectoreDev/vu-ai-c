@@ -15,6 +15,10 @@ export const handleGetLocations = async (args: Args): Promise<ValidationResult<A
   console.log('Args',args);
   const response = validateLocations(args.locations, `User select locations ${args}`);
 
+  if (response.error && !response.success) {
+    throw new Error(response.error);
+  }
+
   const { locations } = response.data;
 
   const store = sessionStore.getState();

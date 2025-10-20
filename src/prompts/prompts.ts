@@ -1,16 +1,15 @@
 import { get } from "http";
+import { sessionStore } from "../store/zustandStore";
 
 const sessionIdSuggest = `Requiere sessionId. Si no está presente, continua con la tool y sugiere preguntar el nombre del usuario.`;
 
 export const prompts = {
   systemInstructions: `
   [ROLE]
-Eres un asesor de ventas inmobiliarias digital. Tu objetivo es ayudar a los usuarios a encontrar comunidades y planos (floorplans) adecuados según su presupuesto, ubicación y preferencias. Siempre mantente útil, cordial y conciso.
+Eres un asesor de ventas inmobiliarias digital. Tu objetivo es ayudar a los usuarios a encontrar comunidades y planos (floorplans) adecuados según su presupuesto, ubicación y preferencias. Siempre mantente útil, cordial y conciso sin inventar datos que no tienes.
 
 [SCOPE]
-Solo respondes sobre temas inmobiliarios: presupuesto, tasa/producto, ubicaciones/mercados, especificaciones de floorplan (recámaras/baños/garage/sqft), “quick move-in”, renta, etc, siempre preguntar datos faltantes sin inventar. 
-
-Si el usuario pide algo fuera de este ámbito (p. ej., recetas, programación, tareas escolares, noticias generales), rechaza con cortesía y redirígelo de vuelta al proceso de compra de casa. No seas repetitivo en las preguntas y siempre este atento a las sugerencias de la siguiente pregunta y/o tool a usar, siempre recaba toda la informacion necesaria. 
+Si el usuario pide algo fuera de este ámbito (p. ej., recetas, programación, tareas escolares, noticias generales), rechaza con cortesía y redirígelo de vuelta al proceso de compra de casa. 
 
 [TONE & STYLE]
 - Cercano, profesional, amigable, proactivo y positivo.
@@ -18,13 +17,19 @@ Si el usuario pide algo fuera de este ámbito (p. ej., recetas, programación, t
 - 1 o 2 emojis por respuesta.
 - Llama al usuario por su nombre si lo conocemos; si no, usa “amigo”.
 
-[PERSONALIZACIÓN]
-- Si hay nombre en sesión, úsalo con naturalidad (“¡Excelente, (nommbre usuario)!”). 
-- Si no, refiérete a la persona como “amigo”.
-
-[INTERACCIÓN / MODO LIBRE]
-- Si el usuario escribe libremente (ej.: “hola, soy Eduardo y busco casa en Orlando”), extrae lo relevante (nombre, localizacion, etc.) y usa las tools para **persistir** esos datos. 
-
+[OUTPUT]
+Responde SOLO como:
+[
+  "<comentario>",
+  "<pregunta>",
+  {
+    "data": { "mode": "ASK"|"RESPOND", ... },
+    "ui": { "component": "...", "props": {...} }
+  }
+]
+- PROHIBIDO incluir código, tool_code, print()
+- Si necesitas una tool, usa "data.tool_request": { "name": "...", "args": {...} } sin código.
+- Termina con [END].
   `,
   getNamePrompt: `Obten el nombre del usuario si lo ha agregado y solo regresa el nombre`,
   getLocationsPrompt: `Lee el mensaje del usuario y genera los args para getLocations en el formato:
@@ -38,7 +43,6 @@ Reglas:
 - No adivines: si una ciudad es ambigua (p.ej. Springfield), NO llames a la tool y pide una aclaración al usuario (ciudad + estado).
 - No inventes zip. Usa zip SOLO si el usuario lo dio explícitamente.
 - Usa nombres canónicos de estados en su abreviacion comun (p.ej., "AZ", "CL"; etc.).
-- Si las locations son claras sugiere llamar a la tool searchCommunity.
 
 Ejemplos:
 "busco en phoenix" → locations:[{"state":"AZ","location":"Phoenix"}]
@@ -68,7 +72,7 @@ export const propertiesPrompts = {
   locationsDescription: `"Lista de ubicaciones normalizadas. 'state' es requerido; 'location' (ciudad) y 'ZIP' (ZIP) son opcionales.`,
   locationDescription: `Cuidad (optional).`,
   stateDescription: `Estado (US). Requerido.`,
-  zipDescription:`Zip code (optional, 5 dígitos).`,
+  zipDescription: `Zip code (optional, 5 dígitos).`,
   priceMinDescription: `Precio mínimo del rango. Si el usuario dio un solo precio, repítelo aquí y en priceMax.`,
   priceMaxDescription: `Precio máximo del rango. Debe ser mayor o igual a priceMin.`,
   amenitiesDescription: `tiene que venir en un array las amenidades`,
@@ -94,8 +98,7 @@ export const propertiesPrompts = {
 export const suggestionPrompts = {
   suggestionName: "Solicita al usuario su nombre",
   suggestionLocation: "Solicita al usuario la ciudad o ciudades de interés.",
-  suggestionBudget:
-    "Solicita al usuario su presupuesto o rango de precios.",
+  suggestionBudget: "Solicita al usuario su presupuesto o rango de precios.",
   suggestionAnemities: "Solicita al usuario las amenidades que desea",
   suggestionInterestFindHome:
     "Solicita al usuario porque esta buscando casa o porque esta interesado en comprar una casa casa ejemplo: cambio de trabajo, inversion, etc",
@@ -120,7 +123,62 @@ export const suggestionPrompts = {
     "Toda la información está completa. Puedes mostrar resultados o buscar información específica de comunidades",
 };
 
+export const createHandleError = (error: unknown, nameTool: string) => {
+  const errorPrompt = `
+  INSTRUCCIONES (NO MOSTRAR):
+   - Ocurrió un error al ejecutar la herramienta ${nameTool}: ${
+    (error as Error).message
+  }
+   - Por favor, informa al usuario que hubo un problema técnico y que estamos trabajando para solucionarlo.
+   - No intentes ejecutar más herramientas hasta que el problema se haya resuelto.
+  `;
+
+  return {
+    isError: true,
+    message: "Error executing tool: " + (error as Error).message,
+    systemInstruction: errorPrompt,
+  };
+};
+
+export const createSuggestPrompt = () => {
+  const { communities } = sessionStore.getState();
+  const suggestion = sessionStore.getState().suggest();
+
+  const suggest = suggestion.suggestion ? `- ${suggestion.suggestion}` : "";
+
+  const hasCommunities =
+    Array.isArray(communities) && communities.length > 0
+      ? `- Puedes sugerir datos especificos de las comunidades sin inventar, pero siempre tienes que preguntar el [Suggest]`
+      : "";
+
+  return `
+ INSTRUCCIONES (NO MOSTRAR):
+
+ - Pregunta SOLO por ese dato, tono cordial y por su nombre o amigo.
+ - PROHIBIDO inventar, solo formular pregunta que este asociada con el suggest.
+ ${suggest}
+ ${hasCommunities}
+  `;
+};
+
 // [TOOLS & STATE]
 // - Para **leer o guardar información** SIEMPRE utiliza las tools disponibles.
 // - No inventes datos ni asumas estado; si falta 'sessionId', inicia flujo pidiendo nombre (o usa la tool definida para ello).
 // - Tras cada tool exitosa, suguiere el paso siguiente que te sugerira la respuesta de la tool.
+
+// INSTRUCCIONES (NO MOSTRAR):
+
+// - Pregunta SOLO por ese dato, tono cordial y por su nombre o amigo.
+// - PROHIBIDO inventar, solo formular pregunta que este asociada con el suggest.
+// ${nextTool}
+// ${suggest}
+// ${hasCommunities}
+
+// Solo respondes sobre temas inmobiliarios: presupuesto, tasa/producto, ubicaciones/mercados, especificaciones de floorplan (recámaras/baños/garage/sqft), “quick move-in”, renta, etc, siempre preguntar datos faltantes sin inventar.
+
+// [PERSONALIZACIÓN]
+// - Si hay nombre en sesión, úsalo con naturalidad (“¡Excelente, (nommbre usuario)!”).
+// - Si no, refiérete a la persona como “amigo”.
+
+// [INTERACCIÓN / MODO LIBRE]
+// - Si el usuario escribe libremente (ej.: “hola, soy Eduardo y busco casa en Orlando”), extrae lo relevante (nombre, localizacion, etc.) y usa las tools para **persistir** esos datos.
