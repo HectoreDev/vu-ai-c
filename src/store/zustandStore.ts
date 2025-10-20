@@ -7,7 +7,7 @@ import {
   validateAmenities,
   ValidationResult,
 } from "../schemas/store.schema";
-import { prompts, suggestionPrompts } from "../prompts/prompts";
+import { suggestionPrompts } from "../prompts/prompts";
 import {
   BudgetType,
   FloorplanSpecs,
@@ -15,7 +15,6 @@ import {
   IFSuggestResponse,
   IFLocation,
 } from "../types/types";
-import is from "zod/v4/locales/is.cjs";
 import { hasItems } from "./helper";
 
 interface SessionStore {
@@ -528,7 +527,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     // Si tiene todas las propiedades principales, validar adicionales y sugerir
     // Validar propiedades adicionales en orden de prioridad
     if (state.locations.length > 0 && state.name) {
-      
+
       if (
         !state.budget?.price &&
         state.priceMin !== undefined &&
@@ -536,9 +535,8 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       ) {
         return {
           missing: "budget",
-          suggestion: `${
-            suggestionPrompts.suggestionBudget
-          } y un rango de precios entre ${state.priceMin.toLocaleString()} y ${state.priceMax.toLocaleString()}`,
+          suggestion: `${suggestionPrompts.suggestionBudget
+            } y un rango de precios entre ${state.priceMin.toLocaleString()} y ${state.priceMax.toLocaleString()}`,
           nextTool: "getBudget",
         };
       }
