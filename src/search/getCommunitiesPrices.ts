@@ -12,33 +12,53 @@ export const getCommunitiesPrices = async (
     setPriceMax
   } = sessionStore.getState();
 
-  const getLocations = locations.map((loc, i) => {
-    const isFirts = i === 0 ? "" : "OR";
+  // const getLocations = locations.map((loc, i) => {
+  //   const isFirts = i === 0 ? "" : "OR";
 
-    if (loc.location) {
-      return `city:"${isFirts}${loc.location}"`;
-    } else {
-      return `state:"${isFirts}${loc.state}"`;
+  //   if (loc.location) {
+  //     return `city:"${isFirts}${loc.location}"`;
+  //   } else {
+  //     return `state:"${isFirts}${loc.state}"`;
+  //   }
+  // });
+
+  //const filtersLocation =
+  //  getLocations.length > 0 ? `AND ${getLocations.toString()}` : "";
+
+  // const filters = `(objectType:community ${filtersLocation})`;
+
+  const faceType = 'objectType:community';
+
+  const facetFilters = [];
+
+  console.log('Locations to get community prices', locations);
+
+  for (let i = 0; i < locations.length; i++) {
+    const { location, state } = locations[i];
+    if (location) {
+      facetFilters.push(`city:${location}`);
+    } else if (state) {
+      facetFilters.push(`state:${state}`);
     }
-  });
+  }
 
-  const filtersLocation =
-    getLocations.length > 0 ? `AND ${getLocations.toString()}` : "";
-
-  const filters = `(objectType:community ${filtersLocation})`;
+  console.log('Filters for community prices', facetFilters);
 
   const result = await queryDocument({
+    faceType,
     query: "",
-    page: 1,
-    filters,
+    filters: facetFilters,
   });
 
-  const hits = result.hits;
+  console.log('Result from community prices query', result);
+
+  // @ts-ignore
+  const hits = result[0].hits;
 
   if (hits.length === 0) return null;
 
 const { priceMax, priceMin } = hits.reduce(
-  (acc, hit) => ({
+  (acc:any, hit:any) => ({
     priceMin:
       hit.priceMin > 0
         ? acc.priceMin === 0
