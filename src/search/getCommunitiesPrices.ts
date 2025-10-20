@@ -31,8 +31,6 @@ export const getCommunitiesPrices = async (
 
   const facetFilters = [];
 
-  console.log('Locations to get community prices', locations);
-
   for (let i = 0; i < locations.length; i++) {
     const { location, state } = locations[i];
     if (location) {
@@ -42,15 +40,11 @@ export const getCommunitiesPrices = async (
     }
   }
 
-  console.log('Filters for community prices', facetFilters);
-
   const result = await queryDocument({
     faceType,
     query: "",
     filters: facetFilters,
   });
-
-  console.log('Result from community prices query', result);
 
   // @ts-ignore
   const hits = result[0].hits;

@@ -17,7 +17,13 @@ export const model = ai.chats.create({
   model: "gemini-2.0-flash",
   config: {
     systemInstruction: prompts.systemInstructions,
-    
+    tools: [
+      {
+        functionDeclarations: tools,
+      },
+    ],
+    //  responseMimeType: "application/json",  
+    //  stopSequences: ["[END]"],  
   },
   history: [
     // Initial history for the chat session

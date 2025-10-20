@@ -104,7 +104,7 @@ export class SimpleMcpServer {
       };
     }
 
-    console.log("communities", store.communities);
+    // console.log("communities", store.communities);
 
     if(handleError.isError){
 

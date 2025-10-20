@@ -400,9 +400,7 @@ export const validateInterestedFindHome = (
   message: string
 ): ValidationResult<{ interestFindHome: string }> => {
   try {
-    // validar como arreglo
     const data = interestFindHomeSchema.parse({ interestFindHome });
-    console.log("QQQQQQQQQQQ", data);
 
     return createSuccessResponse(
       {

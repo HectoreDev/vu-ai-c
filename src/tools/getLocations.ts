@@ -12,7 +12,7 @@ import { searchCommunities } from "./searchCommunity";
 type Args = z.infer<typeof locationsSchema>;
 
 export const handleGetLocations = async (args: Args): Promise<ValidationResult<Args>> => {
-  console.log('Args',args);
+
   const response = validateLocations(args.locations, `User select locations ${args}`);
 
   if (response.error && !response.success) {

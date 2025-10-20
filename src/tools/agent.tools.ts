@@ -8,10 +8,10 @@ const toolSchema: Record<string, FunctionDeclaration> = {
     parameters: {
       type: Type.OBJECT,
       properties: {
-        sessionId: {
-          type: Type.STRING,
-          description: propertiesPrompts.sessionIdDescription,
-        },
+        // sessionId: {
+        //   type: Type.STRING,
+        //   description: propertiesPrompts.sessionIdDescription,
+        // },
         name: {
           type: Type.STRING,
           description: propertiesPrompts.nameDescription,
@@ -27,10 +27,10 @@ const toolSchema: Record<string, FunctionDeclaration> = {
     parameters: {
       type: Type.OBJECT,
       properties: {
-        sessionId: {
-          type: Type.STRING,
-          description: propertiesPrompts.sessionIdDescription,
-        },
+        // sessionId: {
+        //   type: Type.STRING,
+        //   description: propertiesPrompts.sessionIdDescription,
+        // },
         locations: {
         
           type: Type.ARRAY,
@@ -65,10 +65,10 @@ const toolSchema: Record<string, FunctionDeclaration> = {
     parameters: {
       type: Type.OBJECT,
       properties: {
-        sessionId: {
-          type: Type.STRING,
-          description: propertiesPrompts.sessionIdDescription,
-        },
+        // sessionId: {
+        //   type: Type.STRING,
+        //   description: propertiesPrompts.sessionIdDescription,
+        // },
         priceMin: {
           type: Type.STRING,
           description: propertiesPrompts.priceMinDescription,
@@ -87,10 +87,10 @@ const toolSchema: Record<string, FunctionDeclaration> = {
     parameters: {
       type: Type.OBJECT,
       properties: {
-        sessionId: {
-          type: Type.STRING,
-          description: propertiesPrompts.sessionIdDescription,
-        },
+        // sessionId: {
+        //   type: Type.STRING,
+        //   description: propertiesPrompts.sessionIdDescription,
+        // },
         amenities: {
           type: Type.ARRAY,
           items: { type: Type.STRING },
@@ -106,16 +106,17 @@ const toolSchema: Record<string, FunctionDeclaration> = {
     parameters: {
       type: Type.OBJECT,
       properties: {
-        sessionId: {
-          type: Type.STRING,
-          description: propertiesPrompts.sessionIdDescription,
-        },
+        // sessionId: {
+        //   type: Type.STRING,
+        //   description: propertiesPrompts.sessionIdDescription,
+        // },
         interestFindHome: {
           type: Type.STRING,
           // items: { type: Type.STRING },
           description: propertiesPrompts.interestsFindHomeDescription,
         },
       },
+      required: ["interestFindHome"],
     },
   },
   getInterestRateType: {
@@ -124,15 +125,17 @@ const toolSchema: Record<string, FunctionDeclaration> = {
     parameters: {
       type: Type.OBJECT,
       properties: {
-        sessionId: {
-          type: Type.STRING,
-          description: propertiesPrompts.sessionIdDescription,
-        },
+        // sessionId: {
+        //   type: Type.STRING,
+        //   description: propertiesPrompts.sessionIdDescription,
+        // },
         interestRateType: {
           type: Type.STRING,
           description: propertiesPrompts.interestRateType,
         },
       },
+      required: ["interestRateType"],
+
     },
   },
   getCustomizing: {
@@ -141,15 +144,16 @@ const toolSchema: Record<string, FunctionDeclaration> = {
     parameters: {
       type: Type.OBJECT,
       properties: {
-        sessionId: {
-          type: Type.STRING,
-          description: propertiesPrompts.sessionIdDescription,
-        },
+        // sessionId: {
+        //   type: Type.STRING,
+        //   description: propertiesPrompts.sessionIdDescription,
+        // },
         customizing: {
           type: Type.BOOLEAN,
           description: propertiesPrompts.customizingDescription,
         },
       },
+       required: ["customizing"],
     },
   },
   getMoveInReady: {
@@ -158,15 +162,16 @@ const toolSchema: Record<string, FunctionDeclaration> = {
     parameters: {
       type: Type.OBJECT,
       properties: {
-        sessionId: {
-          type: Type.STRING,
-          description: propertiesPrompts.sessionIdDescription,
-        },
+        // sessionId: {
+        //   type: Type.STRING,
+        //   description: propertiesPrompts.sessionIdDescription,
+        // },
         moveInReady: {
           type: Type.BOOLEAN,
           description: propertiesPrompts.moveInReadyDescription,
         },
       },
+      required: ["moveInReady"],
     },
   },
   getRenting: {
@@ -175,15 +180,16 @@ const toolSchema: Record<string, FunctionDeclaration> = {
     parameters: {
       type: Type.OBJECT,
       properties: {
-        sessionId: {
-          type: Type.STRING,
-          description: propertiesPrompts.sessionIdDescription,
-        },
+        // sessionId: {
+        //   type: Type.STRING,
+        //   description: propertiesPrompts.sessionIdDescription,
+        // },
         renting: {
           type: Type.BOOLEAN,
           description: propertiesPrompts.rentingDescription,
         },
       },
+      required: ["renting"],
     },
   },
   getFloorplanBed: {
@@ -192,10 +198,10 @@ const toolSchema: Record<string, FunctionDeclaration> = {
     parameters: {
       type: Type.OBJECT,
       properties: {
-        sessionId: {
-          type: Type.STRING,
-          description: propertiesPrompts.sessionIdDescription,
-        },
+        // sessionId: {
+        //   type: Type.STRING,
+        //   description: propertiesPrompts.sessionIdDescription,
+        // },
         bed_min: {
           type: Type.NUMBER,
           description: propertiesPrompts.bedMinDescription,
@@ -205,6 +211,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
           description: propertiesPrompts.bedMaxDescription,
         },
       },
+      required:["bed_min", "bed_max"]
     },
   },
   getFloorplanBath: {
@@ -213,10 +220,10 @@ const toolSchema: Record<string, FunctionDeclaration> = {
     parameters: {
       type: Type.OBJECT,
       properties: {
-        sessionId: {
-          type: Type.STRING,
-          description: propertiesPrompts.sessionIdDescription,
-        },
+        // sessionId: {
+        //   type: Type.STRING,
+        //   description: propertiesPrompts.sessionIdDescription,
+        // },
         bath_min: {
           type: Type.NUMBER,
           description: propertiesPrompts.bathMinDescription,
@@ -226,6 +233,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
           description: propertiesPrompts.bathMaxDescription,
         },
       },
+      required:["bath_min", "bath_max"]
     },
   },
   getFloorplanSqft: {
@@ -234,10 +242,10 @@ const toolSchema: Record<string, FunctionDeclaration> = {
     parameters: {
       type: Type.OBJECT,
       properties: {
-        sessionId: {
-          type: Type.STRING,
-          description: propertiesPrompts.sessionIdDescription,
-        },
+        // sessionId: {
+        //   type: Type.STRING,
+        //   description: propertiesPrompts.sessionIdDescription,
+        // },
         sqft_min: {
           type: Type.NUMBER,
           description: propertiesPrompts.sqftMinDescription,
@@ -247,6 +255,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
           description: propertiesPrompts.sqftMaxDescription,
         },
       },
+      required:["sqft_min", "sqft_max"]
     },
   },
   getFloorplanGarage: {
@@ -255,10 +264,10 @@ const toolSchema: Record<string, FunctionDeclaration> = {
     parameters: {
       type: Type.OBJECT,
       properties: {
-        sessionId: {
-          type: Type.STRING,
-          description: propertiesPrompts.sessionIdDescription,
-        },
+        // sessionId: {
+        //   type: Type.STRING,
+        //   description: propertiesPrompts.sessionIdDescription,
+        // },
         garage_min: {
           type: Type.NUMBER,
           description: propertiesPrompts.garageMinDescription,
@@ -268,6 +277,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
           description: propertiesPrompts.garageMaxDescription,
         },
       },
+      required:["garage_min", "garage_max"]
     },
   },
   getFloorplanLevel: {
@@ -276,10 +286,10 @@ const toolSchema: Record<string, FunctionDeclaration> = {
     parameters: {
       type: Type.OBJECT,
       properties: {
-        sessionId: {
-          type: Type.STRING,
-          description: propertiesPrompts.sessionIdDescription,
-        },
+        // sessionId: {
+        //   type: Type.STRING,
+        //   description: propertiesPrompts.sessionIdDescription,
+        // },
         level_min: {
           type: Type.NUMBER,
           description: propertiesPrompts.levelMinDescription,
@@ -289,6 +299,7 @@ const toolSchema: Record<string, FunctionDeclaration> = {
           description: propertiesPrompts.levelMaxDescription,
         },
       },
+      required:["level_min", "level_max"]
     },
   },
   getInterestedHome: {
@@ -297,16 +308,17 @@ const toolSchema: Record<string, FunctionDeclaration> = {
     parameters: {
       type: Type.OBJECT,
       properties: {
-        sessionId: {
-          type: Type.STRING,
-          description: propertiesPrompts.sessionIdDescription,
-        },
+        // sessionId: {
+        //   type: Type.STRING,
+        //   description: propertiesPrompts.sessionIdDescription,
+        // },
         interestedHome: {
           type: Type.ARRAY,
           items: { type: Type.STRING },
           description: propertiesPrompts.homeInterestDescription,
         },
       },
+      required:["interestedHome"]
     },
   },
   // searchCommmunity: {
