@@ -12,22 +12,7 @@ export const getCommunitiesPrices = async (
     setPriceMax
   } = sessionStore.getState();
 
-  // const getLocations = locations.map((loc, i) => {
-  //   const isFirts = i === 0 ? "" : "OR";
-
-  //   if (loc.location) {
-  //     return `city:"${isFirts}${loc.location}"`;
-  //   } else {
-  //     return `state:"${isFirts}${loc.state}"`;
-  //   }
-  // });
-
-  //const filtersLocation =
-  //  getLocations.length > 0 ? `AND ${getLocations.toString()}` : "";
-
-  // const filters = `(objectType:community ${filtersLocation})`;
-
-  const faceType = 'objectType:community';
+  const facetType = 'objectType:community';
 
   const facetFilters = [];
 
@@ -41,7 +26,7 @@ export const getCommunitiesPrices = async (
   }
 
   const result = await queryDocument({
-    faceType,
+    facetType,
     query: "",
     filters: facetFilters,
   });
@@ -51,18 +36,18 @@ export const getCommunitiesPrices = async (
 
   if (hits.length === 0) return null;
 
-const { priceMax, priceMin } = hits.reduce(
-  (acc:any, hit:any) => ({
-    priceMin:
-      hit.priceMin > 0
-        ? acc.priceMin === 0
-          ? hit.priceMin
-          : Math.min(acc.priceMin, hit.priceMin)
-        : acc.priceMin,
-    priceMax: Math.max(acc.priceMax, hit.priceMax),
-  }),
-  { priceMin: Infinity, priceMax: 0 }
-);
+  const { priceMax, priceMin } = hits.reduce(
+    (acc: any, hit: any) => ({
+      priceMin:
+        hit.priceMin > 0
+          ? acc.priceMin === 0
+            ? hit.priceMin
+            : Math.min(acc.priceMin, hit.priceMin)
+          : acc.priceMin,
+      priceMax: Math.max(acc.priceMax, hit.priceMax),
+    }),
+    { priceMin: Infinity, priceMax: 0 }
+  );
 
   setPriceMin(priceMin);
   setPriceMax(priceMax);
