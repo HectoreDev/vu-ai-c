@@ -10,14 +10,17 @@ export const queryDocument = async (
     {
       indexName: "community-by-AI",
       query: args.query,
-      facetFilters: [ args.faceType, args.filters],
+      facetFilters: [args.facetType, ...args.filters],
       numericFilters: args.numericFilters,
+      ...(args.searchParams && { searchParams: args.searchParams })
     },
   ];
 
+  console.log('Requests', JSON.stringify(requests, null, 2));
+  console.log('Search params', JSON.stringify(args.searchParams, null, 2));
   const result = await client.search({
     requests: requests
   });
-
+  console.log('Result', JSON.stringify(result, null, 2));
   return result.results;
 };

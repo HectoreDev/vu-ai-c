@@ -1,8 +1,13 @@
 export interface IFArgsSearch {
-  faceType: string;
+  facetType: string;
   query: string;
   filters: string[] | string;
   numericFilters?: string[];
+  searchParams?: {
+    aroundLatLng: string;
+    aroundRadius: number;
+  };
+
 }
 
 export type QueryFilter = QueryFilterNumeric | QueryFilterText;

@@ -15,7 +15,9 @@ import {
   IFSuggestResponse,
   IFLocation,
 } from "../types/types";
+import { IFArgsSearch } from "../types/searchTypes";
 import { hasItems } from "./helper";
+import { mcpServer } from "../mcp-llm/mcp.server";
 
 interface SessionStore {
   // Estados principales
@@ -32,6 +34,8 @@ interface SessionStore {
   lastToolUsed?: string;
   mcpSessionId?: string;
   location?: string;
+  latitude?: number;
+  longitude?: number;
 
   // Nuevos campos del flujo extendido
   interestFindHome?: string;
@@ -88,6 +92,9 @@ interface SessionStore {
   setLastToolUsed: (tool: string) => void;
   setMcpSessionId: (mcpSessionId: string) => void;
   setLocation: (location: string) => void;
+  setLatitude: (latitude: number) => void;
+  setLongitude: (longitude: number) => void;
+  setGeoLocation: (latitude: number, longitude: number) => void;
 
   // Acciones para nuevos campos
   setInterestFindHome: (interestFindHome: string) => void;
@@ -116,6 +123,7 @@ interface SessionStore {
   getValidationErrors: (field?: string) => string[];
   setBudgetPriceRange: (priceMin: number, priceMax: number) => void;
   suggest: () => IFSuggestResponse;
+  toQuery: () => IFArgsSearch;
 }
 
 // Estado inicial
@@ -134,6 +142,8 @@ export const initialState = {
   lastToolUsed: undefined,
   mcpSessionId: undefined,
   location: undefined,
+  latitude: undefined,
+  longitude: undefined,
 
   // Nuevos campos del flujo extendido
   interestFindHome: undefined,
@@ -337,6 +347,18 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     set({ location });
   },
 
+  setLatitude: (latitude: number) => {
+    set({ latitude });
+  },
+
+  setLongitude: (longitude: number) => {
+    set({ longitude });
+  },
+
+  setGeoLocation: (latitude: number, longitude: number) => {
+    set({ latitude, longitude });
+  },
+
   // Acciones para nuevos campos
 
   setInterestFindHome: (interestFindHome: string) => {
@@ -467,6 +489,130 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     } else {
       return Object.values(state.validationErrors).flat();
     }
+  },
+
+  /**
+   * Tomar el estado actual y construye la consulta a la API de Algolia
+   * Verifica las funciones activas del MCP server para asegurar coherencia
+   * @returns {IFArgsSearch} Objeto con la información de la consulta para queryDocument
+   */
+  toQuery: (): IFArgsSearch => {
+    const state = get();
+    const query = '';
+    const filters: string[] = [];
+
+    // Filtros de ubicación
+    if (state.locations && state.locations.length > 0) {
+      const location = state.locations[0];
+      if (location.state) {
+        filters.push(`state:${location.state}`);
+      }
+      if (location.location) {
+        filters.push(`city:${location.location}`);
+      }
+    }
+
+    // Filtros de amenidades
+    if (state.amenities && state.amenities.length > 0) {
+      state.amenities.forEach(amenity => {
+        filters.push(`amenities:${amenity}`);
+      });
+    }
+
+    // Filtros de intereses
+    if (state.homeInterest && state.homeInterest.length > 0) {
+      state.homeInterest.forEach(interest => {
+        filters.push(`homeInterest:${interest}`);
+      });
+    }
+
+    // Construir filtros numéricos
+    const numericFilters: string[] = [];
+
+    // Filtros de precio
+    if (state.priceMin !== undefined && state.priceMax !== undefined) {
+      numericFilters.push(`priceMin>=${state.priceMin}`);
+      numericFilters.push(`priceMax<=${state.priceMax}`);
+    } else if (state.budget?.price) {
+      numericFilters.push(`priceMin>=${state.budget.price.priceMin}`);
+      numericFilters.push(`priceMax<=${state.budget.price.priceMax}`);
+    }
+
+    // Filtros de floorplan - bedrooms
+    if (state.floorplanBed && (state.floorplanBed.min > 0 || state.floorplanBed.max > 0)) {
+      if (state.floorplanBed.min > 0) {
+        numericFilters.push(`bedroomsMin>=${state.floorplanBed.min}`);
+      }
+      if (state.floorplanBed.max > 0) {
+        numericFilters.push(`bedroomsMax<=${state.floorplanBed.max}`);
+      }
+    }
+
+    // Filtros de floorplan - bathrooms
+    if (state.floorplanBath && (state.floorplanBath.min > 0 || state.floorplanBath.max > 0)) {
+      if (state.floorplanBath.min > 0) {
+        numericFilters.push(`bathroomsMin>=${state.floorplanBath.min}`);
+      }
+      if (state.floorplanBath.max > 0) {
+        numericFilters.push(`bathroomsMax<=${state.floorplanBath.max}`);
+      }
+    }
+
+    // Filtros de floorplan - garage
+    if (state.floorplanGarage && (state.floorplanGarage.min > 0 || state.floorplanGarage.max > 0)) {
+      if (state.floorplanGarage.min > 0) {
+        numericFilters.push(`garagesMin>=${state.floorplanGarage.min}`);
+      }
+      if (state.floorplanGarage.max > 0) {
+        numericFilters.push(`garagesMax<=${state.floorplanGarage.max}`);
+      }
+    }
+
+    // Filtros de floorplan - levels
+    /*  if (state.floorplanLevel && (state.floorplanLevel.min > 0 || state.floorplanLevel.max > 0)) {
+       if (state.floorplanLevel.min > 0) {
+         numericFilters.push(`specs.level>=${state.floorplanLevel.min}`);
+       }
+       if (state.floorplanLevel.max > 0) {
+         numericFilters.push(`specs.level<=${state.floorplanLevel.max}`);
+       }
+     } */
+
+    // Filtros de floorplan - square feet
+    /*   if (state.floorplanSqft && (state.floorplanSqft.min > 0 || state.floorplanSqft.max > 0)) {
+        if (state.floorplanSqft.min > 0) {
+          numericFilters.push(`specs.sqft>=${state.floorplanSqft.min}`);
+        }
+        if (state.floorplanSqft.max > 0) {
+          numericFilters.push(`specs.sqft<=${state.floorplanSqft.max}`);
+        }
+      } */
+
+    // Construir searchParams con geolocalización si está disponible
+    const searchParams =
+      state.latitude !== undefined && state.longitude !== undefined
+        ? {
+          latitude: state.latitude,
+          longitude: state.longitude,
+          aroundRadius: 5000,
+        }
+        : undefined;
+
+    const facetType = "objectType:community";
+
+    return {
+      query,
+      facetType: facetType,
+      filters: filters.map(filter => filter),
+      numericFilters,
+      ...(searchParams && {
+        searchParams: {
+          aroundLatLng: `${searchParams.latitude}, ${searchParams.longitude}`,
+          aroundRadius: searchParams.aroundRadius
+        }
+      }),
+
+    };
   },
 
   /**
@@ -641,6 +787,8 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       nextTool: '',
     };
   },
+
+
 }));
 
 // Subscribe para debugging (opcional)
