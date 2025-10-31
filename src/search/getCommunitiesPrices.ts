@@ -12,29 +12,18 @@ export const getCommunitiesPrices = async (
     setPriceMax
   } = sessionStore.getState();
 
-  const facetType = 'objectType:community';
+  const queryArgs = sessionStore.getState().toQuery();
+  const result = await queryDocument(queryArgs);
 
-  const facetFilters = [];
+  // Safely access hits from the first element of result if it exists and has hits.
+  const hits =
+    Array.isArray(result) &&
+      result[0] &&
+      Array.isArray((result[0] as any).hits)
+      ? (result[0] as any).hits
+      : [];
 
-  for (let i = 0; i < locations.length; i++) {
-    const { location, state } = locations[i];
-    if (location) {
-      facetFilters.push(`city:${location}`);
-    } else if (state) {
-      facetFilters.push(`state:${state}`);
-    }
-  }
-
-  const result = await queryDocument({
-    facetType,
-    query: "",
-    filters: facetFilters,
-  });
-
-  // @ts-ignore
-  const hits = result[0].hits;
-
-  if (hits.length === 0) return null;
+  if (!Array.isArray(hits) || hits.length === 0) return null;
 
   const { priceMax, priceMin } = hits.reduce(
     (acc: any, hit: any) => ({
