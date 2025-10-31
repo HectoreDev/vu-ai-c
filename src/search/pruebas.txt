@@ -1,0 +1,91 @@
+{
+    "searchableAttributes": [
+        "title,description",  // El título tiene más peso que la descripción
+        "category"
+    ],
+        "customRanking": [
+            "desc(publication_date)",  // Artículos más recientes primero
+            "asc(price)"
+        ]
+}
+
+const index = client.initIndex('your_index_name');
+
+await index.setSettings({
+    searchableAttributes: [
+        'title,description',
+        'category,tags',
+        'content'
+    ],
+    customRanking: [
+        'desc(publication_date)',
+        'desc(popularity)'
+    ],
+    ranking: [
+        'typo',
+        'geo',
+        'words',
+        'filters',
+        'proximity',
+        'attribute',
+        'exact',
+        'custom'
+    ]
+});
+
+Ejemplo 1: Búsqueda de Restaurantes Cercanos
+
+
+const searchParams = {
+    query: 'pizza',
+    aroundLatLng: '40.416775, -3.703790',
+    aroundRadius: 3000, // 3km
+    filters: 'category:restaurant AND rating>4',
+    getRankingInfo: true // Incluye info de distancia en resultados
+};
+
+index.search('pizza', searchParams).then(({ hits }) => {
+    hits.forEach(hit => {
+        console.log(`${hit.name} - ${hit._rankingInfo.matchedGeoLocation?.distance}m`);
+    });
+});
+
+Ejemplo 2: Búsqueda con Geolocalización por Navegador
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition((position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        const searchParams = {
+            aroundLatLng: `${lat}, ${lng}`,
+            aroundRadius: 5000,
+            filters: 'type:pharmacy'
+        };
+
+        index.search('farmacia', searchParams);
+    });
+}
+
+Ejemplo 3: Combinando Texto y Geolocalización
+const searchParams = {
+    query: 'hotel',
+    aroundLatLng: '40.416775, -3.703790',
+    aroundRadius: 20000, // 20km
+    facets: ['stars', 'price_range'],
+    facetFilters: [['stars:4,5']]
+};
+
+Configuración del Ranking para Geo
+Para que la geolocalización afecte el ranking, configura:
+await index.setSettings({
+    ranking: [
+        'geo',           // Ordenar por proximidad
+        'typo',
+        'words',
+        'filters',
+        'proximity',
+        'attribute',
+        'exact',
+        'custom'
+    ]
+});
