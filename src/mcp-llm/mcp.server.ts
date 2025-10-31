@@ -82,7 +82,7 @@ export class SimpleMcpServer {
         if (tool) {
           try {
             const result = await tool(args);
-              results = {
+            results = {
               ...result,
             };
           } catch (error) {
@@ -97,6 +97,12 @@ export class SimpleMcpServer {
     const store = sessionStore.getState();
     const suggestion = sessionStore.getState().suggest();
 
+    await sessionStore.getState().updateFilteredCommunities();
+    const communities = sessionStore.getState().communities;
+    const filteredCommunities = sessionStore.getState().filteredCommunities;
+    console.log('Communities', communities);
+    console.log('Filtered Communities', filteredCommunities);
+
     if (suggestion) {
       results = {
         ...results,
@@ -106,7 +112,7 @@ export class SimpleMcpServer {
 
     // console.log("communities", store.communities);
 
-    if(handleError.isError){
+    if (handleError.isError) {
 
       return {
         sessionId: store.sessionId,
