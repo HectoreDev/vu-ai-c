@@ -63,7 +63,12 @@ export class GeminiService {
         },
       });
 
-      if (resultMCP.promptFeedback?.blockReason) {
+			const hasPhytonError =
+				resultMCP.candidates?.[0]?.content?.parts?.length === 0 || resultMCP.candidates?.[0]?.content?.parts?.[0].text === undefined || resultMCP.candidates?.[0]?.content?.parts?.[0].text.includes("tool_code") ? true : false;
+
+			console.log("hasPhytonError", hasPhytonError);
+
+      if (resultMCP.promptFeedback?.blockReason || hasPhytonError) {
         return {
           history,
           message: [
