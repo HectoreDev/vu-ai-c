@@ -2,7 +2,6 @@
 import { z } from "zod";
 import { sessionStore } from "../store/zustandStore";
 
-import { searchAlgolia } from "../functions/searchAlgolia";
 import { createErrorResponse, ValidationResult } from "../schemas/store.schema";
 import { getCommunitiesPrices } from "../search/getCommunitiesPrices";
 

@@ -15,7 +15,20 @@ import {
   IFSuggestResponse,
   IFLocation,
 } from "../types/types";
+import { IFArgsSearch } from "../types/searchTypes";
 import { hasItems } from "./helper";
+import { mcpServer } from "../mcp-llm/mcp.server";
+import { queryDocument } from "../search/search";
+import axios from "axios";
+import dotenv from "dotenv";
+import { client } from "../search/client";
+
+dotenv.config();
+const API_KEY = process.env.GEMINI_API_KEY || "";
+
+if (!API_KEY) {
+  console.warn("⚠️ GEMINI_API_KEY no encontrada en variables de entorno");
+}
 
 interface SessionStore {
   // Estados principales
@@ -28,10 +41,14 @@ interface SessionStore {
 
   // Estados adicionales
   communities?: any;
+  filteredCommunities?: any;
   community?: string;
   lastToolUsed?: string;
   mcpSessionId?: string;
   location?: string;
+  latitude?: number;
+  longitude?: number;
+  communitiesFromGeoLocation?: any;
 
   // Nuevos campos del flujo extendido
   interestFindHome?: string;
@@ -84,11 +101,15 @@ interface SessionStore {
     amenities: string[]
   ) => ValidationResult<{ amenities: string }>;
   setCommunities: (communities: any) => void;
+  setFilteredCommunities: (filteredCommunities: any) => void;
   setCommunity: (community: string) => void;
   setLastToolUsed: (tool: string) => void;
   setMcpSessionId: (mcpSessionId: string) => void;
   setLocation: (location: string) => void;
-
+  setLatitude: (latitude: number) => void;
+  setLongitude: (longitude: number) => void;
+  setGeoLocation: (latitude: number, longitude: number) => void;
+  setCommunitiesFromGeoLocation: (communitiesFromGeoLocation: any) => void;
   // Acciones para nuevos campos
   setInterestFindHome: (interestFindHome: string) => void;
   setInterestRateType: (interestRateType: string) => void;
@@ -116,6 +137,29 @@ interface SessionStore {
   getValidationErrors: (field?: string) => string[];
   setBudgetPriceRange: (priceMin: number, priceMax: number) => void;
   suggest: () => IFSuggestResponse;
+  toQuery: () => IFArgsSearch;
+  updateFilteredCommunities: () => Promise<void>;
+  getCommunitiesFromGeoLocation: () => Promise<void>;
+  searchWithGoogleMaps: (
+    query: string,
+    options?: {
+      model?: string;
+      latitude?: number;
+      longitude?: number;
+    }
+  ) => Promise<{
+    text: string;
+    groundingMetadata?: {
+      groundingChunks?: Array<{
+        maps?: {
+          title?: string;
+          uri?: string;
+          placeId?: string;
+          googleMapsWidgetContextToken?: string;
+        };
+      }>;
+    };
+  }>;
 }
 
 // Estado inicial
@@ -130,10 +174,13 @@ export const initialState = {
 
   // Estados adicionales
   communities: undefined,
+  filteredCommunities: undefined,
   community: undefined,
   lastToolUsed: undefined,
   mcpSessionId: undefined,
   location: undefined,
+  latitude: undefined,
+  longitude: undefined,
 
   // Nuevos campos del flujo extendido
   interestFindHome: undefined,
@@ -321,6 +368,10 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     set({ communities });
   },
 
+  setFilteredCommunities: (filteredCommunities: any) => {
+    set({ filteredCommunities });
+  },
+
   setCommunity: (community: string) => {
     set({ community });
   },
@@ -335,6 +386,22 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
 
   setLocation: (location: string) => {
     set({ location });
+  },
+
+  setLatitude: (latitude: number) => {
+    set({ latitude });
+  },
+
+  setLongitude: (longitude: number) => {
+    set({ longitude });
+  },
+
+  setGeoLocation: (latitude: number, longitude: number) => {
+    set({ latitude, longitude });
+  },
+
+  setCommunitiesFromGeoLocation: (communitiesFromGeoLocation: string) => {
+    set({ communitiesFromGeoLocation });
   },
 
   // Acciones para nuevos campos
@@ -470,6 +537,151 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
   },
 
   /**
+   * Tomar el estado actual y construye la consulta a la API de Algolia 
+   * @returns {IFArgsSearch} Objeto con la información de la consulta para queryDocument
+   */
+  toQuery: (): IFArgsSearch => {
+    const state = get();
+    const query = '';
+    const filters: string[] = [];
+
+    if (state.locations && state.locations.length > 0) {
+      const location = state.locations[0];
+      if (location.state) {
+        filters.push(`state:${location.state}`);
+      }
+      if (location.location) {
+        filters.push(`city:${location.location}`);
+      }
+    }
+
+    if (state.amenities && state.amenities.length > 0) {
+      state.amenities.forEach(amenity => {
+        filters.push(`amenities:${amenity}`);
+      });
+    }
+
+    if (state.homeInterest && state.homeInterest.length > 0) {
+      state.homeInterest.forEach(interest => {
+        filters.push(`homeInterest:${interest}`);
+      });
+    }
+
+    const numericFilters: string[] = [];
+
+    if (state.priceMin !== undefined && state.priceMax !== undefined) {
+      numericFilters.push(`priceMin>=${state.priceMin}`);
+      numericFilters.push(`priceMax<=${state.priceMax}`);
+    } else if (state.budget?.price) {
+      numericFilters.push(`priceMin>=${state.budget.price.priceMin}`);
+      numericFilters.push(`priceMax<=${state.budget.price.priceMax}`);
+    }
+
+    if (state.floorplanBed && (state.floorplanBed.min > 0 || state.floorplanBed.max > 0)) {
+      if (state.floorplanBed.min > 0) {
+        numericFilters.push(`bedroomsMin>=${state.floorplanBed.min}`);
+      }
+      if (state.floorplanBed.max > 0) {
+        numericFilters.push(`bedroomsMax<=${state.floorplanBed.max}`);
+      }
+    }
+
+    if (state.floorplanBath && (state.floorplanBath.min > 0 || state.floorplanBath.max > 0)) {
+      if (state.floorplanBath.min > 0) {
+        numericFilters.push(`bathroomsMin>=${state.floorplanBath.min}`);
+      }
+      if (state.floorplanBath.max > 0) {
+        numericFilters.push(`bathroomsMax<=${state.floorplanBath.max}`);
+      }
+    }
+
+    if (state.floorplanGarage && (state.floorplanGarage.min > 0 || state.floorplanGarage.max > 0)) {
+      if (state.floorplanGarage.min > 0) {
+        numericFilters.push(`garagesMin>=${state.floorplanGarage.min}`);
+      }
+      if (state.floorplanGarage.max > 0) {
+        numericFilters.push(`garagesMax<=${state.floorplanGarage.max}`);
+      }
+    }
+
+    // Filtros de floorplan - levels
+    /*  if (state.floorplanLevel && (state.floorplanLevel.min > 0 || state.floorplanLevel.max > 0)) {
+       if (state.floorplanLevel.min > 0) {
+         numericFilters.push(`specs.level>=${state.floorplanLevel.min}`);
+       }
+       if (state.floorplanLevel.max > 0) {
+         numericFilters.push(`specs.level<=${state.floorplanLevel.max}`);
+       }
+     } */
+
+    // Filtros de floorplan - square feet
+    /*   if (state.floorplanSqft && (state.floorplanSqft.min > 0 || state.floorplanSqft.max > 0)) {
+        if (state.floorplanSqft.min > 0) {
+          numericFilters.push(`specs.sqft>=${state.floorplanSqft.min}`);
+        }
+        if (state.floorplanSqft.max > 0) {
+          numericFilters.push(`specs.sqft<=${state.floorplanSqft.max}`);
+        }
+      } */
+
+    // Construir searchParams con geolocalización si está disponible
+    const searchParams =
+      state.latitude !== undefined && state.longitude !== undefined
+        ? {
+          latitude: state.latitude,
+          longitude: state.longitude,
+          aroundRadius: 5000,
+        }
+        : undefined;
+
+    const facetType = "objectType:community";
+
+    return {
+      query,
+      facetType: facetType,
+      filters: filters.map(filter => filter),
+      numericFilters,
+      ...(searchParams && {
+        searchParams: {
+          aroundLatLng: `${searchParams.latitude}, ${searchParams.longitude}`,
+          aroundRadius: searchParams.aroundRadius
+        }
+      }),
+
+    };
+  },
+
+  updateFilteredCommunities: async () => {
+
+    const queryArgs = get().toQuery();
+
+    //realizamos la consulta a la api de algolia
+    const result = await queryDocument(queryArgs);
+
+    const hits =
+      Array.isArray(result) &&
+        result[0] &&
+        Array.isArray((result[0] as any).hits)
+        ? (result[0] as any).hits
+        : [];
+
+    if (Array.isArray(hits) || hits.length > 0) {
+      set({ filteredCommunities: hits });
+    }
+
+  },
+
+  getCommunitiesFromGeoLocation: async (): Promise<any> => {
+    const response = await client.searchSingleIndex({
+      indexName: 'community-by-AI',
+      searchParams: { aroundLatLng: `${get().latitude}, ${get().longitude}`, aroundRadius: 100000 },
+    });
+    console.log('Response from communities from geo location', response);
+    set({ communitiesFromGeoLocation: response.hits });
+    return response.hits;
+  },
+
+  /**
    * Función suggest: Sugiere la siguiente acción basándose en el estado actual
    *
    * @returns {Object} Objeto con información sobre propiedades faltantes y sugerencias
@@ -491,19 +703,12 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     const buildSuggest = (
       prompt: string,
       primaryTool: string,
-      state: SessionStore
     ): IFSuggestResponse => {
-      const hasCommunities = hasItems(state.communities);
-      const extraPrompt = !hasCommunities
-        ? ` o ${suggestionPrompts.suggestionSearhCommunity}`
-        : "";
-
-      const nextTools = [primaryTool];
 
       return {
         missing: null,
-        suggestion: `${prompt}${extraPrompt}`.replace(/\s+/g, " ").trim(),
-        nextTool: nextTools.join(" | "),
+        suggestion: prompt,
+        nextTool: primaryTool
       };
     };
 
@@ -544,40 +749,35 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       if (!state.amenities) {
         return buildSuggest(
           suggestionPrompts.suggestionAnemities,
-          "getAmenities",
-          state
+          "getAmenities"
         );
       }
 
       if (!state.interestFindHome) {
         return buildSuggest(
           suggestionPrompts.suggestionInterestFindHome,
-          "getInterestFindHome",
-          state
+          "getInterestFindHome"
         );
       }
 
       if (state.customizing === null) {
         return buildSuggest(
           suggestionPrompts.suggestionCustomizing,
-          "getCustomizing",
-          state
+          "getCustomizing"
         );
       }
 
       if (state.moveInReady === null) {
         return buildSuggest(
           suggestionPrompts.suggestionMoveInReady,
-          "getMoveInReady",
-          state
+          "getMoveInReady"
         );
       }
 
       if (state.renting === null) {
         return buildSuggest(
           suggestionPrompts.suggestionRenting,
-          "getRenting",
-          state
+          "getRenting"
         );
       }
 
@@ -587,8 +787,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       ) {
         return buildSuggest(
           suggestionPrompts.suggestionFloorplanBed,
-          "getFloorplanBed",
-          state
+          "getFloorplanBed"
         );
       }
 
@@ -598,8 +797,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       ) {
         return buildSuggest(
           suggestionPrompts.suggestionFloorplanBath,
-          "getFloorplanBath",
-          state
+          "getFloorplanBath"
         );
       }
 
@@ -609,8 +807,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       ) {
         return buildSuggest(
           suggestionPrompts.suggestionFloorplanGarage,
-          "getFloorplanGarage",
-          state
+          "getFloorplanGarage"
         );
       }
 
@@ -620,8 +817,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       ) {
         return buildSuggest(
           suggestionPrompts.suggestionFloorplanLevel,
-          "getFloorplanLevel",
-          state
+          "getFloorplanLevel"
         );
       }
 
@@ -631,43 +827,167 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       ) {
         return buildSuggest(
           suggestionPrompts.suggestionFloorplanSqft,
-          "getFloorplanSqft",
-          state
+          "getFloorplanSqft"
         );
       }
 
       if (!state.homeInterest || state.homeInterest.length === 0) {
         return buildSuggest(
           suggestionPrompts.suggestionHomeInterest,
-          "getInterestedHome",
-          state
+          "getInterestedHome"
         );
       }
 
       if (!state.interestRateType) {
         return buildSuggest(
           suggestionPrompts.suggestionInterestRateType,
-          "getInterestRateType",
-          state
+          "getInterestRateType"
         );
-      }
-
-      if (!state.communities) {
-        return {
-          missing: null,
-          suggestion: suggestionPrompts.suggestionSearhCommunity,
-          nextTool: "searchCommmunity",
-        };
       }
     }
 
     // Si tiene toda la información
     return {
       missing: null,
-      suggestion: suggestionPrompts.suggestionComplete,
-      nextTool: "searchCommmunity",
+      suggestion: '',
+      nextTool: '',
     };
   },
+
+  /**
+   * Función searchWithGoogleMaps: Realiza una búsqueda con Google Maps Grounding usando Gemini API
+   * 
+   * Esta función utiliza la funcionalidad de Google Maps Grounding de Gemini para proporcionar
+   * respuestas precisas y basadas en ubicación utilizando los datos de Google Maps.
+   * 
+   * @param {string} query - La consulta del usuario relacionada con ubicación (ej: "What are the best Italian restaurants within a 15-minute walk from here?")
+   * @param {Object} options - Opciones opcionales para la búsqueda
+   * @param {string} options.model - Modelo de Gemini a usar (por defecto: "gemini-2.5-flash")
+   * @param {number} options.latitude - Latitud opcional (si no se proporciona, usa la del store)
+   * @param {number} options.longitude - Longitud opcional (si no se proporciona, usa la del store)
+   * 
+   * @returns {Promise<Object>} Objeto con:
+   * - text: La respuesta generada por Gemini
+   * - groundingMetadata: Metadatos de grounding con información de Google Maps:
+   *   - groundingChunks: Array de chunks con información de Maps:
+   *     - maps.title: Título del lugar
+   *     - maps.uri: URI del lugar en Google Maps
+   *     - maps.placeId: ID del lugar
+   *     - maps.googleMapsWidgetContextToken: Token para renderizar widgets de Google Maps
+   * 
+   * @example
+   * const result = await store.searchWithGoogleMaps(
+   *   "What are the best Italian restaurants within a 15-minute walk from here?",
+   *   { latitude: 34.050481, longitude: -118.248526 }
+   * );
+   * console.log(result.text);
+   * if (result.groundingMetadata?.groundingChunks) {
+   *   result.groundingMetadata.groundingChunks.forEach(chunk => {
+   *     console.log(`- [${chunk.maps?.title}](${chunk.maps?.uri})`);
+   *   });
+   * }
+   */
+  searchWithGoogleMaps: async (
+    query: string,
+    options?: {
+      model?: string;
+      latitude?: number;
+      longitude?: number;
+    }
+  ) => {
+    const state = get();
+
+    // Usar coordenadas de las opciones o del store
+    const latitude = options?.latitude ?? state.latitude;
+    const longitude = options?.longitude ?? state.longitude;
+
+    // Modelo compatible con Google Maps Grounding
+    const modelName = options?.model || "gemini-2.5-flash";
+
+    // Validar que tenemos API key
+    if (!API_KEY) {
+      throw new Error("GEMINI_API_KEY no está configurada en las variables de entorno");
+    }
+
+    try {
+      // Configurar la solicitud con Google Maps Grounding usando la API REST directamente
+      // El SDK de Node.js aún no soporta Google Maps Grounding, así que usamos la API REST
+      const requestBody: any = {
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: query }],
+          },
+        ],
+        tools: [{ googleMaps: {} }],
+      };
+
+      // Agregar configuración de ubicación si está disponible
+      if (latitude !== undefined && longitude !== undefined) {
+        requestBody.toolConfig = {
+          retrievalConfig: {
+            latLng: {
+              latitude,
+              longitude,
+            },
+          },
+        };
+      }
+
+      // Realizar la solicitud a Gemini API usando REST API
+      const response = await axios.post(
+        `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`,
+        requestBody,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": API_KEY,
+          },
+        }
+      );
+
+      // Extraer la respuesta de texto
+      const text =
+        response.data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+      // Extraer metadatos de grounding si están disponibles
+      const groundingMetadata =
+        response.data.candidates?.[0]?.groundingMetadata;
+
+      return {
+        text,
+        groundingMetadata: groundingMetadata
+          ? {
+            groundingChunks: groundingMetadata.groundingChunks?.map(
+              (chunk: any) => ({
+                maps: chunk.maps
+                  ? {
+                    title: chunk.maps.title,
+                    uri: chunk.maps.uri,
+                    placeId: chunk.maps.placeId,
+                    googleMapsWidgetContextToken:
+                      chunk.maps.googleMapsWidgetContextToken,
+                  }
+                  : undefined,
+              })
+            ),
+          }
+          : undefined,
+      };
+    } catch (error) {
+      console.error("Error en searchWithGoogleMaps:", error);
+      if (axios.isAxiosError(error)) {
+        const errorMessage =
+          error.response?.data?.error?.message ||
+          error.message ||
+          "Error desconocido";
+        throw new Error(`Error en la API de Gemini: ${errorMessage}`);
+      }
+      throw error;
+    }
+  },
+
+
 }));
 
 // Subscribe para debugging (opcional)

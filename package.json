@@ -10,7 +10,11 @@
     "build": "tsc & chmod 755 build/index.js",
     "start": "node --max-old-space-size=8192 dist/index.js",
     "extract-data": "node extract-region-data.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:toQuery": "ts-node src/examples/test-toQuery.ts",
+    "test:toQuery:simple": "ts-node src/examples/test-toQuery-simple.ts",
+    "test:google-maps": "ts-node src/examples/test-google-maps-grounding.ts",
+    "test:geo-location": "ts-node src/examples/test-getCommunitiesFromGeoLocation.ts"
   },
   "keywords": [],
   "author": "",

@@ -12,7 +12,6 @@ export const handleGetFloorplanBed = async (
     bed_max: args.bed_max,
     bed_min: args.bed_min
   }, `User select number beds ${args.bed_min}, ${args.bed_max} `);
-console.log('RESPONSE',response);
 
   const { bed_min, bed_max } = response.data;
 

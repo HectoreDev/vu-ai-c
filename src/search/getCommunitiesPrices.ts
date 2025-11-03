@@ -12,63 +12,31 @@ export const getCommunitiesPrices = async (
     setPriceMax
   } = sessionStore.getState();
 
-  // const getLocations = locations.map((loc, i) => {
-  //   const isFirts = i === 0 ? "" : "OR";
+  const queryArgs = sessionStore.getState().toQuery();
+  const result = await queryDocument(queryArgs);
 
-  //   if (loc.location) {
-  //     return `city:"${isFirts}${loc.location}"`;
-  //   } else {
-  //     return `state:"${isFirts}${loc.state}"`;
-  //   }
-  // });
+  // Safely access hits from the first element of result if it exists and has hits.
+  const hits =
+    Array.isArray(result) &&
+      result[0] &&
+      Array.isArray((result[0] as any).hits)
+      ? (result[0] as any).hits
+      : [];
 
-  //const filtersLocation =
-  //  getLocations.length > 0 ? `AND ${getLocations.toString()}` : "";
+  if (!Array.isArray(hits) || hits.length === 0) return null;
 
-  // const filters = `(objectType:community ${filtersLocation})`;
-
-  const faceType = 'objectType:community';
-
-  const facetFilters = [];
-
-  console.log('Locations to get community prices', locations);
-
-  for (let i = 0; i < locations.length; i++) {
-    const { location, state } = locations[i];
-    if (location) {
-      facetFilters.push(`city:${location}`);
-    } else if (state) {
-      facetFilters.push(`state:${state}`);
-    }
-  }
-
-  console.log('Filters for community prices', facetFilters);
-
-  const result = await queryDocument({
-    faceType,
-    query: "",
-    filters: facetFilters,
-  });
-
-  console.log('Result from community prices query', result);
-
-  // @ts-ignore
-  const hits = result[0].hits;
-
-  if (hits.length === 0) return null;
-
-const { priceMax, priceMin } = hits.reduce(
-  (acc:any, hit:any) => ({
-    priceMin:
-      hit.priceMin > 0
-        ? acc.priceMin === 0
-          ? hit.priceMin
-          : Math.min(acc.priceMin, hit.priceMin)
-        : acc.priceMin,
-    priceMax: Math.max(acc.priceMax, hit.priceMax),
-  }),
-  { priceMin: Infinity, priceMax: 0 }
-);
+  const { priceMax, priceMin } = hits.reduce(
+    (acc: any, hit: any) => ({
+      priceMin:
+        hit.priceMin > 0
+          ? acc.priceMin === 0
+            ? hit.priceMin
+            : Math.min(acc.priceMin, hit.priceMin)
+          : acc.priceMin,
+      priceMax: Math.max(acc.priceMax, hit.priceMax),
+    }),
+    { priceMin: Infinity, priceMax: 0 }
+  );
 
   setPriceMin(priceMin);
   setPriceMax(priceMax);
