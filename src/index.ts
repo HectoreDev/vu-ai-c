@@ -50,7 +50,7 @@ app.use((req, res, next) => {
 
   res.on('close', () => {
     const duration = Date.now() - start;
-    if (duration > 10000) { // Log requests que se cierran después de 10 segundos
+    if (duration > 30000) { // Log requests que se cierran después de 10 segundos
       console.log(`🔌 Conexión cerrada: ${req.method} ${req.path} - ${duration}ms`);
     }
   });

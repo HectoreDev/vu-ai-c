@@ -91,7 +91,7 @@ export const searchAlgolia = async (filters: AlgoliaSearchFilters): Promise<Resp
 		const searchConfig = {
 			indexName: 'communities-gemini-test',
 			query: '',
-			hitsPerPage: 5,
+			hitsPerPage: 2,
 			// numericFilters: numericFilters,
 			facetFilters: [
 				cities
