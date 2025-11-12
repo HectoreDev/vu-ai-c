@@ -49,6 +49,8 @@ interface SessionStore {
   latitude?: number;
   longitude?: number;
   communitiesFromGeoLocation?: any;
+  filteredFloorplans?: any;
+  filteredLots?: any;
 
   // Nuevos campos del flujo extendido
   interestFindHome?: string;
@@ -110,6 +112,7 @@ interface SessionStore {
   setLongitude: (longitude: number) => void;
   setGeoLocation: (latitude: number, longitude: number) => void;
   setCommunitiesFromGeoLocation: (communitiesFromGeoLocation: any) => void;
+  setFilteredLots: (filteredLots: any) => void;
   // Acciones para nuevos campos
   setInterestFindHome: (interestFindHome: string) => void;
   setInterestRateType: (interestRateType: string) => void;
@@ -138,7 +141,10 @@ interface SessionStore {
   setBudgetPriceRange: (priceMin: number, priceMax: number) => void;
   suggest: () => IFSuggestResponse;
   toQuery: () => IFArgsSearch;
+  toQueryLot: () => IFArgsSearch;
   updateFilteredCommunities: () => Promise<void>;
+  updateFilteredFloorplans: () => Promise<void>;
+  updateFilteredLots: () => Promise<void>;
   getCommunitiesFromGeoLocation: () => Promise<void>;
   searchWithGoogleMaps: (
     query: string,
@@ -404,6 +410,10 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     set({ communitiesFromGeoLocation });
   },
 
+  setFilteredLots: (filteredLots: any) => {
+    set({ filteredLots });
+  },
+
   // Acciones para nuevos campos
 
   setInterestFindHome: (interestFindHome: string) => {
@@ -651,6 +661,128 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     };
   },
 
+  /**
+   * Tomar el estado actual y construye la consulta a la API de Algolia para Lots
+   * @returns {IFArgsSearch} Objeto con la información de la consulta para queryDocument
+   */
+  toQueryLot: (): IFArgsSearch => {
+    const state = get();
+    const query = '';
+    const filters: string[] = [];
+
+    // Filtros de ubicación
+    if (state.locations && state.locations.length > 0) {
+      const location = state.locations[0];
+      /*  if (location.state) {
+         filters.push(`state:${location.state}`);
+       } */
+      if (location.location) {
+        filters.push(`City:${location.location}`);
+      }
+    }
+
+    // Filtros de amenities (si aplican a lots)
+    if (state.amenities && state.amenities.length > 0) {
+      state.amenities.forEach(amenity => {
+        filters.push(`amenities:${amenity}`);
+      });
+    }
+
+    // Filtros de homeInterest (si aplican a lots)
+    if (state.homeInterest && state.homeInterest.length > 0) {
+      state.homeInterest.forEach(interest => {
+        filters.push(`homeInterest:${interest}`);
+      });
+    }
+
+    const numericFilters: string[] = [];
+
+    // Filtros de precio usando BasePrice
+    if (state.priceMin !== undefined && state.priceMax !== undefined) {
+      numericFilters.push(`BasePrice>=${state.priceMin}`);
+      numericFilters.push(`BasePrice<=${state.priceMax}`);
+    } else if (state.budget?.price) {
+      numericFilters.push(`BasePrice>=${state.budget.price.priceMin}`);
+      numericFilters.push(`BasePrice<=${state.budget.price.priceMax}`);
+    }
+
+    // Filtros de floorplan - Bedrooms
+    if (state.floorplanBed && (state.floorplanBed.min > 0 || state.floorplanBed.max > 0)) {
+      if (state.floorplanBed.min > 0) {
+        numericFilters.push(`Bedrooms>=${state.floorplanBed.min}`);
+      }
+      if (state.floorplanBed.max > 0) {
+        numericFilters.push(`Bedrooms<=${state.floorplanBed.max}`);
+      }
+    }
+
+    // Filtros de floorplan - Bathrooms
+    if (state.floorplanBath && (state.floorplanBath.min > 0 || state.floorplanBath.max > 0)) {
+      if (state.floorplanBath.min > 0) {
+        numericFilters.push(`Bathrooms>=${state.floorplanBath.min}`);
+      }
+      if (state.floorplanBath.max > 0) {
+        numericFilters.push(`Bathrooms<=${state.floorplanBath.max}`);
+      }
+    }
+
+    // Filtros de floorplan - Garages
+    if (state.floorplanGarage && (state.floorplanGarage.min > 0 || state.floorplanGarage.max > 0)) {
+      if (state.floorplanGarage.min > 0) {
+        numericFilters.push(`Garages>=${state.floorplanGarage.min}`);
+      }
+      if (state.floorplanGarage.max > 0) {
+        numericFilters.push(`Garages<=${state.floorplanGarage.max}`);
+      }
+    }
+
+    // Filtros de floorplan - Stories (levels)
+    if (state.floorplanLevel && (state.floorplanLevel.min > 0 || state.floorplanLevel.max > 0)) {
+      if (state.floorplanLevel.min > 0) {
+        numericFilters.push(`Stories>=${state.floorplanLevel.min}`);
+      }
+      if (state.floorplanLevel.max > 0) {
+        numericFilters.push(`Stories<=${state.floorplanLevel.max}`);
+      }
+    }
+
+    // Filtros de floorplan - SquareFeet
+    if (state.floorplanSqft && (state.floorplanSqft.min > 0 || state.floorplanSqft.max > 0)) {
+      if (state.floorplanSqft.min > 0) {
+        numericFilters.push(`SquareFeet>=${state.floorplanSqft.min}`);
+      }
+      if (state.floorplanSqft.max > 0) {
+        numericFilters.push(`SquareFeet<=${state.floorplanSqft.max}`);
+      }
+    }
+
+    // Construir searchParams con geolocalización si está disponible
+    const searchParams =
+      state.latitude !== undefined && state.longitude !== undefined
+        ? {
+          latitude: state.latitude,
+          longitude: state.longitude,
+          aroundRadius: 5000,
+        }
+        : undefined;
+
+    const facetType = "objectType:lot";
+
+    return {
+      query,
+      facetType: facetType,
+      indexName: 'lots-gemini',
+      filters: filters.map(filter => filter),
+      numericFilters,
+      ...(searchParams && {
+        searchParams: {
+          aroundLatLng: `${searchParams.latitude}, ${searchParams.longitude}`,
+          aroundRadius: searchParams.aroundRadius
+        }
+      }),
+    };
+  },
+
   updateFilteredCommunities: async () => {
 
     const queryArgs = get().toQuery();
@@ -668,7 +800,46 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     if (Array.isArray(hits) || hits.length > 0) {
       set({ filteredCommunities: hits });
     }
+  },
 
+  updateFilteredFloorplans: async () => {
+
+    const queryArgs = get().toQuery();
+    queryArgs.facetType = 'objectType:floorplan';
+
+    //realizamos la consulta a la api de algolia
+    const result = await queryDocument(queryArgs);
+
+    const hits =
+      Array.isArray(result) &&
+        result[0] &&
+        Array.isArray((result[0] as any).hits)
+        ? (result[0] as any).hits
+        : [];
+
+    if (Array.isArray(hits) || hits.length > 0) {
+      set({ filteredFloorplans: hits });
+    }
+
+    console.log('Filtered floorplans', hits.length);
+    console.log('Filtered floorplans result', JSON.stringify(result, null, 2));
+  },
+
+  updateFilteredLots: async () => {
+    const queryArgs = get().toQueryLot();
+    const result = await queryDocument(queryArgs);
+    const hits =
+      Array.isArray(result) &&
+        result[0] &&
+        Array.isArray((result[0] as any).hits)
+        ? (result[0] as any).hits : [];
+
+    if (Array.isArray(hits) || hits.length > 0) {
+      set({ filteredLots: hits });
+    }
+
+    console.log('Filtered lots', hits.length);
+    console.log('Filtered lots result', JSON.stringify(result, null, 2));
   },
 
   getCommunitiesFromGeoLocation: async (): Promise<any> => {

@@ -50,7 +50,7 @@ export const getFloorplans = async (
     console.log('Numeric filters for floorplans', numericFilters);
 
     const result = await queryDocument({
-        faceType,
+        facetType: faceType,
         query: "",
         filters: facetFilters,
         numericFilters: numericFilters.length > 0 ? numericFilters : undefined,
