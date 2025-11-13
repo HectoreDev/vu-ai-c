@@ -129,7 +129,7 @@ export const createHandleError = (error: unknown, nameTool: string) => {
 };
 
 export const createSuggestPrompt = () => {
-  const { communities, priceMin } = sessionStore.getState();
+  const { communities, priceMin, filteredLots } = sessionStore.getState();
   const suggestion = sessionStore.getState().suggest();
 
   const suggest =
@@ -140,9 +140,7 @@ export const createSuggestPrompt = () => {
       ? `- Puedes sugerir datos especificos de las comunidades sin inventar, pero siempre tienes que preguntar el [Suggest]`
       : "";
 
-  const hasPerfectMatch = priceMin && priceMin < 500000 ? suggestionPrompts.suggestionPerfectMatch : '';
-
-  console.log(hasPerfectMatch, priceMin === 500000, priceMin, 500000)
+  const hasPerfectMatch = filteredLots && filteredLots.length > 0 ? suggestionPrompts.suggestionPerfectMatch : '';
 
   if (!suggest) {
     return ``;

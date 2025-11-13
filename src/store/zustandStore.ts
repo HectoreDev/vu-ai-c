@@ -45,7 +45,7 @@ interface SessionStore {
   longitude?: number;
   communitiesFromGeoLocation?: any;
   filteredFloorplans?: any;
-  filteredLots?: any;
+  filteredLots?: any[];
 
   // Nuevos campos del flujo extendido
   interestFindHome?: string;
@@ -108,7 +108,7 @@ interface SessionStore {
   setLongitude: (longitude: number) => void;
   setGeoLocation: (latitude: number, longitude: number) => void;
   setCommunitiesFromGeoLocation: (communitiesFromGeoLocation: any) => void;
-  setFilteredLots: (filteredLots: any) => void;
+  setFilteredLots: (filteredLots: any[]) => void;
   // Acciones para nuevos campos
   setInterestFindHome: (interestFindHome: string) => void;
   setInterestRateType: (interestRateType: string) => void;
@@ -438,7 +438,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     set({ communitiesFromGeoLocation });
   },
 
-  setFilteredLots: (filteredLots: any) => {
+  setFilteredLots: (filteredLots: any[]) => {
     set({ filteredLots });
   },
 
