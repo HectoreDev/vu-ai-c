@@ -8,7 +8,7 @@ export const queryDocument = async (
 
   const requests = [
     {
-      indexName: "community-by-AI",
+      indexName: args.indexName || "community-by-AI",
       query: args.query,
       facetFilters: [args.facetType, ...args.filters],
       numericFilters: args.numericFilters,

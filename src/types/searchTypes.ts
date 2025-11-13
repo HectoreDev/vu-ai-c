@@ -7,7 +7,7 @@ export interface IFArgsSearch {
     aroundLatLng: string;
     aroundRadius: number;
   };
-
+  indexName?: string;
 }
 
 export type QueryFilter = QueryFilterNumeric | QueryFilterText;
