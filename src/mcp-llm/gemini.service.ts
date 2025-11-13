@@ -1,10 +1,8 @@
 import { createSuggestPrompt } from "../prompts/prompts";
-import { sessionStore } from "../store/zustandStore";
-import { tools } from "../tools/agent.tools";
 import { cleanModelText } from "../utils/cleanModelText";
 import { model } from "./gemini.config";
 import { mcpServer } from "./mcp.server";
-import { Part, Type } from "@google/genai";
+import { Part } from "@google/genai";
 
 interface IFHistory {
   role: "user" | "model";
@@ -51,8 +49,6 @@ export class GeminiService {
       const mcpResult = await mcpServer.callTools(toolsCall);
       console.log("Resultados de herramientas:", mcpResult);
 
-      // console.log("Prompt", mcpResult.systemInstruction);
-
       const resultMCP = await model.sendMessage({
         message: JSON.stringify(mcpResult.data) || {},
         config: {
@@ -62,7 +58,12 @@ export class GeminiService {
         },
       });
 
-      if (resultMCP.promptFeedback?.blockReason) {
+			const hasPhytonError =
+				resultMCP.candidates?.[0]?.content?.parts?.length === 0 || resultMCP.candidates?.[0]?.content?.parts?.[0].text === undefined || resultMCP.candidates?.[0]?.content?.parts?.[0].text.includes("tool_code") ? true : false;
+
+			console.log("hasPhytonError", hasPhytonError);
+
+      if (resultMCP.promptFeedback?.blockReason || hasPhytonError) {
         return {
           history,
           message: [

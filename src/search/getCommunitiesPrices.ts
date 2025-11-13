@@ -1,7 +1,7 @@
 import { sessionStore } from "../store/zustandStore";
 import { IFTypeCommunity } from "../types/communityTypes";
 import { IFLocation } from "../types/types";
-import { queryDocument } from "./search";
+import { queryDocument, testPerfectMatch } from "./search";
 
 export const getCommunitiesPrices = async (
   locations: IFLocation[]
@@ -9,7 +9,8 @@ export const getCommunitiesPrices = async (
 
   const {
     setPriceMin,
-    setPriceMax
+    setPriceMax,
+    setLots
   } = sessionStore.getState();
 
   const queryArgs = sessionStore.getState().toQuery();
@@ -37,6 +38,10 @@ export const getCommunitiesPrices = async (
     }),
     { priceMin: Infinity, priceMax: 0 }
   );
+
+  // for testing
+  const lots = testPerfectMatch();
+  if(lots.length > 0) setLots(lots);
 
   setPriceMin(priceMin);
   setPriceMax(priceMax);

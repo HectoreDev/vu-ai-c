@@ -18,17 +18,12 @@ import {
 import { IFArgsSearch } from "../types/searchTypes";
 import { hasItems } from "./helper";
 import { mcpServer } from "../mcp-llm/mcp.server";
-import { queryDocument } from "../search/search";
+import { queryDocument, testPerfectMatch } from "../search/search";
 import axios from "axios";
 import dotenv from "dotenv";
 import { client } from "../search/client";
 
 dotenv.config();
-const API_KEY = process.env.GEMINI_API_KEY || "";
-
-if (!API_KEY) {
-  console.warn("⚠️ GEMINI_API_KEY no encontrada en variables de entorno");
-}
 
 interface SessionStore {
   // Estados principales
@@ -50,7 +45,7 @@ interface SessionStore {
   longitude?: number;
   communitiesFromGeoLocation?: any;
   filteredFloorplans?: any;
-  filteredLots?: any;
+  filteredLots?: any[];
 
   // Nuevos campos del flujo extendido
   interestFindHome?: string;
@@ -62,6 +57,7 @@ interface SessionStore {
   renting: boolean | null;
   homeInterest: string[];
   interestRateType?: string;
+  lots: any[];
 
   floorplanBed: {
     min: number;
@@ -112,7 +108,7 @@ interface SessionStore {
   setLongitude: (longitude: number) => void;
   setGeoLocation: (latitude: number, longitude: number) => void;
   setCommunitiesFromGeoLocation: (communitiesFromGeoLocation: any) => void;
-  setFilteredLots: (filteredLots: any) => void;
+  setFilteredLots: (filteredLots: any[]) => void;
   // Acciones para nuevos campos
   setInterestFindHome: (interestFindHome: string) => void;
   setInterestRateType: (interestRateType: string) => void;
@@ -139,33 +135,34 @@ interface SessionStore {
   clearValidationErrors: (field?: string) => void;
   getValidationErrors: (field?: string) => string[];
   setBudgetPriceRange: (priceMin: number, priceMax: number) => void;
+  setLots: (lots: any[]) => void;
   suggest: () => IFSuggestResponse;
   toQuery: () => IFArgsSearch;
   toQueryLot: () => IFArgsSearch;
   updateFilteredCommunities: () => Promise<void>;
   updateFilteredFloorplans: () => Promise<void>;
   updateFilteredLots: () => Promise<void>;
-  getCommunitiesFromGeoLocation: () => Promise<void>;
-  searchWithGoogleMaps: (
-    query: string,
-    options?: {
-      model?: string;
-      latitude?: number;
-      longitude?: number;
-    }
-  ) => Promise<{
-    text: string;
-    groundingMetadata?: {
-      groundingChunks?: Array<{
-        maps?: {
-          title?: string;
-          uri?: string;
-          placeId?: string;
-          googleMapsWidgetContextToken?: string;
-        };
-      }>;
-    };
-  }>;
+  // getCommunitiesFromGeoLocation: () => Promise<void>;
+  // searchWithGoogleMaps: (
+  //   query: string,
+  //   options?: {
+  //     model?: string;
+  //     latitude?: number;
+  //     longitude?: number;
+  //   }
+  // ) => Promise<{
+  //   text: string;
+  //   groundingMetadata?: {
+  //     groundingChunks?: Array<{
+  //       maps?: {
+  //         title?: string;
+  //         uri?: string;
+  //         placeId?: string;
+  //         googleMapsWidgetContextToken?: string;
+  //       };
+  //     }>;
+  //   };
+  // }>;
 }
 
 // Estado inicial
@@ -197,6 +194,37 @@ export const initialState = {
   renting: null,
   homeInterest: [],
   interestRate: undefined,
+  lots: [
+    {
+      "lotUID": "5e675f6f-b0a3-44dd-a75c-52a00352bbc8",
+      "address": null,
+      "price": 500000,
+      "segmentUID": "seg-4044",
+      "uid": "kR1CtiAHdFBhpNBrtwKR",
+      "collectionUID": "b3d61bdb-997e-4032-9eb0-f3ed07053713",
+      "reservationCost": 100,
+      "status": "available",
+      "orientation": "left",
+      "cost": null,
+      "flag_isFeatured": false,
+      "size": null,
+      "flag_lowIncome": false,
+      "flag_hasBasement": false,
+      "homeOrientation": "southEast",
+      "plans": {
+        "V5LiWv2ttIbFkXVuPhy2": {
+          "floorplanUID": "t7VQ7xWV6EY2rmufKkMK",
+          "basegroupUID": "V5LiWv2ttIbFkXVuPhy2",
+          "diagramUID": "HVfDmF1v3lMM3T93OYvO"
+        }
+      },
+      "needPlan": true,
+      "plansArray": [
+        "t7VQ7xWV6EY2rmufKkMK"
+      ],
+      "objectID": "7168480000"
+    }
+  ],
 
   // Floorplan specs
   floorplanBed: {
@@ -410,7 +438,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     set({ communitiesFromGeoLocation });
   },
 
-  setFilteredLots: (filteredLots: any) => {
+  setFilteredLots: (filteredLots: any[]) => {
     set({ filteredLots });
   },
 
@@ -535,6 +563,9 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     } else {
       set({ validationErrors: {} });
     }
+  },
+  setLots: (lots:any[]) => {
+    set(state => ({lots: state.lots}))
   },
 
   getValidationErrors: (field?: string) => {
@@ -787,6 +818,13 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
 
     const queryArgs = get().toQuery();
 
+    const locs = get().locations;
+
+    
+    if(!locs || locs.length <= 0) {
+      set({ filteredCommunities: [] });
+      return
+    }
     //realizamos la consulta a la api de algolia
     const result = await queryDocument(queryArgs);
 
@@ -842,15 +880,16 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     console.log('Filtered lots result', JSON.stringify(result, null, 2));
   },
 
-  getCommunitiesFromGeoLocation: async (): Promise<any> => {
-    const response = await client.searchSingleIndex({
-      indexName: 'community-by-AI',
-      searchParams: { aroundLatLng: `${get().latitude}, ${get().longitude}`, aroundRadius: 100000 },
-    });
-    console.log('Response from communities from geo location', response);
-    set({ communitiesFromGeoLocation: response.hits });
-    return response.hits;
-  },
+  // getCommunitiesFromGeoLocation: async (): Promise<any> => {
+  //   const response = await client.searchSingleIndex({
+  //     indexName: 'community-by-AI',
+      
+  //     searchParams: { aroundLatLng: `${get().latitude}, ${get().longitude}`, aroundRadius: 100000, hitsPerPage: 2 },
+  //   });
+  //   console.log('Response from communities from geo location', response);
+  //   set({ communitiesFromGeoLocation: response.hits });
+  //   return response.hits;
+  // },
 
   /**
    * Función suggest: Sugiere la siguiente acción basándose en el estado actual
@@ -909,12 +948,14 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
         state.priceMin !== undefined &&
         state.priceMax !== undefined
       ) {
+
         return {
           missing: "budget",
           suggestion: `${suggestionPrompts.suggestionBudget
             } y un rango de precios entre ${state.priceMin.toLocaleString()} y ${state.priceMax.toLocaleString()}`,
           nextTool: "getBudget",
         };
+
       }
 
       if (!state.amenities) {
@@ -1058,105 +1099,105 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
    *   });
    * }
    */
-  searchWithGoogleMaps: async (
-    query: string,
-    options?: {
-      model?: string;
-      latitude?: number;
-      longitude?: number;
-    }
-  ) => {
-    const state = get();
+  // searchWithGoogleMaps: async (
+  //   query: string,
+  //   options?: {
+  //     model?: string;
+  //     latitude?: number;
+  //     longitude?: number;
+  //   }
+  // ) => {
+  //   const state = get();
 
-    // Usar coordenadas de las opciones o del store
-    const latitude = options?.latitude ?? state.latitude;
-    const longitude = options?.longitude ?? state.longitude;
+  //   // Usar coordenadas de las opciones o del store
+  //   const latitude = options?.latitude ?? state.latitude;
+  //   const longitude = options?.longitude ?? state.longitude;
 
-    // Modelo compatible con Google Maps Grounding
-    const modelName = options?.model || "gemini-2.5-flash";
+  //   // Modelo compatible con Google Maps Grounding
+  //   const modelName = options?.model || "gemini-2.5-flash";
 
-    // Validar que tenemos API key
-    if (!API_KEY) {
-      throw new Error("GEMINI_API_KEY no está configurada en las variables de entorno");
-    }
+  //   // Validar que tenemos API key
+  //   if (!API_KEY) {
+  //     throw new Error("GEMINI_API_KEY no está configurada en las variables de entorno");
+  //   }
 
-    try {
-      // Configurar la solicitud con Google Maps Grounding usando la API REST directamente
-      // El SDK de Node.js aún no soporta Google Maps Grounding, así que usamos la API REST
-      const requestBody: any = {
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: query }],
-          },
-        ],
-        tools: [{ googleMaps: {} }],
-      };
+  //   // try {
+  //   //   // Configurar la solicitud con Google Maps Grounding usando la API REST directamente
+  //   //   // El SDK de Node.js aún no soporta Google Maps Grounding, así que usamos la API REST
+  //   //   // const requestBody: any = {
+  //   //   //   contents: [
+  //   //   //     {
+  //   //   //       role: "user",
+  //   //   //       parts: [{ text: query }],
+  //   //   //     },
+  //   //   //   ],
+  //   //   //   tools: [{ googleMaps: {} }],
+  //   //   // };
 
-      // Agregar configuración de ubicación si está disponible
-      if (latitude !== undefined && longitude !== undefined) {
-        requestBody.toolConfig = {
-          retrievalConfig: {
-            latLng: {
-              latitude,
-              longitude,
-            },
-          },
-        };
-      }
+  //   //   // Agregar configuración de ubicación si está disponible
+  //   //   // if (latitude !== undefined && longitude !== undefined) {
+  //   //   //   requestBody.toolConfig = {
+  //   //   //     retrievalConfig: {
+  //   //   //       latLng: {
+  //   //   //         latitude,
+  //   //   //         longitude,
+  //   //   //       },
+  //   //   //     },
+  //   //   //   };
+  //   //   // }
 
-      // Realizar la solicitud a Gemini API usando REST API
-      const response = await axios.post(
-        `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`,
-        requestBody,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "x-goog-api-key": API_KEY,
-          },
-        }
-      );
+  //   //   // Realizar la solicitud a Gemini API usando REST API
+  //   //   // const response = await axios.post(
+  //   //   //   `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`,
+  //   //   //   requestBody,
+  //   //   //   {
+  //   //   //     headers: {
+  //   //   //       "Content-Type": "application/json",
+  //   //   //       "x-goog-api-key": API_KEY,
+  //   //   //     },
+  //   //   //   }
+  //   //   // );
 
-      // Extraer la respuesta de texto
-      const text =
-        response.data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  //   //   // Extraer la respuesta de texto
+  //   //   // const text =
+  //   //   //   response.data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-      // Extraer metadatos de grounding si están disponibles
-      const groundingMetadata =
-        response.data.candidates?.[0]?.groundingMetadata;
+  //   //   // // Extraer metadatos de grounding si están disponibles
+  //   //   // const groundingMetadata =
+  //   //   //   response.data.candidates?.[0]?.groundingMetadata;
 
-      return {
-        text,
-        groundingMetadata: groundingMetadata
-          ? {
-            groundingChunks: groundingMetadata.groundingChunks?.map(
-              (chunk: any) => ({
-                maps: chunk.maps
-                  ? {
-                    title: chunk.maps.title,
-                    uri: chunk.maps.uri,
-                    placeId: chunk.maps.placeId,
-                    googleMapsWidgetContextToken:
-                      chunk.maps.googleMapsWidgetContextToken,
-                  }
-                  : undefined,
-              })
-            ),
-          }
-          : undefined,
-      };
-    } catch (error) {
-      console.error("Error en searchWithGoogleMaps:", error);
-      if (axios.isAxiosError(error)) {
-        const errorMessage =
-          error.response?.data?.error?.message ||
-          error.message ||
-          "Error desconocido";
-        throw new Error(`Error en la API de Gemini: ${errorMessage}`);
-      }
-      throw error;
-    }
-  },
+  //   //   // return {
+  //   //   //   text,
+  //   //   //   groundingMetadata: groundingMetadata
+  //   //   //     ? {
+  //   //   //       groundingChunks: groundingMetadata.groundingChunks?.map(
+  //   //   //         (chunk: any) => ({
+  //   //   //           maps: chunk.maps
+  //   //   //             ? {
+  //   //   //               title: chunk.maps.title,
+  //   //   //               uri: chunk.maps.uri,
+  //   //   //               placeId: chunk.maps.placeId,
+  //   //   //               googleMapsWidgetContextToken:
+  //   //   //                 chunk.maps.googleMapsWidgetContextToken,
+  //   //   //             }
+  //   //   //             : undefined,
+  //   //   //         })
+  //   //   //       ),
+  //   //   //     }
+  //   //   //     : undefined,
+  //   //   // };
+  //   // } catch (error) {
+  //   //   // console.error("Error en searchWithGoogleMaps:", error);
+  //   //   // if (axios.isAxiosError(error)) {
+  //   //   //   const errorMessage =
+  //   //   //     error.response?.data?.error?.message ||
+  //   //   //     error.message ||
+  //   //   //     "Error desconocido";
+  //   //   //   throw new Error(`Error en la API de Gemini: ${errorMessage}`);
+  //   //   // }
+  //   //   // throw error;
+  //   // }
+  // },
 
 
 }));
