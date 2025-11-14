@@ -18,7 +18,7 @@ import {
 import { IFArgsSearch } from "../types/searchTypes";
 import { hasItems } from "./helper";
 import { mcpServer } from "../mcp-llm/mcp.server";
-import { queryDocument, testPerfectMatch } from "../search/search";
+import { queryDocument, queryLots } from "../search/search";
 import axios from "axios";
 import dotenv from "dotenv";
 import { client } from "../search/client";
@@ -865,19 +865,29 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
 
   updateFilteredLots: async () => {
     const queryArgs = get().toQueryLot();
-    const result = await queryDocument(queryArgs);
-    const hits =
-      Array.isArray(result) &&
-        result[0] &&
-        Array.isArray((result[0] as any).hits)
-        ? (result[0] as any).hits : [];
+   const { priceMax, priceMin } = get();
 
-    if (Array.isArray(hits) || hits.length > 0) {
-      set({ filteredLots: hits });
+   console.log(priceMax, priceMin);
+
+    //realizamos la consulta a la api de algolia
+    if(priceMax && priceMin) {
+      const result = await queryLots({ priceMax, priceMin });
+      const hits =
+        Array.isArray(result) &&
+          result[0] &&
+          Array.isArray((result[0] as any).hits)
+          ? (result[0] as any).hits : [];
+
+      if (Array.isArray(hits) || hits.length > 0) {
+        set({ filteredLots: hits });
+      }
+
+      console.log('Filtered lots', hits.length);
+      console.log('Filtered lots result', JSON.stringify(result, null, 2));
+    } else {
+      set({ filteredLots: [] });
     }
 
-    console.log('Filtered lots', hits.length);
-    console.log('Filtered lots result', JSON.stringify(result, null, 2));
   },
 
   // getCommunitiesFromGeoLocation: async (): Promise<any> => {

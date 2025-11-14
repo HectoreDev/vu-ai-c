@@ -1,4 +1,3 @@
-import { get } from "http";
 import { sessionStore } from "../store/zustandStore";
 
 const sessionIdSuggest = `Requiere sessionId. Si no está presente, continua con la tool y sugiere preguntar el nombre del usuario.`;
@@ -141,6 +140,8 @@ export const createSuggestPrompt = () => {
       : "";
 
   const hasPerfectMatch = filteredLots && filteredLots.length > 0 ? suggestionPrompts.suggestionPerfectMatch : '';
+
+  console.log('filteredLots', filteredLots ,hasPerfectMatch)
 
   if (!suggest) {
     return ``;
