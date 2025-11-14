@@ -98,18 +98,18 @@ export class SimpleMcpServer {
     const suggestion = sessionStore.getState().suggest();
 
     await sessionStore.getState().updateFilteredCommunities();
+    await sessionStore.getState().updateFilteredLots();
 
     const communities = sessionStore.getState().communities;
     const filteredCommunities = sessionStore.getState().filteredCommunities;
-    const lots = sessionStore.getState().lots as any;
-    const priceMin = sessionStore.getState().priceMin;
+    const lots = sessionStore.getState().filteredLots as any;
     console.log('Communities', communities);
     console.log('Filtered Communities', filteredCommunities);
 
     if (suggestion) {
       results = {
         ...results,
-        data: priceMin && priceMin < 500000 ? lots : filteredCommunities,
+        data: lots && lots.length > 0 ? lots : filteredCommunities,
         suggest: suggestion,
       };
     }
