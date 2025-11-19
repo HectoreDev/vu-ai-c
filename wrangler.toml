@@ -1,0 +1,10 @@
+name = "vu-ai"
+main = "src/worker.ts"      
+compatibility_date = "2025-08-15"
+compatibility_flags = ["nodejs_compat", "enable_nodejs_http_server_modules"]
+
+[env.dev]
+name = "vu-ai-dev"
+
+[env.production]
+name = "vu-ai-prod"

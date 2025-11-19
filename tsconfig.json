@@ -11,7 +11,9 @@
     "resolveJsonModule": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "types": ["@cloudflare/workers-types"],
+    "lib": ["ESNext"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

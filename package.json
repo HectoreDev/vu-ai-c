@@ -15,13 +15,17 @@
     "test:toQuery:simple": "ts-node src/examples/test-toQuery-simple.ts",
     "test:google-maps": "ts-node src/examples/test-google-maps-grounding.ts",
     "test:geo-location": "ts-node src/examples/test-getCommunitiesFromGeoLocation.ts",
-    "test:floorplans": "ts-node src/examples/test-updateFilteredFloorplans.ts"
+    "test:floorplans": "ts-node src/examples/test-updateFilteredFloorplans.ts",
+    "build:worker": "tsc -p tsconfig.worker.json",
+    "deploy:dev": "wrangler deploy --env dev",
+    "deploy:prod": "wrangler deploy"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251119.0",
     "@types/cookie-parser": "^1.4.9",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
@@ -46,5 +50,6 @@
     "types": "^0.1.1",
     "zod": "^4.0.5",
     "zustand": "^5.0.8"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
