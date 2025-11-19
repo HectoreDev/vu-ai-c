@@ -1,24 +1,50 @@
 import i18next from "i18next";
-import Backend from "i18next-fs-backend";
-import path from "path";
+
+
+import enPrompts from "../locales/en/prompts.json";
+import enProperties from "../locales/en/properties.json";
+import enSuggestions from "../locales/en/suggestions.json";
+
+import esPrompts from "../locales/es/prompts.json";
+import esProperties from "../locales/es/properties.json";
+import esSuggestions from "../locales/es/suggestions.json";
 import { Lang } from "../types/types";
 
+const resources = {
+  en: {
+    prompts: enPrompts,
+    properties: enProperties,
+    suggestions: enSuggestions,
+  },
+  es: {
+    prompts: esPrompts,
+    properties: esProperties,
+    suggestions: esSuggestions,
+  },
+};
+
+let initialized = false;
+
 export async function initI18n(lang: Lang) {
-  await i18next.use(Backend).init(
-    {
-      fallbackLng: lang,
+  if (!initialized) {
+    await i18next.init({
+      lng: lang,
+      fallbackLng: "en",
       supportedLngs: ["en", "es"],
       ns: ["prompts", "properties", "suggestions"],
       defaultNS: "prompts",
-      backend: {
-        loadPath: path.join(__dirname, "./../locales/{{lng}}/{{ns}}.json"),
-      },
+      resources,
       interpolation: {
         escapeValue: false,
       },
-      returnObjects: true
-    }
-  );
+      returnObjects: true,
+    });
+
+    initialized = true;
+  } else {
+    // si ya está inicializado, sólo cambiamos de idioma
+    i18next.changeLanguage(lang);
+  }
 }
 
 export function tPrompts(key: string, lng: string, options?: any) {
