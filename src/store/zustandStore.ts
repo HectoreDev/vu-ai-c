@@ -7,13 +7,15 @@ import {
   validateAmenities,
   ValidationResult,
 } from "../schemas/store.schema";
-import { suggestionPrompts } from "../prompts/prompts";
+import { tSuggestions } from "./../controllers/i18n";
+// import { suggestionPrompts } from "../prompts/prompts";
 import {
   BudgetType,
   FloorplanSpecs,
   Range,
   IFSuggestResponse,
   IFLocation,
+  Lang,
 } from "../types/types";
 import { IFArgsSearch } from "../types/searchTypes";
 import { hasItems } from "./helper";
@@ -27,6 +29,7 @@ dotenv.config();
 
 interface SessionStore {
   // Estados principales
+  lang: Lang;
   sessionId?: string;
   name?: string;
   locations?: IFLocation[];
@@ -142,6 +145,7 @@ interface SessionStore {
   updateFilteredCommunities: () => Promise<void>;
   updateFilteredFloorplans: () => Promise<void>;
   updateFilteredLots: () => Promise<void>;
+  setLang: (lang: "en" | "es") => void;
   // getCommunitiesFromGeoLocation: () => Promise<void>;
   // searchWithGoogleMaps: (
   //   query: string,
@@ -168,6 +172,7 @@ interface SessionStore {
 // Estado inicial
 export const initialState = {
   // Estados principales
+  lang: "en" as Lang,
   sessionId: undefined,
   name: undefined,
   locations: undefined,
@@ -196,34 +201,32 @@ export const initialState = {
   interestRate: undefined,
   lots: [
     {
-      "lotUID": "5e675f6f-b0a3-44dd-a75c-52a00352bbc8",
-      "address": null,
-      "price": 500000,
-      "segmentUID": "seg-4044",
-      "uid": "kR1CtiAHdFBhpNBrtwKR",
-      "collectionUID": "b3d61bdb-997e-4032-9eb0-f3ed07053713",
-      "reservationCost": 100,
-      "status": "available",
-      "orientation": "left",
-      "cost": null,
-      "flag_isFeatured": false,
-      "size": null,
-      "flag_lowIncome": false,
-      "flag_hasBasement": false,
-      "homeOrientation": "southEast",
-      "plans": {
-        "V5LiWv2ttIbFkXVuPhy2": {
-          "floorplanUID": "t7VQ7xWV6EY2rmufKkMK",
-          "basegroupUID": "V5LiWv2ttIbFkXVuPhy2",
-          "diagramUID": "HVfDmF1v3lMM3T93OYvO"
-        }
+      lotUID: "5e675f6f-b0a3-44dd-a75c-52a00352bbc8",
+      address: null,
+      price: 500000,
+      segmentUID: "seg-4044",
+      uid: "kR1CtiAHdFBhpNBrtwKR",
+      collectionUID: "b3d61bdb-997e-4032-9eb0-f3ed07053713",
+      reservationCost: 100,
+      status: "available",
+      orientation: "left",
+      cost: null,
+      flag_isFeatured: false,
+      size: null,
+      flag_lowIncome: false,
+      flag_hasBasement: false,
+      homeOrientation: "southEast",
+      plans: {
+        V5LiWv2ttIbFkXVuPhy2: {
+          floorplanUID: "t7VQ7xWV6EY2rmufKkMK",
+          basegroupUID: "V5LiWv2ttIbFkXVuPhy2",
+          diagramUID: "HVfDmF1v3lMM3T93OYvO",
+        },
       },
-      "needPlan": true,
-      "plansArray": [
-        "t7VQ7xWV6EY2rmufKkMK"
-      ],
-      "objectID": "7168480000"
-    }
+      needPlan: true,
+      plansArray: ["t7VQ7xWV6EY2rmufKkMK"],
+      objectID: "7168480000",
+    },
   ],
 
   // Floorplan specs
@@ -564,8 +567,8 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       set({ validationErrors: {} });
     }
   },
-  setLots: (lots:any[]) => {
-    set(state => ({lots: state.lots}))
+  setLots: (lots: any[]) => {
+    set((state) => ({ lots: state.lots }));
   },
 
   getValidationErrors: (field?: string) => {
@@ -578,12 +581,12 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
   },
 
   /**
-   * Tomar el estado actual y construye la consulta a la API de Algolia 
+   * Tomar el estado actual y construye la consulta a la API de Algolia
    * @returns {IFArgsSearch} Objeto con la información de la consulta para queryDocument
    */
   toQuery: (): IFArgsSearch => {
     const state = get();
-    const query = '';
+    const query = "";
     const filters: string[] = [];
 
     if (state.locations && state.locations.length > 0) {
@@ -597,13 +600,13 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     }
 
     if (state.amenities && state.amenities.length > 0) {
-      state.amenities.forEach(amenity => {
+      state.amenities.forEach((amenity) => {
         filters.push(`amenities:${amenity}`);
       });
     }
 
     if (state.homeInterest && state.homeInterest.length > 0) {
-      state.homeInterest.forEach(interest => {
+      state.homeInterest.forEach((interest) => {
         filters.push(`homeInterest:${interest}`);
       });
     }
@@ -618,7 +621,10 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       numericFilters.push(`priceMax<=${state.budget.price.priceMax}`);
     }
 
-    if (state.floorplanBed && (state.floorplanBed.min > 0 || state.floorplanBed.max > 0)) {
+    if (
+      state.floorplanBed &&
+      (state.floorplanBed.min > 0 || state.floorplanBed.max > 0)
+    ) {
       if (state.floorplanBed.min > 0) {
         numericFilters.push(`bedroomsMin>=${state.floorplanBed.min}`);
       }
@@ -627,7 +633,10 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       }
     }
 
-    if (state.floorplanBath && (state.floorplanBath.min > 0 || state.floorplanBath.max > 0)) {
+    if (
+      state.floorplanBath &&
+      (state.floorplanBath.min > 0 || state.floorplanBath.max > 0)
+    ) {
       if (state.floorplanBath.min > 0) {
         numericFilters.push(`bathroomsMin>=${state.floorplanBath.min}`);
       }
@@ -636,7 +645,10 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       }
     }
 
-    if (state.floorplanGarage && (state.floorplanGarage.min > 0 || state.floorplanGarage.max > 0)) {
+    if (
+      state.floorplanGarage &&
+      (state.floorplanGarage.min > 0 || state.floorplanGarage.max > 0)
+    ) {
       if (state.floorplanGarage.min > 0) {
         numericFilters.push(`garagesMin>=${state.floorplanGarage.min}`);
       }
@@ -669,10 +681,10 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     const searchParams =
       state.latitude !== undefined && state.longitude !== undefined
         ? {
-          latitude: state.latitude,
-          longitude: state.longitude,
-          aroundRadius: 5000,
-        }
+            latitude: state.latitude,
+            longitude: state.longitude,
+            aroundRadius: 5000,
+          }
         : undefined;
 
     const facetType = "objectType:community";
@@ -680,15 +692,14 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     return {
       query,
       facetType: facetType,
-      filters: filters.map(filter => filter),
+      filters: filters.map((filter) => filter),
       numericFilters,
       ...(searchParams && {
         searchParams: {
           aroundLatLng: `${searchParams.latitude}, ${searchParams.longitude}`,
-          aroundRadius: searchParams.aroundRadius
-        }
+          aroundRadius: searchParams.aroundRadius,
+        },
       }),
-
     };
   },
 
@@ -698,7 +709,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
    */
   toQueryLot: (): IFArgsSearch => {
     const state = get();
-    const query = '';
+    const query = "";
     const filters: string[] = [];
 
     // Filtros de ubicación
@@ -714,14 +725,14 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
 
     // Filtros de amenities (si aplican a lots)
     if (state.amenities && state.amenities.length > 0) {
-      state.amenities.forEach(amenity => {
+      state.amenities.forEach((amenity) => {
         filters.push(`amenities:${amenity}`);
       });
     }
 
     // Filtros de homeInterest (si aplican a lots)
     if (state.homeInterest && state.homeInterest.length > 0) {
-      state.homeInterest.forEach(interest => {
+      state.homeInterest.forEach((interest) => {
         filters.push(`homeInterest:${interest}`);
       });
     }
@@ -738,7 +749,10 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     }
 
     // Filtros de floorplan - Bedrooms
-    if (state.floorplanBed && (state.floorplanBed.min > 0 || state.floorplanBed.max > 0)) {
+    if (
+      state.floorplanBed &&
+      (state.floorplanBed.min > 0 || state.floorplanBed.max > 0)
+    ) {
       if (state.floorplanBed.min > 0) {
         numericFilters.push(`Bedrooms>=${state.floorplanBed.min}`);
       }
@@ -748,7 +762,10 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     }
 
     // Filtros de floorplan - Bathrooms
-    if (state.floorplanBath && (state.floorplanBath.min > 0 || state.floorplanBath.max > 0)) {
+    if (
+      state.floorplanBath &&
+      (state.floorplanBath.min > 0 || state.floorplanBath.max > 0)
+    ) {
       if (state.floorplanBath.min > 0) {
         numericFilters.push(`Bathrooms>=${state.floorplanBath.min}`);
       }
@@ -758,7 +775,10 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     }
 
     // Filtros de floorplan - Garages
-    if (state.floorplanGarage && (state.floorplanGarage.min > 0 || state.floorplanGarage.max > 0)) {
+    if (
+      state.floorplanGarage &&
+      (state.floorplanGarage.min > 0 || state.floorplanGarage.max > 0)
+    ) {
       if (state.floorplanGarage.min > 0) {
         numericFilters.push(`Garages>=${state.floorplanGarage.min}`);
       }
@@ -768,7 +788,10 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     }
 
     // Filtros de floorplan - Stories (levels)
-    if (state.floorplanLevel && (state.floorplanLevel.min > 0 || state.floorplanLevel.max > 0)) {
+    if (
+      state.floorplanLevel &&
+      (state.floorplanLevel.min > 0 || state.floorplanLevel.max > 0)
+    ) {
       if (state.floorplanLevel.min > 0) {
         numericFilters.push(`Stories>=${state.floorplanLevel.min}`);
       }
@@ -778,7 +801,10 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     }
 
     // Filtros de floorplan - SquareFeet
-    if (state.floorplanSqft && (state.floorplanSqft.min > 0 || state.floorplanSqft.max > 0)) {
+    if (
+      state.floorplanSqft &&
+      (state.floorplanSqft.min > 0 || state.floorplanSqft.max > 0)
+    ) {
       if (state.floorplanSqft.min > 0) {
         numericFilters.push(`SquareFeet>=${state.floorplanSqft.min}`);
       }
@@ -791,10 +817,10 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     const searchParams =
       state.latitude !== undefined && state.longitude !== undefined
         ? {
-          latitude: state.latitude,
-          longitude: state.longitude,
-          aroundRadius: 5000,
-        }
+            latitude: state.latitude,
+            longitude: state.longitude,
+            aroundRadius: 5000,
+          }
         : undefined;
 
     const facetType = "objectType:lot";
@@ -802,36 +828,34 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     return {
       query,
       facetType: facetType,
-      indexName: 'lots-gemini',
-      filters: filters.map(filter => filter),
+      indexName: "lots-gemini",
+      filters: filters.map((filter) => filter),
       numericFilters,
       ...(searchParams && {
         searchParams: {
           aroundLatLng: `${searchParams.latitude}, ${searchParams.longitude}`,
-          aroundRadius: searchParams.aroundRadius
-        }
+          aroundRadius: searchParams.aroundRadius,
+        },
       }),
     };
   },
 
   updateFilteredCommunities: async () => {
-
     const queryArgs = get().toQuery();
 
     const locs = get().locations;
 
-    
-    if(!locs || locs.length <= 0) {
+    if (!locs || locs.length <= 0) {
       set({ filteredCommunities: [] });
-      return
+      return;
     }
     //realizamos la consulta a la api de algolia
     const result = await queryDocument(queryArgs);
 
     const hits =
       Array.isArray(result) &&
-        result[0] &&
-        Array.isArray((result[0] as any).hits)
+      result[0] &&
+      Array.isArray((result[0] as any).hits)
         ? (result[0] as any).hits
         : [];
 
@@ -841,17 +865,16 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
   },
 
   updateFilteredFloorplans: async () => {
-
     const queryArgs = get().toQuery();
-    queryArgs.facetType = 'objectType:floorplan';
+    queryArgs.facetType = "objectType:floorplan";
 
     //realizamos la consulta a la api de algolia
     const result = await queryDocument(queryArgs);
 
     const hits =
       Array.isArray(result) &&
-        result[0] &&
-        Array.isArray((result[0] as any).hits)
+      result[0] &&
+      Array.isArray((result[0] as any).hits)
         ? (result[0] as any).hits
         : [];
 
@@ -859,41 +882,41 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
       set({ filteredFloorplans: hits });
     }
 
-    console.log('Filtered floorplans', hits.length);
-    console.log('Filtered floorplans result', JSON.stringify(result, null, 2));
+    console.log("Filtered floorplans", hits.length);
+    console.log("Filtered floorplans result", JSON.stringify(result, null, 2));
   },
 
   updateFilteredLots: async () => {
     const queryArgs = get().toQueryLot();
-   const { priceMax, priceMin } = get();
+    const { priceMax, priceMin } = get();
 
-   console.log(priceMax, priceMin);
+    console.log(priceMax, priceMin);
 
     //realizamos la consulta a la api de algolia
-    if(priceMax && priceMin) {
+    if (priceMax && priceMin) {
       const result = await queryLots({ priceMax, priceMin });
       const hits =
         Array.isArray(result) &&
-          result[0] &&
-          Array.isArray((result[0] as any).hits)
-          ? (result[0] as any).hits : [];
+        result[0] &&
+        Array.isArray((result[0] as any).hits)
+          ? (result[0] as any).hits
+          : [];
 
       if (Array.isArray(hits) || hits.length > 0) {
         set({ filteredLots: hits });
       }
 
-      console.log('Filtered lots', hits.length);
-      console.log('Filtered lots result', JSON.stringify(result, null, 2));
+      console.log("Filtered lots", hits.length);
+      console.log("Filtered lots result", JSON.stringify(result, null, 2));
     } else {
       set({ filteredLots: [] });
     }
-
   },
 
   // getCommunitiesFromGeoLocation: async (): Promise<any> => {
   //   const response = await client.searchSingleIndex({
   //     indexName: 'community-by-AI',
-      
+
   //     searchParams: { aroundLatLng: `${get().latitude}, ${get().longitude}`, aroundRadius: 100000, hitsPerPage: 2 },
   //   });
   //   console.log('Response from communities from geo location', response);
@@ -919,16 +942,18 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
    */
   suggest: () => {
     const state = get();
+    const lng = state.lang;
 
     const buildSuggest = (
-      prompt: string,
-      primaryTool: string,
+      key: string,
+      primaryTool: string
     ): IFSuggestResponse => {
+      const text = tSuggestions(key, lng) as string;
 
       return {
         missing: null,
-        suggestion: prompt,
-        nextTool: primaryTool
+        suggestion: text,
+        nextTool: primaryTool,
       };
     };
 
@@ -936,7 +961,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     if (!state.name) {
       return {
         missing: "name",
-        suggestion: suggestionPrompts.suggestionName,
+        suggestion: tSuggestions("suggestionName", lng) as string,
         nextTool: "getName",
       };
     }
@@ -944,7 +969,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     if (!state.locations || state.locations.length === 0) {
       return {
         missing: "location",
-        suggestion: suggestionPrompts.suggestionLocation,
+        suggestion: tSuggestions("suggestionLocation", lng) as string,
         nextTool: "getLocations",
       };
     }
@@ -952,142 +977,111 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
     // Si tiene todas las propiedades principales, validar adicionales y sugerir
     // Validar propiedades adicionales en orden de prioridad
     if (state.locations.length > 0 && state.name) {
-
       if (
         !state.budget?.price &&
         state.priceMin !== undefined &&
         state.priceMax !== undefined
       ) {
+        const priceMinStr = state.priceMin.toString();
+        const priceMaxStr = state.priceMax.toString();
 
         return {
           missing: "budget",
-          suggestion: `${suggestionPrompts.suggestionBudget
-            } y un rango de precios entre ${state.priceMin.toLocaleString()} y ${state.priceMax.toLocaleString()}`,
+          suggestion: tSuggestions("suggestionBudgetWithRange", lng, {
+            priceMin: priceMinStr,
+            priceMax: priceMaxStr,
+          }) as string,
           nextTool: "getBudget",
         };
-
       }
 
       if (!state.amenities) {
-        return buildSuggest(
-          suggestionPrompts.suggestionAnemities,
-          "getAmenities"
-        );
+        return buildSuggest("suggestionAnemities", "getAmenities");
       }
 
       if (!state.interestFindHome) {
         return buildSuggest(
-          suggestionPrompts.suggestionInterestFindHome,
+          "suggestionInterestFindHome",
           "getInterestFindHome"
         );
       }
 
       if (state.customizing === null) {
-        return buildSuggest(
-          suggestionPrompts.suggestionCustomizing,
-          "getCustomizing"
-        );
+        return buildSuggest("suggestionCustomizing", "getCustomizing");
       }
 
       if (state.moveInReady === null) {
-        return buildSuggest(
-          suggestionPrompts.suggestionMoveInReady,
-          "getMoveInReady"
-        );
+        return buildSuggest("suggestionMoveInReady", "getMoveInReady");
       }
 
       if (state.renting === null) {
-        return buildSuggest(
-          suggestionPrompts.suggestionRenting,
-          "getRenting"
-        );
+        return buildSuggest("suggestionRenting", "getRenting");
       }
 
       if (
         !state.floorplanBed ||
         (state.floorplanBed.min === 0 && state.floorplanBed.max === 0)
       ) {
-        return buildSuggest(
-          suggestionPrompts.suggestionFloorplanBed,
-          "getFloorplanBed"
-        );
+        return buildSuggest("suggestionFloorplanBed", "getFloorplanBed");
       }
 
       if (
         !state.floorplanBath ||
         (state.floorplanBath.min === 0 && state.floorplanBath.max === 0)
       ) {
-        return buildSuggest(
-          suggestionPrompts.suggestionFloorplanBath,
-          "getFloorplanBath"
-        );
+        return buildSuggest("suggestionFloorplanGarage", "getFloorplanGarage");
       }
 
       if (
         !state.floorplanGarage ||
         (state.floorplanGarage.min === 0 && state.floorplanGarage.max === 0)
       ) {
-        return buildSuggest(
-          suggestionPrompts.suggestionFloorplanGarage,
-          "getFloorplanGarage"
-        );
+        return buildSuggest("suggestionFloorplanLevel", "getFloorplanLevel");
       }
 
       if (
         !state.floorplanLevel ||
         (state.floorplanLevel.min === 0 && state.floorplanLevel.max === 0)
       ) {
-        return buildSuggest(
-          suggestionPrompts.suggestionFloorplanLevel,
-          "getFloorplanLevel"
-        );
+        return buildSuggest("suggestionFloorplanSqft", "getFloorplanSqft");
       }
 
       if (
         !state.floorplanSqft ||
         (state.floorplanSqft.min === 0 && state.floorplanSqft.max === 0)
       ) {
-        return buildSuggest(
-          suggestionPrompts.suggestionFloorplanSqft,
-          "getFloorplanSqft"
-        );
+        return buildSuggest("suggestionHomeInterest", "getInterestedHome");
       }
 
       if (!state.homeInterest || state.homeInterest.length === 0) {
-        return buildSuggest(
-          suggestionPrompts.suggestionHomeInterest,
-          "getInterestedHome"
-        );
+         return buildSuggest("suggestionHomeInterest", "getInterestedHome");
       }
 
       if (!state.interestRateType) {
-        return buildSuggest(
-          suggestionPrompts.suggestionInterestRateType,
-          "getInterestRateType"
-        );
+        return buildSuggest("suggestionInterestRateType", "getInterestRateType");
       }
     }
 
     // Si tiene toda la información
     return {
       missing: null,
-      suggestion: '',
-      nextTool: '',
+      suggestion: "",
+      nextTool: "",
     };
   },
-
+  setLang: (lang: "en" | "es") => set({ lang })
   /**
    * Función searchWithGoogleMaps: Realiza una búsqueda con Google Maps Grounding usando Gemini API
-   * 
+   *
    * Esta función utiliza la funcionalidad de Google Maps Grounding de Gemini para proporcionar
    * respuestas precisas y basadas en ubicación utilizando los datos de Google Maps.
-   * 
+   *
    * @param {string} query - La consulta del usuario relacionada con ubicación (ej: "What are the best Italian restaurants within a 15-minute walk from here?")
    * @param {Object} options - Opciones opcionales para la búsqueda
    * @param {string} options.model - Modelo de Gemini a usar (por defecto: "gemini-2.5-flash")
    * @param {number} options.latitude - Latitud opcional (si no se proporciona, usa la del store)
    * @param {number} options.longitude - Longitud opcional (si no se proporciona, usa la del store)
-   * 
+   *
    * @returns {Promise<Object>} Objeto con:
    * - text: La respuesta generada por Gemini
    * - groundingMetadata: Metadatos de grounding con información de Google Maps:
@@ -1096,7 +1090,7 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
    *     - maps.uri: URI del lugar en Google Maps
    *     - maps.placeId: ID del lugar
    *     - maps.googleMapsWidgetContextToken: Token para renderizar widgets de Google Maps
-   * 
+   *
    * @example
    * const result = await store.searchWithGoogleMaps(
    *   "What are the best Italian restaurants within a 15-minute walk from here?",
@@ -1208,8 +1202,6 @@ export const sessionStore = createStore<SessionStore>()((set, get) => ({
   //   //   // throw error;
   //   // }
   // },
-
-
 }));
 
 // Subscribe para debugging (opcional)

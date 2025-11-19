@@ -1,5 +1,6 @@
 export type InterestRate = "fha_30" | "conventional_30" | null;
 
+export type Lang = "es" | "en";
 export interface IFLocation {
   state: string;
   location?: string;

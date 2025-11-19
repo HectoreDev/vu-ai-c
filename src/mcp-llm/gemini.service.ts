@@ -1,10 +1,14 @@
 import { createSuggestPrompt } from "../prompts/prompts";
 import { cleanModelText } from "../utils/cleanModelText";
-import { model } from "./gemini.config";
+import { tPrompts } from "../controllers/i18n";
+import { createChatModel } from "./gemini.config";
 import { mcpServer } from "./mcp.server";
 import { Part } from "@google/genai";
+import { sessionStore } from "../store/zustandStore";
+import { Lang } from "../types/types";
+import { createToolSchema } from "../tools/agent.tools";
 
-interface IFHistory {
+export interface IFHistory {
   role: "user" | "model";
   parts: Part[];
 }
@@ -13,10 +17,28 @@ export class GeminiService {
   async chatWithTools(
     message: string,
     history: IFHistory[],
+    lang: Lang,
     sessionId?: number
   ) {
+    const { setLang } = sessionStore.getState();
+
+    setLang(lang);
+
+    const model = createChatModel(lang, history);
+
+    const toolSchema = createToolSchema(lang);
+
+    const tools = Object.values(toolSchema);
+
     const response1 = await model.sendMessage({
       message: message,
+      config: {
+        tools: [
+          {
+            functionDeclarations: tools,
+          },
+        ],
+      },
     });
 
     if (response1.promptFeedback?.blockReason) {
@@ -24,7 +46,7 @@ export class GeminiService {
         history,
         message: [
           {
-            text: "Lo sentimos, tu petición no pudo ser procesada. Intenta de nuevo más tarde.",
+            text: tPrompts("errors.blockReason", lang) as string,
           },
         ],
         sessionId: "",
@@ -58,17 +80,21 @@ export class GeminiService {
         },
       });
 
-			const hasPhytonError =
-				resultMCP.candidates?.[0]?.content?.parts?.length === 0 || resultMCP.candidates?.[0]?.content?.parts?.[0].text === undefined || resultMCP.candidates?.[0]?.content?.parts?.[0].text.includes("tool_code") ? true : false;
+      const hasPhytonError =
+        resultMCP.candidates?.[0]?.content?.parts?.length === 0 ||
+        resultMCP.candidates?.[0]?.content?.parts?.[0].text === undefined ||
+        resultMCP.candidates?.[0]?.content?.parts?.[0].text.includes(
+          "tool_code"
+        )
+          ? true
+          : false;
 
-			console.log("hasPhytonError", hasPhytonError);
+      console.log("hasPhytonError", hasPhytonError);
 
       if (resultMCP.promptFeedback?.blockReason || hasPhytonError) {
         return {
           history,
-          message: [
-            "Lo sentimos, tu petición no pudo ser procesada. Intenta de nuevo más tarde.",
-          ],
+          message: [tPrompts("errors.unexpected", lang) as string],
           sessionId: "",
         };
       }
@@ -81,6 +107,7 @@ export class GeminiService {
       const raw = resultMCP.candidates?.[0]?.content?.parts?.[0].text ?? "";
       const rawCleaned = cleanModelText(raw);
       const jsonOnly = JSON.parse(rawCleaned.replace(/\[END\]$/i, "").trim());
+      console.log("res uno");
 
       return {
         message: jsonOnly || [],
@@ -96,6 +123,7 @@ export class GeminiService {
           stopSequences: ["[END]"],
         },
       });
+      console.log("res dos");
 
       history.push({
         role: "model",

@@ -1,4 +1,5 @@
 import { sessionStore } from "../store/zustandStore";
+import { tPrompts, tSuggestions } from "../controllers/i18n";
 
 const sessionIdSuggest = `Requiere sessionId. Si no está presente, continua con la tool y sugiere preguntar el nombre del usuario.`;
 
@@ -106,90 +107,156 @@ export const suggestionPrompts = {
   suggestionSearhCommunity: "o solicita si quiere que busque comunidades",
   suggestionComplete:
     "Toda la información está completa. Puedes mostrar resultados o buscar información específica de comunidades",
-  suggestionPerfectMatch: 
-    "- Se te ha brindado información acerca de un lote con el precio perfecto, específica que ese loto coincide perfectamente con su búsqueda y suguiere que puedes mostrarle más información acerca de ese lote, los planes y la comunidad. Y después dale la opción de que puede buscar por más comunidades, pero esto después de que le haz dejado en claro que coincide con sus preferencias de ubicación y presupuesto"
+  suggestionPerfectMatch:
+    "- Se te ha brindado información acerca de un lote con el precio perfecto, específica que ese loto coincide perfectamente con su búsqueda y suguiere que puedes mostrarle más información acerca de ese lote, los planes y la comunidad. Y después dale la opción de que puede buscar por más comunidades, pero esto después de que le haz dejado en claro que coincide con sus preferencias de ubicación y presupuesto",
 };
 
 export const createHandleError = (error: unknown, nameTool: string) => {
-  const errorPrompt = `
-  INSTRUCCIONES (NO MOSTRAR):
-   - Ocurrió un error al ejecutar la herramienta ${nameTool}: ${
-    (error as Error).message
-  }
-   - Por favor, informa al usuario que hubo un problema técnico y que estamos trabajando para solucionarlo.
-   - No intentes ejecutar más herramientas hasta que el problema se haya resuelto.
-  `;
+  const state = sessionStore.getState();
+  const lng = state.lang;
+
+  const message = (error as Error).message ?? "Unknown error";
+
+  const header = tPrompts("errorHeader", lng);
+  const occurred = tPrompts("errorOccurred", lng, { tool: nameTool, message });
+  const tellUser = tPrompts("errorTellUser", lng);
+  const stopTools = tPrompts("errorStopTools", lng);
+
+  const systemInstruction =
+    `${header}\n` + `- ${occurred}\n` + `- ${tellUser}\n` + `- ${stopTools}`;
 
   return {
     isError: true,
-    message: "Error executing tool: " + (error as Error).message,
-    systemInstruction: errorPrompt,
+    message: `Error executing tool: ${message}`,
+    systemInstruction,
   };
 };
 
+// export const createHandleError = (error: unknown, nameTool: string) => {
+//   const errorPrompt = `
+//   INSTRUCCIONES (NO MOSTRAR):
+//    - Ocurrió un error al ejecutar la herramienta ${nameTool}: ${
+//     (error as Error).message
+//   }
+//    - Por favor, informa al usuario que hubo un problema técnico y que estamos trabajando para solucionarlo.
+//    - No intentes ejecutar más herramientas hasta que el problema se haya resuelto.
+//   `;
+
+//   return {
+//     isError: true,
+//     message: "Error executing tool: " + (error as Error).message,
+//     systemInstruction: errorPrompt,
+//   };
+// };
+
 export const createSuggestPrompt = () => {
-  const { communities, priceMin, filteredLots } = sessionStore.getState();
+  const { communities, filteredLots, lang } = sessionStore.getState();
+
   const suggestion = sessionStore.getState().suggest();
 
-  const suggest =
-    suggestion.suggestion && `- [Suggest] ${suggestion.suggestion}`;
+  if (!suggestion || !suggestion.suggestion) {
+    return "";
+  }
 
-  const hasCommunities =
+  const suggestLine = `- [Suggest] ${suggestion.suggestion}`;
+
+  const hasCommunitiesLine =
     Array.isArray(communities) && communities.length > 0
-      ? `- Puedes sugerir datos especificos de las comunidades sin inventar, pero siempre tienes que preguntar el [Suggest]`
+      ? tSuggestions("suggestHasCommunities", lang)
       : "";
 
-  const hasPerfectMatch = filteredLots && filteredLots.length > 0 ? suggestionPrompts.suggestionPerfectMatch : '';
+  const hasPerfectMatchLine =
+    filteredLots && filteredLots.length > 0
+      ? tSuggestions("suggestionPerfectMatch", lang)
+      : "";
 
-  console.log('filteredLots', filteredLots ,hasPerfectMatch)
+  const header = tSuggestions("suggestHeader", lang);
+  const askOnlyField = tSuggestions("suggestAskOnlyField", lang);
+  const noInvent = tSuggestions("suggestNoInvent", lang);
+  const outputBlock = tSuggestions("suggestOutputBlock", lang);
+  const dataContract = tSuggestions("suggestDataContract", lang);
+  const restrictions = tSuggestions("suggestRestrictions", lang);
+  const endSection = tSuggestions("suggestEndSection", lang);
 
-  if (!suggest) {
-    return ``;
-  }
-
-  return `
- INSTRUCCIONES (NO MOSTRAR):
-
- - Pregunta SOLO por ese dato, tono cordial y por su nombre o amigo.
- - PROHIBIDO inventar, solo formular pregunta que este asociada con el suggest.
- ${suggest}
- ${hasPerfectMatch ? hasPerfectMatch : hasCommunities}
- [OUTPUT — FORMATO OBLIGATORIO]
-Debes responder **exclusivamente** con un **JSON válido** (sin Markdown, sin backticks, sin fences) con esta estructura de **array de 3 elementos exactos**:
-[
-  "<comentario>",
-  "<pregunta>",
-  {
-  <data para ui pregunta o datos>
-  }
-]
-
-[DATA CONTRACT]
-- En "data.budget" incluye SIEMPRE:
-  { "priceMin": <number>, "priceMax": <number> }
-- NUNCA formatees moneda ni agregues símbolos; SOLO números.
-- Si recibes contexto de lotes (lotsContext:true), incluye "data.prefill.lots" con la información del lote y dile que puedes mostrarle más información sobre ese lote específico:
-- Si recibes contexto de comunidades (communitiesContext:true), incluye "data.prefill.communities" con un arreglo de hasta 3 objetos:
-  { "id": string, "name": string, "city": string, "state": string, "priceMin": number, "priceMax": number }
-- Si no hay contexto de comunidades o lotes, omite "data.prefill".
-
-RESTRICCIONES DURO/DURO:
-- PROHIBIDO usar cualquier bloque de código, backticks o Markdown.
-- PROHIBIDO incluir tool_code, print(), o pseudo-código.
-- PROHIBIDO añadir campos fuera de lo descrito.
-- Si no estás 100% seguro de los datos, pregunta primero.
-
-
-[FIN DE MENSAJE]
-Siempre termina el arreglo con la marca textual [END] como cuarto elemento fuera del JSON. Ejemplo:
-[
-  "Listo, amigo 😄",
-  "¿Te gustaría que busque comunidades ahora?",
-  { data }
-]
-[END]
-  `;
+  return [
+    header,
+    "",
+    askOnlyField,
+    noInvent,
+    suggestLine,
+    hasPerfectMatchLine || hasCommunitiesLine,
+    "",
+    outputBlock,
+    dataContract,
+    "",
+    restrictions,
+    "",
+    endSection,
+  ].join("\n");
 };
+
+// export const createSuggestPrompt = () => {
+//   const { communities, priceMin, filteredLots } = sessionStore.getState();
+//   const suggestion = sessionStore.getState().suggest();
+
+//   const suggest =
+//     suggestion.suggestion && `- [Suggest] ${suggestion.suggestion}`;
+
+//   const hasCommunities =
+//     Array.isArray(communities) && communities.length > 0
+//       ? `- Puedes sugerir datos especificos de las comunidades sin inventar, pero siempre tienes que preguntar el [Suggest]`
+//       : "";
+
+//   const hasPerfectMatch = filteredLots && filteredLots.length > 0 ? suggestionPrompts.suggestionPerfectMatch : '';
+
+//   console.log('filteredLots', filteredLots ,hasPerfectMatch)
+
+//   if (!suggest) {
+//     return ``;
+//   }
+
+//   return `
+//  INSTRUCCIONES (NO MOSTRAR):
+
+//  - Pregunta SOLO por ese dato, tono cordial y por su nombre o amigo.
+//  - PROHIBIDO inventar, solo formular pregunta que este asociada con el suggest.
+//  ${suggest}
+//  ${hasPerfectMatch ? hasPerfectMatch : hasCommunities}
+//  [OUTPUT — FORMATO OBLIGATORIO]
+// Debes responder **exclusivamente** con un **JSON válido** (sin Markdown, sin backticks, sin fences) con esta estructura de **array de 3 elementos exactos**:
+// [
+//   "<comentario>",
+//   "<pregunta>",
+//   {
+//   <data para ui pregunta o datos>
+//   }
+// ]
+
+// [DATA CONTRACT]
+// - En "data.budget" incluye SIEMPRE:
+//   { "priceMin": <number>, "priceMax": <number> }
+// - NUNCA formatees moneda ni agregues símbolos; SOLO números.
+// - Si recibes contexto de lotes (lotsContext:true), incluye "data.prefill.lots" con la información del lote y dile que puedes mostrarle más información sobre ese lote específico:
+// - Si recibes contexto de comunidades (communitiesContext:true), incluye "data.prefill.communities" con un arreglo de hasta 3 objetos:
+//   { "id": string, "name": string, "city": string, "state": string, "priceMin": number, "priceMax": number }
+// - Si no hay contexto de comunidades o lotes, omite "data.prefill".
+
+// RESTRICCIONES DURO/DURO:
+// - PROHIBIDO usar cualquier bloque de código, backticks o Markdown.
+// - PROHIBIDO incluir tool_code, print(), o pseudo-código.
+// - PROHIBIDO añadir campos fuera de lo descrito.
+// - Si no estás 100% seguro de los datos, pregunta primero.
+
+// [FIN DE MENSAJE]
+// Siempre termina el arreglo con la marca textual [END] como cuarto elemento fuera del JSON. Ejemplo:
+// [
+//   "Listo, amigo 😄",
+//   "¿Te gustaría que busque comunidades ahora?",
+//   { data }
+// ]
+// [END]
+//   `;
+// };
 
 // [TOOLS & STATE]
 // - Para **leer o guardar información** SIEMPRE utiliza las tools disponibles.
