@@ -10,6 +10,8 @@ export default {
     env: any,
     ctx: ExecutionContext
   ): Promise<Response> {
+    console.log("DEV page");
+    
     if (request.method === "OPTIONS") {
       return new Response(null, {
         status: 204,
