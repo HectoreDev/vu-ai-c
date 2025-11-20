@@ -10,7 +10,7 @@ export default {
     env: any,
     ctx: ExecutionContext
   ): Promise<Response> {
-    console.log("DEV in page in");
+    console.log("DEV page");
     
     if (request.method === "OPTIONS") {
       return new Response(null, {
