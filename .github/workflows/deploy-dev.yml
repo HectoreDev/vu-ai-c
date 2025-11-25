@@ -2,12 +2,14 @@ name: Deploy Worker (Dev)
 
 on:
   push:
-    branches:
-      - dev
+    branches: ["dev"]
+     
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    name: Deploy to Cloudflare (dev)
+    environment: dev
 
     steps:
       - name: Checkout code
@@ -16,7 +18,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Install deps
         run: npm install
